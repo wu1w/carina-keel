@@ -14,6 +14,14 @@ export function t(key: MessageKey, lang: CarinaLang): string {
 }
 
 /**
+ * zh: 判断字符串是否为词表 key。
+ * en: Whether a string is a catalog key.
+ */
+export function isMessageKey(key: string): key is MessageKey {
+  return Object.hasOwn(zh, key);
+}
+
+/**
  * zh: 中英词表（给静态页注入）。
  * en: Both catalogs for injecting into the static page.
  */
