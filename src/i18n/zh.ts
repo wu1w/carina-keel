@@ -1,0 +1,44 @@
+/**
+ * zh: 中文词表。key 必须与 en.ts 完全一致。
+ * en: Chinese copy. Keys must match en.ts exactly.
+ */
+export const zh = {
+  "cli.help": "龙骨：生成式世界的类 Agent 层。",
+  "cli.new": "创建世界包",
+  "cli.serve": "启动本机 daemon",
+  "cli.chat": "与管家对话",
+  "cli.query": "查询图谱",
+  "cli.spawn": "生成地点、人物或物品",
+  "cli.relate": "添加或撤销边",
+  "cli.export": "导出世界包",
+  "cli.mcp": "以 stdio 启动 MCP",
+  "cli.packArg": "世界包路径",
+  "cli.destArg": "导出目标路径",
+  "cli.listening": "daemon 已监听",
+  "cli.chatFallback": "TTY 不可用时请打开浏览器访问",
+  "chat.title": "龙骨管家",
+  "chat.placeholder": "对世界说话…",
+  "chat.send": "发送",
+  "mcp.look": "查看当前地点。Look at the current place.",
+  "mcp.go": "前往一个地点。Move the player to a place.",
+  "mcp.say": "对视野内人物说话。Speak to an entity in view.",
+  "mcp.remember": "把事实写入长期记忆。Promote a durable fact.",
+  "mcp.spawn": "创建地点、人物或物品。Spawn a place, entity, or object.",
+  "mcp.relate": "添加或撤销关系。Add or retract an edge.",
+  "mcp.attach": "把文件绑到节点。Attach a file to a node.",
+  "mcp.export": "导出可迁移的世界包。Export a portable world pack.",
+  "error.packNotFound": "找不到世界包。",
+  "error.packInvalid": "世界包损坏或版本不支持。",
+  "error.sandbox": "路径超出世界包。",
+  "error.unknownTool": "未知工具。",
+  "error.toolInput": "工具参数无效。",
+  "error.graphInvalid": "图谱无法解析。",
+  "error.sessionInvalid": "会话文件无效。",
+  "error.notFound": "节点或地点不存在。",
+  "error.unauthorized": "鉴权失败。",
+  "error.config": "配置无效。",
+  "error.exportFailed": "导出失败。",
+  "error.internal": "内部错误。",
+} as const;
+
+export type MessageKey = keyof typeof zh;
