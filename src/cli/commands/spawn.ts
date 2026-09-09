@@ -18,9 +18,9 @@ export const spawnCommand = defineCommand({
   },
   args: {
     pack: {
-      type: "string",
+      type: "positional",
       description: t("cli.packArg", lang),
-      alias: "p",
+      required: false,
     },
     type: {
       type: "enum",
@@ -63,6 +63,9 @@ export const spawnCommand = defineCommand({
       }
       const result = await executeTool("spawn", input, ctx);
       console.log(result.summary);
+      if (result.data !== undefined) {
+        console.log(JSON.stringify(result.data, null, 2));
+      }
     });
   },
 });

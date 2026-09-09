@@ -33,9 +33,9 @@ export const queryCommand = defineCommand({
   },
   args: {
     pack: {
-      type: "string",
+      type: "positional",
       description: t("cli.packArg", lang),
-      alias: "p",
+      required: false,
     },
     id: {
       type: "string",

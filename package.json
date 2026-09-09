@@ -12,7 +12,7 @@
   "scripts": {
     "carina": "tsx src/cli/main.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/**/*.test.ts src/**/*.test.ts",
+    "test": "tsx --test src/**/*.test.ts",
     "build": "tsc"
   },
   "license": "MIT",

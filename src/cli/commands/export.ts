@@ -18,15 +18,15 @@ export const exportCommand = defineCommand({
     description: t("cli.export", lang),
   },
   args: {
+    pack: {
+      type: "positional",
+      description: t("cli.packArg", lang),
+      required: false,
+    },
     dest: {
       type: "positional",
       description: t("cli.destArg", lang),
       required: true,
-    },
-    pack: {
-      type: "string",
-      description: t("cli.packArg", lang),
-      alias: "p",
     },
   },
   async run({ args }) {
