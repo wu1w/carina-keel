@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="chat.title"></title>
+    <style>
+      :root {
+        --bg: #1b1712;
+        --paper: #f4ead6;
+        --ink: #1b1712;
+        --muted: #5c5146;
+        --accent: #8c2f12;
+        --line: #d7c4a3;
+        --focus: #2b6a4a;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #2a2118;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC",
+          "Source Han Serif SC", serif;
+        background: radial-gradient(
+          1200px 600px at 10% -10%,
+          #3a2a1c,
+          var(--bg)
+        );
+        color: var(--ink);
+      }
+      .shell {
+        display: flex;
+        flex-direction: column;
+        max-width: 42rem;
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--paper);
+        box-shadow:
+          0 0 0 1px #0003,
+          0 24px 60px #0006;
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem 0.75rem;
+        border-bottom: 1px solid var(--line);
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 650;
+        letter-spacing: 0.02em;
+      }
+      nav {
+        display: flex;
+        gap: 0.35rem;
+      }
+      nav button {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      nav button[aria-pressed="true"] {
+        background: var(--ink);
+        color: var(--paper);
+        border-color: var(--ink);
+      }
+      main {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+      }
+      #log {
+        flex: 1;
+        margin: 0;
+        padding: 1rem 1.5rem 0.5rem;
+        overflow: auto;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+      #log:empty {
+        display: none;
+      }
+      #empty {
+        margin: 2.5rem 1.5rem;
+        color: var(--muted);
+      }
+      .shell.has-messages #empty {
+        display: none;
+      }
+      .msg {
+        max-width: 92%;
+      }
+      .msg .who {
+        display: block;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.2rem;
+      }
+      .msg .body {
+        white-space: pre-wrap;
+        line-height: 1.45;
+      }
+      .msg.user {
+        align-self: flex-end;
+      }
+      .msg.steward {
+        align-self: flex-start;
+      }
+      #error {
+        margin: 0 1.5rem 0.5rem;
+        color: var(--accent);
+      }
+      form {
+        display: grid;
+        gap: 0.5rem;
+        padding: 0.9rem 1.5rem 1.25rem;
+        border-top: 1px solid var(--line);
+        background: #efe1c8;
+      }
+      label {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      textarea {
+        width: 100%;
+        min-height: 4.5rem;
+        resize: vertical;
+        font: inherit;
+        padding: 0.65rem 0.75rem;
+        border: 1px solid var(--line);
+        background: #fffaf1;
+        color: var(--ink);
+        border-radius: 0.3rem;
+      }
+      button:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+      }
+      form button[type="submit"] {
+        justify-self: end;
+        appearance: none;
+        border: 0;
+        background: var(--accent);
+        color: #fff8ee;
+        font: inherit;
+        padding: 0.45rem 1.1rem;
+        border-radius: 0.3rem;
+        cursor: pointer;
+      }
+      form button[type="submit"]:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--CARINA_BOOT-->
+    <div class="shell">
+      <header>
+        <h1 data-i18n="chat.title"></h1>
+        <nav aria-label="" data-i18n-aria="chat.language">
+          <button type="button" data-lang="zh">中文</button>
+          <button type="button" data-lang="en">English</button>
+        </nav>
+      </header>
+      <main>
+        <p id="empty" data-i18n="chat.empty"></p>
+        <ol id="log" aria-live="polite"></ol>
+        <p id="error" hidden role="alert"></p>
+        <form id="composer">
+          <label for="message" data-i18n="chat.placeholder"></label>
+          <textarea
+            id="message"
+            name="message"
+            rows="3"
+            required
+            data-i18n-placeholder="chat.placeholder"
+          ></textarea>
+          <button type="submit" data-i18n="chat.send"></button>
+        </form>
+      </main>
+    </div>
+    <script>
+      (function () {
+        const bootEl = document.getElementById("carina-boot");
+        const boot = JSON.parse(bootEl ? bootEl.textContent : "{}");
+        const catalogs = boot.catalogs || { zh: {}, en: {} };
+        let lang = boot.lang === "en" ? "en" : "zh";
+        const token = typeof boot.token === "string" ? boot.token : "";
+        const logEl = document.getElementById("log");
+        const emptyEl = document.getElementById("empty");
+        const errorEl = document.getElementById("error");
+        const form = document.getElementById("composer");
+        const input = document.getElementById("message");
+        const sendBtn = form.querySelector("button[type=submit]");
+        const shell = document.querySelector(".shell");
+
+        function table() {
+          return catalogs[lang] || catalogs.zh || {};
+        }
+
+        function t(key) {
+          const value = table()[key];
+          return typeof value === "string" ? value : key;
+        }
+
+        function applyI18n() {
+          document.documentElement.lang = lang;
+          document.querySelectorAll("[data-i18n]").forEach(function (el) {
+            const key = el.getAttribute("data-i18n");
+            el.textContent = t(key);
+          });
+          document
+            .querySelectorAll("[data-i18n-placeholder]")
+            .forEach(function (el) {
+              el.setAttribute(
+                "placeholder",
+                t(el.getAttribute("data-i18n-placeholder")),
+              );
+            });
+          document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
+            el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria")));
+          });
+          document.title = t("chat.title");
+          document.querySelectorAll("nav [data-lang]").forEach(function (btn) {
+            btn.setAttribute(
+              "aria-pressed",
+              elLang(btn) === lang ? "true" : "false",
+            );
+          });
+        }
+
+        function elLang(btn) {
+          return btn.getAttribute("data-lang");
+        }
+
+        function showError(text) {
+          errorEl.hidden = !text;
+          errorEl.textContent = text || "";
+        }
+
+        function appendMessage(role, text) {
+          shell.classList.add("has-messages");
+          const li = document.createElement("li");
+          li.className = "msg " + role;
+          const who = document.createElement("span");
+          who.className = "who";
+          who.textContent = role === "user" ? t("cli.you") : t("cli.steward");
+          const body = document.createElement("div");
+          body.className = "body";
+          body.textContent = text;
+          li.appendChild(who);
+          li.appendChild(body);
+          logEl.appendChild(li);
+          li.scrollIntoView({ block: "end" });
+          return body;
+        }
+
+        async function readSse(response, onText) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let idx;
+            while ((idx = buffer.indexOf("\n\n")) !== -1) {
+              const raw = buffer.slice(0, idx);
+              buffer = buffer.slice(idx + 2);
+              const parsed = parseBlock(raw);
+              if (parsed.event === "error") {
+                let message = t("chat.error");
+                try {
+                  const data = JSON.parse(parsed.data);
+                  if (data && typeof data.message === "string")
+                    message = data.message;
+                } catch (e) {}
+                throw new Error(message);
+              }
+              if (parsed.event === "done") return;
+              if (parsed.event === "text" || parsed.event === "message") {
+                onText(decodeData(parsed.data));
+              }
+            }
+          }
+        }
+
+        function parseBlock(raw) {
+          let event = "message";
+          const dataLines = [];
+          raw.split("\n").forEach(function (line) {
+            if (line.startsWith("event:")) event = line.slice(6).trim();
+            else if (line.startsWith("data:"))
+              dataLines.push(line.slice(5).replace(/^\s/, ""));
+          });
+          return { event: event, data: dataLines.join("\n") };
+        }
+
+        function decodeData(data) {
+          if (!data) return "";
+          try {
+            const parsed = JSON.parse(data);
+            if (typeof parsed === "string") return parsed;
+          } catch (e) {}
+          return data;
+        }
+
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          void send();
+        });
+
+        input.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter" && !ev.shiftKey) {
+            ev.preventDefault();
+            form.requestSubmit();
+          }
+        });
+
+        document.querySelectorAll("nav [data-lang]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            lang = elLang(btn) === "en" ? "en" : "zh";
+            applyI18n();
+          });
+        });
+
+        async function send() {
+          const message = input.value.trim();
+          if (!message || sendBtn.disabled) return;
+          showError("");
+          appendMessage("user", message);
+          input.value = "";
+          sendBtn.disabled = true;
+          const stewardBody = appendMessage("steward", "");
+          try {
+            const res = await fetch("/v1/chat", {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                accept: "text/event-stream",
+                authorization: "Bearer " + token,
+              },
+              body: JSON.stringify({ message: message }),
+            });
+            if (!res.ok) {
+              let detail = t("chat.error");
+              try {
+                const payload = await res.json();
+                if (payload && typeof payload.message === "string")
+                  detail = payload.message;
+              } catch (e) {}
+              throw new Error(detail);
+            }
+            await readSse(res, function (chunk) {
+              stewardBody.textContent += chunk;
+            });
+            if (!stewardBody.textContent) stewardBody.textContent = "…";
+          } catch (err) {
+            showError(err && err.message ? err.message : t("chat.error"));
+            if (!stewardBody.textContent)
+              stewardBody.textContent = t("chat.error");
+          } finally {
+            sendBtn.disabled = false;
+            input.focus();
+          }
+        }
+
+        applyI18n();
+        input.focus();
+      })();
+    </script>
+  </body>
+</html>
