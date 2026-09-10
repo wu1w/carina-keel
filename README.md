@@ -44,6 +44,29 @@ CARINA_PACK=./tavern.carina pnpm carina mcp
 
 Env: `CARINA_API_KEY`, `CARINA_MODEL`, `CARINA_MODEL_BASE_URL`, `CARINA_TOKEN`, `CARINA_PORT` (default 18790), `CARINA_PACK`, `CARINA_LANG` (`zh` | `en`).
 
+If a sibling `*.carina/` already exists next to a zip, that live directory is opened and the zip is not extracted again.
+
+### Cursor MCP
+
+Same eight tools as `carina chat`. Add to `.cursor/mcp.json` (absolute paths):
+
+```json
+{
+  "mcpServers": {
+    "carina": {
+      "command": "pnpm",
+      "args": ["--dir", "/ABS/carina-keel", "carina", "mcp"],
+      "env": {
+        "CARINA_PACK": "/ABS/tavern.carina",
+        "CARINA_LANG": "zh"
+      }
+    }
+  }
+}
+```
+
+`CARINA_PACK` can be a `*.carina/` directory or a `*.carina.zip`. After `pnpm build`, `command` may be `node` with `args` `["/ABS/carina-keel/dist/cli/main.js", "mcp"]`.
+
 ## 中文
 
 ### 安装 / 运行
@@ -81,3 +104,26 @@ CARINA_PACK=./tavern.carina pnpm carina mcp
 ```
 
 环境变量：`CARINA_API_KEY`、`CARINA_MODEL`、`CARINA_MODEL_BASE_URL`、`CARINA_TOKEN`、`CARINA_PORT`（默认 18790）、`CARINA_PACK`、`CARINA_LANG`（`zh` 或 `en`）。
+
+若 zip 旁边已有 `*.carina/` 活目录，则打开该目录，不再解压 zip。
+
+### Cursor MCP
+
+与 `carina chat` 同一套八工具。写入项目 `.cursor/mcp.json`（路径用绝对路径）：
+
+```json
+{
+  "mcpServers": {
+    "carina": {
+      "command": "pnpm",
+      "args": ["--dir", "/ABS/carina-keel", "carina", "mcp"],
+      "env": {
+        "CARINA_PACK": "/ABS/tavern.carina",
+        "CARINA_LANG": "zh"
+      }
+    }
+  }
+}
+```
+
+`CARINA_PACK` 可以是 `*.carina/` 目录或 `*.carina.zip`。`pnpm build` 之后也可用 `node` + `["/ABS/carina-keel/dist/cli/main.js", "mcp"]`。

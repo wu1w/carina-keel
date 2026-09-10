@@ -112,3 +112,39 @@ test("story B openPack accepts a .carina.zip path", async (t) => {
   const memory = await readFile(join(fromZip.packDir, "MEMORY.md"), "utf8");
   assert.equal(memory.includes("The vase is broken."), true);
 });
+
+test("openPack zip does not extract over a live sibling pack", async (t) => {
+  const rootDir = await mkdtemp(join(tmpdir(), "carina-zip-live-"));
+  t.after(async () => {
+    await rm(rootDir, { recursive: true, force: true });
+  });
+  const packDir = join(rootDir, "harbor.carina");
+  await createPack(packDir, "en");
+  const seeded = await seedAndClose(packDir);
+  const zipPath = join(rootDir, "harbor.carina.zip");
+  await exportZip(await openPack(packDir), zipPath);
+
+  const live = await openPack(zipPath);
+  const liveStore = new WorldStore(live);
+  const liveCtx: ToolContext = {
+    store: liveStore,
+    renderer: new MockRenderer(),
+    exportZip,
+    packHandle: live,
+    lang: "en",
+  };
+  await executeTool(
+    "remember",
+    { fact: "The innkeeper learned the name William." },
+    liveCtx,
+  );
+
+  const again = await openPack(zipPath);
+  const memory = await readMarkdown(again, "MEMORY.md");
+  assert.equal(memory.includes("The vase is broken."), true);
+  assert.equal(
+    memory.includes("The innkeeper learned the name William."),
+    true,
+  );
+  assert.equal(again.session.placeId, seeded.placeId);
+});

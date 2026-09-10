@@ -1,6 +1,7 @@
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rmdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { unzipSync } from "fflate";
+import { ulid } from "ulid";
 import { CarinaError } from "../errors.js";
 import { assertPathInsidePack, assertSafePosixPath, isNodeErrno } from "./sandbox.js";
 
@@ -32,8 +33,8 @@ export function packDirFromZipPath(zipPath: string): string {
 }
 
 /**
- * zh: 把 zip 解到目录。条目必须是 POSIX 路径，禁止逃出目标目录。
- * en: Extract a zip into a directory. Entries must be POSIX paths and may not escape the dest.
+ * zh: 把 zip 解到空目录。条目必须是 POSIX 路径，禁止逃出目标；先写临时目录再改名。
+ * en: Extract a zip into an empty directory. Entries must be POSIX paths; write a temp dir then rename.
  */
 export async function importZip(
   zipPath: string,
@@ -56,17 +57,67 @@ export async function importZip(
   } catch (error) {
     throw new CarinaError("PACK_INVALID", "error.packInvalid", error);
   }
+  await assertDestIsVacant(resolvedDest);
+  const tempDir = path.join(
+    path.dirname(resolvedDest),
+    `.${path.basename(resolvedDest)}.${ulid()}.importing`,
+  );
   try {
-    await mkdir(resolvedDest, { recursive: true });
+    await mkdir(tempDir, { recursive: true });
     for (const posixPath of Object.keys(entries)) {
-      await writeZipEntry(resolvedDest, posixPath, entries[posixPath]);
+      await writeZipEntry(tempDir, posixPath, entries[posixPath]);
     }
+    await replaceVacantDirectory(tempDir, resolvedDest);
   } catch (error) {
+    await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
     if (error instanceof CarinaError) {
       throw error;
     }
     throw new CarinaError("PACK_INVALID", "error.packInvalid", error);
   }
+}
+
+/**
+ * zh: 目标必须不存在或为空目录，以免冲掉过夜世界。
+ * en: Dest must be missing or an empty directory so overnight worlds are not overwritten.
+ */
+async function assertDestIsVacant(destDir: string): Promise<void> {
+  try {
+    const info = await stat(destDir);
+    if (!info.isDirectory()) {
+      throw new CarinaError("PACK_INVALID", "error.packInvalid");
+    }
+    const entries = await readdir(destDir);
+    if (entries.length > 0) {
+      throw new CarinaError("PACK_INVALID", "error.packInvalid");
+    }
+  } catch (error) {
+    if (error instanceof CarinaError) {
+      throw error;
+    }
+    if (isNodeErrno(error, "ENOENT")) {
+      return;
+    }
+    throw new CarinaError("PACK_INVALID", "error.packInvalid", error);
+  }
+}
+
+/**
+ * zh: 删掉空的目标目录（若有），再把临时目录改名为目标。
+ * en: Remove an empty dest if present, then rename the temp directory into place.
+ */
+async function replaceVacantDirectory(
+  fromPath: string,
+  toPath: string,
+): Promise<void> {
+  try {
+    await rmdir(toPath);
+  } catch (error) {
+    if (!isNodeErrno(error, "ENOENT")) {
+      throw error;
+    }
+  }
+  await rename(fromPath, toPath);
 }
 
 /**

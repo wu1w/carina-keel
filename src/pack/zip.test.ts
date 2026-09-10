@@ -102,6 +102,27 @@ test("importZip and openPack accept a .carina.zip", async (t) => {
   assert.match(worldMd, /世界/);
 });
 
+test("importZip refuses a non-empty dest that is not a vacant folder", async (t) => {
+  const scratchDir = await mkdtemp(path.join(os.tmpdir(), "carina-zip-busy-"));
+  t.after(async () => {
+    await rm(scratchDir, { recursive: true, force: true });
+  });
+  const packDir = path.join(scratchDir, "tavern.carina");
+  await createPack(packDir, "zh");
+  const zipPath = path.join(scratchDir, "tavern.carina.zip");
+  await exportZip(await openPack(packDir), zipPath);
+  const destDir = path.join(scratchDir, "busy.carina");
+  await mkdir(destDir);
+  await writeFile(path.join(destDir, "keep.txt"), "nope\n", "utf8");
+  await assert.rejects(
+    () => importZip(zipPath, destDir),
+    (error: unknown) =>
+      error instanceof CarinaError && error.code === "PACK_INVALID",
+  );
+  const kept = await readFile(path.join(destDir, "keep.txt"), "utf8");
+  assert.equal(kept, "nope\n");
+});
+
 test("openPack rejects a zip whose entries escape the dest", async (t) => {
   const scratchDir = await mkdtemp(path.join(os.tmpdir(), "carina-badzip-"));
   t.after(async () => {

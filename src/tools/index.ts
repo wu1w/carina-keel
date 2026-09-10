@@ -3,4 +3,5 @@
  * en: The eight world tools. Outsiders enter only through this file.
  */
 export { executeTool } from "./execute.js";
+export { createToolContext } from "./create-tool-context.js";
 export type { ToolContext } from "./context.js";
