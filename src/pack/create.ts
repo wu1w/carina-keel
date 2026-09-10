@@ -102,20 +102,35 @@ function worldNameFromPackDir(packDir: string): string {
 }
 
 /**
- * zh: 从本仓 i18n 模板拷贝 Markdown（UTF-8、LF）。
- * en: Copy Markdown from this repo's i18n templates (UTF-8, LF).
+ * zh: 解析语言模板目录。tsx 用 src；编译后用 dist 拷贝或源树。
+ * en: Resolve the language template directory. tsx uses src; after tsc, dist copy or source tree.
+ */
+async function resolveTemplatesDir(lang: "zh" | "en"): Promise<string> {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.join(here, "..", "i18n", "templates", lang),
+    path.join(here, "..", "..", "src", "i18n", "templates", lang),
+  ];
+  for (const candidate of candidates) {
+    try {
+      await access(path.join(candidate, "WORLD.md"));
+      return candidate;
+    } catch {
+      continue;
+    }
+  }
+  throw new CarinaError("INTERNAL", "error.internal");
+}
+
+/**
+ * zh: 从本仓 i18n 模板拷贝 Markdown（UTF-8、LF）。tsx 走 src，tsc 走 dist 旁的拷贝或源树。
+ * en: Copy Markdown from this repo's i18n templates (UTF-8, LF). tsx uses src; tsc uses the dist copy or the source tree.
  */
 async function copyTemplates(
   packDir: string,
   lang: "zh" | "en",
 ): Promise<void> {
-  const templatesDir = path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "..",
-    "i18n",
-    "templates",
-    lang,
-  );
+  const templatesDir = await resolveTemplatesDir(lang);
   for (const fileName of MARKDOWN_FILES) {
     await copyTemplateFile(
       path.join(templatesDir, fileName),

@@ -23,14 +23,20 @@ pnpm carina --help
 pnpm carina new ./tavern.carina
 pnpm carina spawn ./tavern.carina --type Place --name Tavern
 # Copy the Place id from the output, then:
+pnpm carina go ./tavern.carina --placeId <place-id>
+pnpm carina look ./tavern.carina
+pnpm carina remember ./tavern.carina --fact "The vase is broken."
 pnpm carina query ./tavern.carina
 CARINA_PACK=./tavern.carina CARINA_TOKEN=dev-token pnpm carina serve
 # another terminal:
 CARINA_PACK=./tavern.carina CARINA_TOKEN=dev-token pnpm carina chat
 pnpm carina export ./tavern.carina ./tavern.carina.zip
+# another machine or directory:
+pnpm carina query ./tavern.carina.zip
+CARINA_PACK=./tavern.carina.zip CARINA_TOKEN=dev-token pnpm carina serve
 ```
 
-Chat talks to `POST /v1/chat` on `127.0.0.1` only. If TTY is unavailable, open the printed URL. MCP:
+`look` is plain text in phase 1 (`MockRenderer`). A `.carina.zip` unpacks beside itself into `.carina/` and then opens like a directory. Chat talks to `POST /v1/chat` on `127.0.0.1` only. If TTY is unavailable, open the printed URL. MCP:
 
 ```bash
 CARINA_PACK=./tavern.carina pnpm carina mcp
@@ -54,14 +60,21 @@ pnpm carina --help
 ```bash
 pnpm carina new ./tavern.carina
 pnpm carina spawn ./tavern.carina --type Place --name 酒馆
+# 从输出抄下 Place id，然后：
+pnpm carina go ./tavern.carina --placeId <place-id>
+pnpm carina look ./tavern.carina
+pnpm carina remember ./tavern.carina --fact "花瓶碎了。"
 pnpm carina query ./tavern.carina
 CARINA_PACK=./tavern.carina CARINA_TOKEN=dev-token pnpm carina serve
 # 另一终端：
 CARINA_PACK=./tavern.carina CARINA_TOKEN=dev-token pnpm carina chat
 pnpm carina export ./tavern.carina ./tavern.carina.zip
+# 换目录或换机器：
+pnpm carina query ./tavern.carina.zip
+CARINA_PACK=./tavern.carina.zip CARINA_TOKEN=dev-token pnpm carina serve
 ```
 
-聊天只打本机 `POST /v1/chat`。TTY 不可用时打开打印出的 URL。MCP：
+一期 `look` 只返回纯文本（`MockRenderer`）。`*.carina.zip` 会解到旁边的 `*.carina/` 再打开。聊天只打本机 `POST /v1/chat`。TTY 不可用时打开打印出的 URL。MCP：
 
 ```bash
 CARINA_PACK=./tavern.carina pnpm carina mcp

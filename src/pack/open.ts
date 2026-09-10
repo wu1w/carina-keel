@@ -16,6 +16,12 @@ import {
   type SessionFile,
 } from "../schema/index.js";
 import { isNodeErrno } from "./sandbox.js";
+import {
+  hasPackGraph,
+  importZip,
+  isZipPackPath,
+  packDirFromZipPath,
+} from "./unzip.js";
 
 /**
  * zh: 已打开的世界包：可变 graph/session，save 原子写回。
@@ -86,16 +92,16 @@ async function renameOverwriting(
 }
 
 /**
- * zh: 打开世界包并校验 graph.json 与 session.json。
- * en: Open a world pack and validate graph.json and session.json.
+ * zh: 打开世界包并校验 graph.json 与 session.json。目录或 `.zip` 均可。
+ * en: Open a world pack and validate graph.json and session.json. Accepts a directory or a `.zip`.
  */
-export async function openPack(packDir: string): Promise<PackHandle> {
-  const resolvedDir = path.resolve(packDir);
-  await assertPackDirectory(resolvedDir);
-  const graph = await readGraphFile(resolvedDir);
-  const session = await readSessionFile(resolvedDir);
+export async function openPack(packPath: string): Promise<PackHandle> {
+  const resolvedPath = path.resolve(packPath);
+  const packDir = await resolvePackDirectory(resolvedPath);
+  const graph = await readGraphFile(packDir);
+  const session = await readSessionFile(packDir);
   const handle: PackHandle = {
-    packDir: resolvedDir,
+    packDir,
     graph,
     session,
     async save() {
@@ -144,24 +150,35 @@ async function savePack(handle: PackHandle): Promise<void> {
 }
 
 /**
- * zh: 包路径必须是已存在的目录。
- * en: The pack path must be an existing directory.
+ * zh: 目录直接打开；zip 先解到旁边的 `.carina/` 再打开。
+ * en: Open a directory as-is; unzip a zip beside it into `.carina/` first.
  */
-async function assertPackDirectory(packDir: string): Promise<void> {
+async function resolvePackDirectory(resolvedPath: string): Promise<string> {
+  let info;
   try {
-    const info = await stat(packDir);
-    if (!info.isDirectory()) {
-      throw new CarinaError("PACK_INVALID", "error.packInvalid");
-    }
+    info = await stat(resolvedPath);
   } catch (error) {
-    if (error instanceof CarinaError) {
-      throw error;
-    }
     if (isNodeErrno(error, "ENOENT")) {
       throw new CarinaError("PACK_NOT_FOUND", "error.packNotFound", error);
     }
     throw new CarinaError("PACK_INVALID", "error.packInvalid", error);
   }
+  if (info.isDirectory()) {
+    return resolvedPath;
+  }
+  if (!info.isFile()) {
+    throw new CarinaError("PACK_INVALID", "error.packInvalid");
+  }
+  if (!isZipPackPath(resolvedPath)) {
+    throw new CarinaError("PACK_INVALID", "error.packInvalid");
+  }
+  const destDir = packDirFromZipPath(resolvedPath);
+  // zh: 旁边已有 graph.json 的目录是活世界，不解包以免冲掉过夜状态。
+  // en: A sibling directory with graph.json is the live world; do not extract over overnight state.
+  if (!(await hasPackGraph(destDir))) {
+    await importZip(resolvedPath, destDir);
+  }
+  return destDir;
 }
 
 /**

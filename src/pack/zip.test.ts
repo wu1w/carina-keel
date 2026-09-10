@@ -3,8 +3,10 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { unzipSync } from "fflate";
-import { createPack, exportZip, openPack, readMarkdown } from "./index.js";
+import { unzipSync, zipSync } from "fflate";
+import { CarinaError } from "../errors.js";
+import { createPack, exportZip, importZip, openPack, readMarkdown } from "./index.js";
+import { packDirFromZipPath } from "./unzip.js";
 
 /**
  * zh: 把 zip 解到目录；条目必须是 POSIX 路径。
@@ -72,4 +74,45 @@ test("exportZip round-trips through unzip and openPack", async (t) => {
   assert.match(worldMd, /世界/);
   const token = await readFile(path.join(reopenDir, "assets", "token.bin"));
   assert.deepEqual([...token], [0, 1, 2, 255]);
+});
+
+test("importZip and openPack accept a .carina.zip", async (t) => {
+  const scratchDir = await mkdtemp(path.join(os.tmpdir(), "carina-unzip-"));
+  t.after(async () => {
+    await rm(scratchDir, { recursive: true, force: true });
+  });
+  const packDir = path.join(scratchDir, "tavern.carina");
+  await createPack(packDir, "zh");
+  const handle = await openPack(packDir);
+  handle.session.placeId = "plaza";
+  await handle.save();
+  const zipPath = path.join(scratchDir, "moved", "tavern.carina.zip");
+  await exportZip(handle, zipPath);
+
+  const importedDir = path.join(scratchDir, "moved", "imported.carina");
+  await importZip(zipPath, importedDir);
+  const imported = await openPack(importedDir);
+  assert.equal(imported.session.placeId, "plaza");
+  assert.equal(imported.graph.nodes[0]?.props["name"], "tavern");
+
+  const openedFromZip = await openPack(zipPath);
+  assert.equal(openedFromZip.packDir, packDirFromZipPath(zipPath));
+  assert.equal(openedFromZip.session.placeId, "plaza");
+  const worldMd = await readMarkdown(openedFromZip, "WORLD.md");
+  assert.match(worldMd, /世界/);
+});
+
+test("openPack rejects a zip whose entries escape the dest", async (t) => {
+  const scratchDir = await mkdtemp(path.join(os.tmpdir(), "carina-badzip-"));
+  t.after(async () => {
+    await rm(scratchDir, { recursive: true, force: true });
+  });
+  const zipPath = path.join(scratchDir, "evil.carina.zip");
+  const zipped = zipSync({ "../escape.txt": new Uint8Array([1]) });
+  await writeFile(zipPath, zipped);
+  await assert.rejects(
+    () => importZip(zipPath, path.join(scratchDir, "dest.carina")),
+    (error: unknown) =>
+      error instanceof CarinaError && error.code === "SANDBOX",
+  );
 });

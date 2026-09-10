@@ -22,6 +22,12 @@ export { openPack, type PackHandle } from "./open.js";
 export { exportZip } from "./zip.js";
 
 /**
+ * zh: 把 zip 解到目录。供 serve / openPack 打开 `*.carina.zip`。
+ * en: Extract a zip into a directory. Used by serve / openPack for `*.carina.zip`.
+ */
+export { importZip } from "./unzip.js";
+
+/**
  * zh: 把包内 POSIX 路径接到宿主文件系统，越界则抛 SANDBOX。
  * en: Join a pack-relative POSIX path onto the host FS; throw SANDBOX on escape.
  */

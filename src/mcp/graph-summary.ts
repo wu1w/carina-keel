@@ -11,9 +11,13 @@ export function graphSummary(graph: GraphFile, session: SessionFile): string {
     nodeTypes[node.type] = (count === undefined ? 0 : count) + 1;
   }
   const places: Array<{ id: string; name: unknown }> = [];
+  const entities: Array<{ id: string; name: unknown }> = [];
   for (const node of graph.nodes) {
     if (node.type === "Place") {
       places.push({ id: node.id, name: node.props["name"] });
+    }
+    if (node.type === "Entity") {
+      entities.push({ id: node.id, name: node.props["name"] });
     }
   }
   return JSON.stringify(
@@ -23,6 +27,7 @@ export function graphSummary(graph: GraphFile, session: SessionFile): string {
       edgeCount: graph.edges.length,
       nodeTypes,
       places,
+      entities,
       placeId: session.placeId,
     },
     null,
