@@ -138,6 +138,12 @@ export {
   type VisualAcceptance,
 } from "./solarwm.js";
 export {
+  expansionLogSchema,
+  expansionStageSchema,
+  type ExpansionLog,
+  type ExpansionStage,
+} from "./expansion.js";
+export {
   runtimeSnapshotSchema,
   worldEventSchema,
   type RuntimeSnapshot,

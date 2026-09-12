@@ -21,6 +21,9 @@ export type SessionView = {
   runtime: RuntimeSnapshot;
   worldDocuments: Record<string, { body: string; hash: string }>;
   globalDocuments: Record<string, string>;
+  assetPlan?: unknown;
+  factoryManifest?: unknown;
+  expansionLog?: unknown;
 };
 
 /**

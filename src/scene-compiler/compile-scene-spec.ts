@@ -178,6 +178,13 @@ export function attachSceneSpec(
 
 const BAR_PLAN_IDS = ["bar-front", "bar"] as const;
 
+const FURNITURE_PLAN_IDS = {
+  table: ["table"],
+  chair: ["chair"],
+  cup: ["cup"],
+  door: ["door"],
+} as const;
+
 /**
  * zh: 用 objectId 找计划物件；找不到再按名称。吧台优先 bar-front，否则 bar。
  * en: Find a plan object by objectId, then name. Bar prefers bar-front, else bar.
@@ -203,6 +210,17 @@ export function findSceneSpecObject(
     }
     return spec.objects.find((item) => isBarAlias(item.name));
   }
+  const kind = furnitureKindOf(needle);
+  if (kind !== undefined && kind !== "bar") {
+    for (const id of FURNITURE_PLAN_IDS[kind]) {
+      const found = spec.objects.find((item) => item.objectId === id);
+      if (found !== undefined) {
+        return found;
+      }
+    }
+    const named = furnitureNameOf(kind);
+    return spec.objects.find((item) => item.name === named);
+  }
   return spec.objects.find((item) => item.name === needle);
 }
 
@@ -221,6 +239,66 @@ export function resolveBarPlanObjectId(
     }
   }
   return "bar-front";
+}
+
+/**
+ * zh: 把自然语言家具名编成计划 objectId。桌子/椅子/杯子/门不只是吧台。
+ * en: Compile a spoken furniture name to a plan objectId. Table/chair/cup/door, not only the bar.
+ */
+export function resolveFurniturePlanObjectId(
+  label: string,
+  planObjectIds: readonly string[] | undefined,
+): string {
+  const kind = furnitureKindOf(label);
+  if (kind === undefined || kind === "bar") {
+    return resolveBarPlanObjectId(planObjectIds);
+  }
+  const ids = FURNITURE_PLAN_IDS[kind];
+  if (planObjectIds !== undefined) {
+    for (const id of ids) {
+      if (planObjectIds.includes(id)) {
+        return id;
+      }
+    }
+  }
+  const first = ids[0];
+  return first ?? label.trim();
+}
+
+function furnitureKindOf(
+  label: string,
+): "bar" | "table" | "chair" | "cup" | "door" | undefined {
+  const raw = label.trim();
+  const lower = raw.toLowerCase();
+  if (isBarAlias(raw)) {
+    return "bar";
+  }
+  if (lower === "table" || raw === "桌子") {
+    return "table";
+  }
+  if (lower === "chair" || raw === "椅子" || /^椅子\d+$/.test(raw)) {
+    return "chair";
+  }
+  if (lower === "cup" || raw === "杯子") {
+    return "cup";
+  }
+  if (lower === "door" || raw === "门") {
+    return "door";
+  }
+  return undefined;
+}
+
+function furnitureNameOf(kind: "table" | "chair" | "cup" | "door"): string {
+  if (kind === "table") {
+    return "桌子";
+  }
+  if (kind === "chair") {
+    return "椅子";
+  }
+  if (kind === "cup") {
+    return "杯子";
+  }
+  return "门";
 }
 
 const COURTYARD_OBJECT_IDS = ["garden-gate", "courtyard-tree"] as const;

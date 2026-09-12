@@ -6,6 +6,8 @@ export {
   INTERIOR_CATALOG,
   CATALOG_GENERATOR,
   CATALOG_SOURCE_LABEL,
+  catalogFitsObject,
+  resolveCatalogById,
   resolveCatalogHit,
   type CatalogEntry,
   type CatalogShape,
@@ -26,6 +28,7 @@ export {
 } from "./bind-glb-materials.js";
 export {
   applyCatalogReuse,
+  applyCatalogToObject,
   type CatalogSceneAsset,
 } from "./apply-catalog.js";
 export {

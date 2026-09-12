@@ -9,6 +9,7 @@ import {
   DOOR_VERTEX_COUNT,
   TABLE_VERTEX_COUNT,
   makeCatalogGlb,
+  resolveCatalogById,
   resolveCatalogHit,
   runAssetFactory,
   extractGlbMaterials,
@@ -35,6 +36,9 @@ test("resolveCatalogHit matches tavern reuse and skips generate", () => {
   assert.equal(resolveCatalogHit(door)?.catalogId, "oak-door");
   assert.equal(resolveCatalogHit(bar), undefined);
   assert.equal(resolveCatalogHit(featured), undefined);
+  const table = spec.objects.find((item) => item.objectId === "table");
+  assert.ok(table !== undefined);
+  assert.equal(resolveCatalogHit(table)?.catalogId, "oak-table");
 });
 
 /**
@@ -159,6 +163,8 @@ test("runAssetFactory logs catalog reuse without world-model claims", () => {
   assert.equal(manifest.claimsWorldModelGeneration, false);
   assert.equal(manifest.visualAcceptance.ng1, false);
   assert.equal(manifest.visualAcceptance.status, "pending-user");
+  assert.deepEqual(manifest.manualFixes, []);
+  assert.equal(manifest.repeatSampleCount, 0);
   assert.equal(manifest.solarWm.producesMesh, false);
   assert.equal(manifest.solarWm.claimsWorldModelGeneration, false);
   const door = manifest.items.find((item) => item.objectId === "door");
@@ -181,6 +187,24 @@ test("runAssetFactory logs catalog reuse without world-model claims", () => {
     ),
     true,
   );
+});
+
+/**
+ * zh: 深色橡木是显式变体，不会抢走默认桌子目录命中。
+ * en: Dark oak is an explicit variant and does not steal the default table catalog hit.
+ */
+test("oak-table-dark is explicit and is not an auto catalog hit", () => {
+  const spec = heuristicSceneSpec({
+    prompt: "湖边酒馆，旧木吧台",
+    name: "酒馆",
+  });
+  const table = spec.objects.find((item) => item.objectId === "table");
+  assert.ok(table !== undefined);
+  assert.equal(resolveCatalogHit(table)?.catalogId, "oak-table");
+  const dark = resolveCatalogById("oak-table-dark");
+  assert.ok(dark !== undefined);
+  assert.equal(dark.shape, "table");
+  assert.equal(dark.objectIds.length, 0);
 });
 
 async function makeBareBoxGlb(claimWorldModel: boolean): Promise<Uint8Array> {

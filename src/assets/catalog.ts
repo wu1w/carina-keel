@@ -48,6 +48,18 @@ export const INTERIOR_CATALOG: readonly CatalogEntry[] = [
     albedoAlt: [0x3d, 0x24, 0x12],
   },
   {
+    catalogId: "oak-table-dark",
+    objectIds: [],
+    names: [],
+    roles: [],
+    shape: "table",
+    defaultDimensions: { x: 1.2, y: 0.75, z: 1.2 },
+    metallic: 0.04,
+    roughness: 0.82,
+    albedo: [0x3d, 0x24, 0x12],
+    albedoAlt: [0x1a, 0x10, 0x08],
+  },
+  {
     catalogId: "oak-chair",
     objectIds: ["chair"],
     names: ["椅子"],
@@ -58,6 +70,18 @@ export const INTERIOR_CATALOG: readonly CatalogEntry[] = [
     roughness: 0.68,
     albedo: [0x4a, 0x2c, 0x14],
     albedoAlt: [0x7a, 0x4a, 0x22],
+  },
+  {
+    catalogId: "oak-chair-dark",
+    objectIds: [],
+    names: [],
+    roles: [],
+    shape: "chair",
+    defaultDimensions: { x: 0.5, y: 0.9, z: 0.5 },
+    metallic: 0.03,
+    roughness: 0.8,
+    albedo: [0x2a, 0x18, 0x0c],
+    albedoAlt: [0x12, 0x0a, 0x06],
   },
   {
     catalogId: "ceramic-cup",
@@ -100,6 +124,74 @@ export function resolveCatalogHit(
   }
   if (object.role === "prop") {
     return INTERIOR_CATALOG.find((entry) => entry.roles.includes("prop"));
+  }
+  return undefined;
+}
+
+/**
+ * zh: 按 catalogId 取目录条目。深色变体不参与自动命中。
+ * en: Look up a catalog entry by id. Dark variants are not auto-hits.
+ */
+export function resolveCatalogById(catalogId: string): CatalogEntry | undefined {
+  return INTERIOR_CATALOG.find((entry) => entry.catalogId === catalogId);
+}
+
+/**
+ * zh: 目录变体只能绑到同形状的 reuse 物件，不能换掉 generate 特色件或墙。
+ * en: A catalog variant may bind only to a same-shape reuse object, never a generate feature or wall.
+ */
+export function catalogFitsObject(
+  entry: CatalogEntry,
+  object: { sceneObjectId: string; name: string },
+  plan?: SceneSpecObject,
+): boolean {
+  if (plan !== undefined && plan.route !== "reuse") {
+    return false;
+  }
+  if (plan !== undefined && entry.objectIds.includes(plan.objectId)) {
+    return true;
+  }
+  const shape = shapeOfObject(object, plan);
+  return shape !== undefined && entry.shape === shape;
+}
+
+function shapeOfObject(
+  object: { sceneObjectId: string; name: string },
+  plan?: SceneSpecObject,
+): CatalogShape | undefined {
+  if (plan !== undefined) {
+    if (plan.objectId === "table" || plan.name === "桌子") {
+      return "table";
+    }
+    if (plan.objectId === "chair" || plan.name === "椅子") {
+      return "chair";
+    }
+    if (plan.objectId === "cup" || plan.name === "杯子") {
+      return "cup";
+    }
+    if (plan.objectId === "door" || plan.role === "door" || plan.name === "门") {
+      return "door";
+    }
+  }
+  const id = object.sceneObjectId.toLowerCase();
+  const name = object.name.trim();
+  if (id === "table" || id.endsWith("-table") || name === "桌子") {
+    return "table";
+  }
+  if (
+    id === "chair" ||
+    id.endsWith("-chair") ||
+    /-chair-\d+$/.test(id) ||
+    name === "椅子" ||
+    /^椅子\d+$/.test(name)
+  ) {
+    return "chair";
+  }
+  if (id === "cup" || id.endsWith("-cup") || name === "杯子") {
+    return "cup";
+  }
+  if (id === "door" || id.endsWith("-door") || name === "门") {
+    return "door";
   }
   return undefined;
 }

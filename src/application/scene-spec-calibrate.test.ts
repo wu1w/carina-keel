@@ -403,3 +403,90 @@ test("calibrate moves bar-front SceneObject transform together with spec.anchor"
     await rm(dataDir, { recursive: true, force: true });
   }
 });
+
+function tableAnchor(spec: SceneSpec): { x: number; y: number; z: number } {
+  const object = findSceneSpecObject(spec, "table");
+  assert.ok(object !== undefined);
+  assert.ok(object.anchor !== undefined);
+  return object.anchor;
+}
+
+function wallBoundsFingerprint(objects: readonly SceneObject[]): string {
+  return JSON.stringify(
+    objects
+      .filter(
+        (object) =>
+          object.name.includes("墙") ||
+          object.name === "地板" ||
+          object.sceneObjectId === "floor" ||
+          object.sceneObjectId.startsWith("wall-"),
+      )
+      .map((object) => [object.sceneObjectId, object.bounds])
+      .sort((left, right) => String(left[0]).localeCompare(String(right[0]))),
+  );
+}
+
+/**
+ * zh: 把桌子左移一米只改桌子，墙和地板不动。
+ * en: Moving the table left by one meter moves only the table; walls and floor stay.
+ */
+test("NL table calibrate moves the table and leaves walls in place", async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "carina-scene-spec-table-"));
+  try {
+    const app = createApplication(testConfig(dataDir));
+    const created = await app.interpretAndDispatch(
+      "新建一个湖边酒馆，旧木吧台",
+      "natural_language",
+      undefined,
+      "user",
+    );
+    assert.equal(created[0]?.accepted, true);
+    const worldId = created[0]?.worldId;
+    assert.ok(worldId !== undefined);
+    const before = await app.getSessionView(worldId);
+    const spec = before.snapshot.sceneSpec;
+    assert.ok(spec !== undefined);
+    const original = tableAnchor(spec);
+    const tableBefore = before.snapshot.objects.find(
+      (object) => object.name === "桌子" || object.sceneObjectId === "table",
+    );
+    assert.ok(tableBefore !== undefined);
+    const tableX = tableBefore.transform.position.x;
+    const tableMinX = tableBefore.bounds.min.x;
+    const wallsBefore = wallBoundsFingerprint(before.snapshot.objects);
+
+    const calibrated = await app.interpretAndDispatch(
+      "把桌子往左移一米",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(calibrated[0]?.accepted, true);
+    const after = await app.getSessionView(worldId);
+    const liveSpec = after.snapshot.sceneSpec;
+    assert.ok(liveSpec !== undefined);
+    const liveAnchor = tableAnchor(liveSpec);
+    assert.ok(Math.abs(liveAnchor.x - (original.x - 1)) < 1e-6);
+    const tableAfter = after.snapshot.objects.find(
+      (object) => object.sceneObjectId === tableBefore.sceneObjectId,
+    );
+    assert.ok(tableAfter !== undefined);
+    assert.ok(Math.abs(tableAfter.transform.position.x - (tableX - 1)) < 1e-6);
+    assert.ok(Math.abs(tableAfter.bounds.min.x - (tableMinX - 1)) < 1e-6);
+    assert.equal(wallBoundsFingerprint(after.snapshot.objects), wallsBefore);
+    const cup = after.snapshot.objects.find((object) => object.name === "杯子");
+    const cupBefore = before.snapshot.objects.find(
+      (object) => object.name === "杯子",
+    );
+    if (cup !== undefined && cupBefore?.parentId === tableBefore.sceneObjectId) {
+      assert.ok(
+        Math.abs(
+          cup.transform.position.x - (cupBefore.transform.position.x - 1),
+        ) < 1e-6,
+      );
+    }
+    await app.close();
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});

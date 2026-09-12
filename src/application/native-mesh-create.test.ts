@@ -403,6 +403,85 @@ test("native-mesh create fails on 500 or corrupt GLB without a silent tavern", a
   }
 });
 
+/**
+ * zh: HTTP 路径上换桌子目录材质不改吧台网格，也不改墙。
+ * en: On the HTTP path, swapping the table catalog material does not retarget the bar or move walls.
+ */
+test("NL dark-oak table swap leaves bar-front and walls alone", async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "carina-native-mat-"));
+  const fixture = await makeBarCounterGlb();
+  const server = await listenGlb(fixture);
+  try {
+    const app = createApplication(
+      testConfig(dataDir, { meshProviderUrl: server.url }),
+    );
+    const created = await app.dispatchCommand(
+      baseCommand("session.create", {
+        arguments: { name: "酒馆", prompt: "湖边酒馆，旧木吧台" },
+      }),
+    );
+    assert.equal(created.accepted, true);
+    const worldId = created.worldId;
+    assert.ok(worldId !== undefined);
+    const before = await app.getSessionView(worldId);
+    const barBefore = before.snapshot.objects.find(
+      (object) => object.sceneObjectId === "bar-front",
+    );
+    const tableBefore = before.snapshot.objects.find(
+      (object) => object.sceneObjectId === "table",
+    );
+    assert.ok(barBefore !== undefined);
+    assert.ok(tableBefore !== undefined);
+    const barRefs = [...barBefore.assetRefs];
+    const wallFingerprint = JSON.stringify(
+      before.snapshot.objects
+        .filter(
+          (object) =>
+            object.sceneObjectId.startsWith("wall-") ||
+            object.sceneObjectId === "floor",
+        )
+        .map((object) => [object.sceneObjectId, object.bounds]),
+    );
+
+    const swapped = await app.interpretAndDispatch(
+      "把桌子换成深色木头",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(swapped[0]?.accepted, true);
+    const after = await app.getSessionView(worldId);
+    const barAfter = after.snapshot.objects.find(
+      (object) => object.sceneObjectId === "bar-front",
+    );
+    const tableAfter = after.snapshot.objects.find(
+      (object) => object.sceneObjectId === "table",
+    );
+    assert.ok(barAfter !== undefined);
+    assert.ok(tableAfter !== undefined);
+    assert.deepEqual(barAfter.assetRefs, barRefs);
+    assert.equal(barAfter.materialRefs.includes(BAR_COUNTER_MATERIAL_NAME), true);
+    assert.equal(tableAfter.materialRefs.includes("mat-oak-table-dark"), true);
+    assert.notEqual(tableAfter.assetRefs[0], tableBefore.assetRefs[0]);
+    assert.equal(
+      JSON.stringify(
+        after.snapshot.objects
+          .filter(
+            (object) =>
+              object.sceneObjectId.startsWith("wall-") ||
+              object.sceneObjectId === "floor",
+          )
+          .map((object) => [object.sceneObjectId, object.bounds]),
+      ),
+      wallFingerprint,
+    );
+    await app.close();
+  } finally {
+    await server.close();
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
 function isSilentTavern(
   objects: Array<{ name: string; sceneObjectId?: string; assetRefs: string[] }>,
 ): boolean {

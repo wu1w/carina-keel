@@ -13,6 +13,7 @@ export {
   firstGenerateObject,
   heuristicSceneSpec,
   resolveBarPlanObjectId,
+  resolveFurniturePlanObjectId,
   sceneSpecFromSnapshot,
   SCENE_SPEC_ASSET_EXT,
   type CompileSceneSpec,

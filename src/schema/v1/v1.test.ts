@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   assetPlanSchema,
+  expansionLogSchema,
   factoryManifestSchema,
   intentKindSchema,
   sceneSpecSchema,
@@ -278,6 +279,35 @@ test("factoryManifestSchema rejects world-model claims", () => {
         ng1: true,
         notes: "no",
       },
+    }).success,
+    false,
+  );
+});
+
+/**
+ * zh: 扩展日志不得把相邻脚手架区写成世界模型。
+ * en: Expansion logs must not label an adjacent scaffold region as a world model.
+ */
+test("expansionLogSchema rejects world-model claims", () => {
+  const log = expansionLogSchema.parse({
+    schemaVersion: 1,
+    claimsWorldModelGeneration: false,
+    stage: "committed",
+    readyReserve: 1,
+    inFlight: 0,
+    approachCount: 1,
+    generateCount: 1,
+    cacheHits: 0,
+    failCount: 0,
+    autoExpandEnabled: true,
+    notes: "scaffold courtyard",
+  });
+  assert.equal(log.claimsWorldModelGeneration, false);
+  assert.equal(log.stage, "committed");
+  assert.equal(
+    expansionLogSchema.safeParse({
+      ...log,
+      claimsWorldModelGeneration: true,
     }).success,
     false,
   );

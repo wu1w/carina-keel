@@ -1,6 +1,6 @@
 import { createUlid } from "../world/ids.js";
 import type { IntentKind, WorldCommand } from "../schema/index.js";
-import { resolveBarPlanObjectId } from "../scene-compiler/index.js";
+import { resolveFurniturePlanObjectId } from "../scene-compiler/index.js";
 import { classifyShot, isViewUtterance } from "../steward/world-model-brief.js";
 
 export type FastInterpretInput = {
@@ -9,8 +9,8 @@ export type FastInterpretInput = {
   origin: WorldCommand["origin"];
   requestedBy: string;
   /**
-   * zh: 当前 SceneSpec 物件 id。用来把「吧台」编成 bar-front 或 bar。
-   * en: Current SceneSpec object ids. Used to compile 吧台 as bar-front or bar.
+   * zh: 当前 SceneSpec 物件 id。用来把「吧台」「桌子」编成计划 id。
+   * en: Current SceneSpec object ids. Used to compile 吧台 / 桌子 to plan ids.
    */
   planObjectIds?: readonly string[];
   /**
@@ -61,12 +61,27 @@ export function interpretFast(
   if (freeze) {
     return [command(input, "spatial.freeze", "author", {})];
   }
+  const switched = matchSwitchWorld(text);
+  if (switched !== undefined) {
+    return [
+      command(input, "session.switch", "author", { name: switched }, true),
+    ];
+  }
   const calibrate = matchCalibrate(text, input.planObjectIds);
   if (calibrate !== undefined) {
     return [
       command(input, "spatial.calibrate", "author", {
         objectId: calibrate.objectId,
         delta: calibrate.delta,
+      }),
+    ];
+  }
+  const material = matchMaterial(text, input.planObjectIds);
+  if (material !== undefined) {
+    return [
+      command(input, "spatial.calibrate", "author", {
+        objectId: material.objectId,
+        catalogId: material.catalogId,
       }),
     ];
   }
@@ -232,9 +247,12 @@ const CN_METERS: Record<string, number> = {
   十: 10,
 };
 
+const FURNITURE_LABEL =
+  "吧台正面|吧台|桌子|椅子\\d+|椅子|杯子|门|bar-front|bar\\s+counter|bar|table|chair|cup|door";
+
 /**
- * zh: 酒馆校准句。无 LLM。左 = −X，单位米。objectId 优先 bar-front，否则 bar。
- * en: Tavern calibrate phrase. No LLM. Left = −X, meters. objectId prefers bar-front, else bar.
+ * zh: 酒馆校准句。无 LLM。左 = −X，单位米。桌/椅/杯/门/吧台均可。
+ * en: Tavern calibrate phrase. No LLM. Left = −X, meters. Table/chair/cup/door/bar.
  */
 function matchCalibrate(
   text: string,
@@ -242,32 +260,108 @@ function matchCalibrate(
 ): { objectId: string; delta: { x: number; y: number; z: number } } | undefined {
   const normalized = text.replace(/[。！!？?]/g, "").trim();
   const zh = normalized.match(
-    /把?(吧台(?:正面)?|bar(?:-front)?)\s*(?:往|向|朝)?\s*(左|右|前|后|上|下)\s*(?:边|面|侧)?\s*(?:移(?:动)?|挪(?:动)?)\s*(半|[0-9]+(?:\.[0-9]+)?|[一二两三四五六七八九十])\s*(?:米|m|meters?|metres?)?/i,
+    new RegExp(
+      `把?(${FURNITURE_LABEL})\\s*(?:往|向|朝)?\\s*(左|右|前|后|上|下)\\s*(?:边|面|侧)?\\s*(?:移(?:动)?|挪(?:动)?)\\s*(半|[0-9]+(?:\\.[0-9]+)?|[一二两三四五六七八九十])\\s*(?:米|m|meters?|metres?)?`,
+      "i",
+    ),
   );
-  if (zh !== null && zh[2] !== undefined && zh[3] !== undefined) {
+  if (zh !== null && zh[1] !== undefined && zh[2] !== undefined && zh[3] !== undefined) {
     const meters = parseMeters(zh[3]);
     const delta = directionDelta(zh[2], meters);
     if (delta !== undefined) {
       return {
-        objectId: resolveBarPlanObjectId(planObjectIds),
+        objectId: resolveFurniturePlanObjectId(zh[1], planObjectIds),
         delta,
       };
     }
   }
   const en = normalized.match(
-    /(?:move|shift)\s+(?:the\s+)?(?:bar(?:-front)?|bar\s+counter)\s+(?:to\s+the\s+)?(left|right|up|down|forward|back)\s+(?:by\s+)?([0-9]+(?:\.[0-9]+)?)\s*(?:m|meters?|metres?)?/i,
+    new RegExp(
+      `(?:move|shift)\\s+(?:the\\s+)?(${FURNITURE_LABEL})\\s+(?:to\\s+the\\s+)?(left|right|up|down|forward|back)\\s+(?:by\\s+)?([0-9]+(?:\\.[0-9]+)?)\\s*(?:m|meters?|metres?)?`,
+      "i",
+    ),
   );
-  if (en !== null && en[1] !== undefined && en[2] !== undefined) {
-    const meters = parseMeters(en[2]);
-    const delta = directionDelta(en[1], meters);
+  if (en !== null && en[1] !== undefined && en[2] !== undefined && en[3] !== undefined) {
+    const meters = parseMeters(en[3]);
+    const delta = directionDelta(en[2], meters);
     if (delta !== undefined) {
       return {
-        objectId: resolveBarPlanObjectId(planObjectIds),
+        objectId: resolveFurniturePlanObjectId(en[1], planObjectIds),
         delta,
       };
     }
   }
   return undefined;
+}
+
+/**
+ * zh: 单物件换目录材质。目录 PBR 不是世界模型材质。
+ * en: Swap one object's catalog material. Catalog PBR is not a world-model material.
+ */
+function matchMaterial(
+  text: string,
+  planObjectIds: readonly string[] | undefined,
+): { objectId: string; catalogId: string } | undefined {
+  const normalized = text.replace(/[。！!？?]/g, "").trim();
+  if (/^(木头旧一些|木头再旧一点|木头旧一点)$/.test(normalized)) {
+    return {
+      objectId: resolveFurniturePlanObjectId("桌子", planObjectIds),
+      catalogId: "oak-table-dark",
+    };
+  }
+  const zh = normalized.match(
+    new RegExp(
+      `(?:把|给)?(${FURNITURE_LABEL})(?:的)?(?:材质)?\\s*换成\\s*(深色木头|深色木纹|深色橡木|橡木|陶瓷)`,
+    ),
+  );
+  if (zh !== null && zh[1] !== undefined && zh[2] !== undefined) {
+    const objectId = resolveFurniturePlanObjectId(zh[1], planObjectIds);
+    const catalogId = catalogIdFor(objectId, zh[2]);
+    if (catalogId !== undefined) {
+      return { objectId, catalogId };
+    }
+  }
+  const en = normalized.match(
+    /(?:change|swap)\s+(?:the\s+)?(table|chair|cup|door|bar(?:-front)?|bar\s+counter)\s+(?:material\s+)?to\s+(dark\s+oak|oak|ceramic)/i,
+  );
+  if (en !== null && en[1] !== undefined && en[2] !== undefined) {
+    const objectId = resolveFurniturePlanObjectId(en[1], planObjectIds);
+    const catalogId = catalogIdFor(objectId, en[2]);
+    if (catalogId !== undefined) {
+      return { objectId, catalogId };
+    }
+  }
+  return undefined;
+}
+
+function catalogIdFor(objectId: string, finish: string): string | undefined {
+  const finishKey = finish.trim().toLowerCase();
+  const dark = /深色|dark/.test(finishKey);
+  if (objectId === "table") {
+    return dark ? "oak-table-dark" : "oak-table";
+  }
+  if (objectId === "chair") {
+    return dark ? "oak-chair-dark" : "oak-chair";
+  }
+  if (objectId === "cup") {
+    return "ceramic-cup";
+  }
+  if (objectId === "door") {
+    return dark ? undefined : "oak-door";
+  }
+  return undefined;
+}
+
+function matchSwitchWorld(text: string): string | undefined {
+  const normalized = text.replace(/[。！!？?]/g, "").trim();
+  const match = normalized.match(
+    /^(?:切换到|切到|switch\s+to(?:\s+the)?)\s*(.+)$/i,
+  );
+  if (match === null || match[1] === undefined) {
+    return undefined;
+  }
+  const name = match[1].trim();
+  return name.length > 0 ? name : undefined;
 }
 
 function parseMeters(raw: string): number | undefined {
@@ -319,7 +413,7 @@ function matchExtend(
     return { openDoor: true };
   }
   if (
-    /^(在门外生成花园|门外生成花园|扩展花园|把花园接上|extend(\s+the)?\s+garden)$/i.test(
+    /^(在门外生成花园|门外生成花园|扩展花园|把花园接上|门外增加露台|增加露台|extend(\s+the)?\s+garden|add\s+(a\s+)?(garden|terrace))$/i.test(
       normalized,
     )
   ) {
@@ -358,7 +452,7 @@ function matchCreateWorld(text: string): string | undefined {
 
 function matchRestore(text: string): boolean {
   const normalized = text.replace(/[。！!]/g, "").trim();
-  return /^(恢复检查点|恢复上一个检查点|退回刚才|restore(\s+the)?\s+checkpoint)$/i.test(
+  return /^(恢复检查点|恢复上一个检查点|退回刚才|撤销|撤销上一笔|undo|restore(\s+the)?\s+checkpoint)$/i.test(
     normalized,
   );
 }

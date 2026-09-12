@@ -270,3 +270,119 @@ test("interpretFast recognizes restore and export", () => {
   assert.ok(exported !== undefined);
   assert.equal(exported[0]?.intentKind, "export.create");
 });
+
+/**
+ * zh: 桌子/椅子局部移动不走 LLM，也不改成吧台。
+ * en: Local table/chair moves are recognized without an LLM and do not retarget the bar.
+ */
+test("interpretFast recognizes furniture calibrate besides the bar", () => {
+  const table = interpretFast({
+    text: "把桌子往左移一米",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+    planObjectIds: ["bar-front", "table", "chair", "cup", "door"],
+  });
+  assert.ok(table !== undefined);
+  assert.equal(table[0]?.intentKind, "spatial.calibrate");
+  assert.equal(table[0]?.arguments["objectId"], "table");
+  assert.deepEqual(table[0]?.arguments["delta"], { x: -1, y: 0, z: 0 });
+
+  const chair = interpretFast({
+    text: "把椅子往右移半米",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+    planObjectIds: ["bar-front", "table", "chair"],
+  });
+  assert.ok(chair !== undefined);
+  assert.equal(chair[0]?.arguments["objectId"], "chair");
+  assert.deepEqual(chair[0]?.arguments["delta"], { x: 0.5, y: 0, z: 0 });
+});
+
+/**
+ * zh: 把桌子换成深色木头是目录材质，不是世界模型。
+ * en: Changing the table to dark wood is a catalog material, not a world model.
+ */
+test("interpretFast recognizes catalog material swap on one object", () => {
+  const swapped = interpretFast({
+    text: "把桌子换成深色木头",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+    planObjectIds: ["bar-front", "table"],
+  });
+  assert.ok(swapped !== undefined);
+  assert.equal(swapped[0]?.intentKind, "spatial.calibrate");
+  assert.equal(swapped[0]?.arguments["objectId"], "table");
+  assert.equal(swapped[0]?.arguments["catalogId"], "oak-table-dark");
+  assert.equal(swapped[0]?.arguments["delta"], undefined);
+});
+
+/**
+ * zh: 撤销与切换世界不走 LLM。
+ * en: Undo and switch-world are recognized without an LLM.
+ */
+test("interpretFast recognizes undo and switch world", () => {
+  const undo = interpretFast({
+    text: "撤销",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(undo !== undefined);
+  assert.equal(undo[0]?.intentKind, "world.restore");
+
+  const switched = interpretFast({
+    text: "切换到空间站",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(switched !== undefined);
+  assert.equal(switched[0]?.intentKind, "session.switch");
+  assert.equal(switched[0]?.arguments["name"], "空间站");
+  assert.equal(switched[0]?.worldId, undefined);
+});
+
+/**
+ * zh: 门外增加露台是扩展；木头旧一些是桌子目录材质。
+ * en: Adding a terrace is extend; older wood is the table catalog material.
+ */
+test("interpretFast recognizes terrace extend and aged wood material", () => {
+  const terrace = interpretFast({
+    text: "门外增加露台",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(terrace !== undefined);
+  assert.equal(terrace[0]?.intentKind, "generation.extend");
+
+  const wood = interpretFast({
+    text: "木头旧一些",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+    planObjectIds: ["table"],
+  });
+  assert.ok(wood !== undefined);
+  assert.equal(wood[0]?.intentKind, "spatial.calibrate");
+  assert.equal(wood[0]?.arguments["objectId"], "table");
+  assert.equal(wood[0]?.arguments["catalogId"], "oak-table-dark");
+});
+
+/**
+ * zh: 打开世界规则仍是改规则，不是切换世界。
+ * en: Opening world rules is still a rule patch, not a world switch.
+ */
+test("interpretFast does not treat world-rules append as session.switch", () => {
+  const rules = interpretFast({
+    text: "打开世界规则，写上禁止瞬移",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(rules !== undefined);
+  assert.equal(rules[0]?.intentKind, "rules.update");
+  assert.notEqual(rules[0]?.intentKind, "session.switch");
+});

@@ -69,6 +69,8 @@ export function runAssetFactory(input: {
       ng1: false,
       notes: "Visual feel and NG-1 require William's playtest. This log cannot auto-pass them.",
     },
+    manualFixes: [],
+    repeatSampleCount: 0,
   });
 }
 

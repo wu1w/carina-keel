@@ -52,6 +52,15 @@ export const factoryManifestSchema = z
     items: z.array(factoryManifestItemSchema).min(1),
     solarWm: solarWmExperimentSchema,
     visualAcceptance: visualAcceptanceSchema,
+    manualFixes: z
+      .array(
+        z.object({
+          objectId: z.string().min(1),
+          note: z.string().min(1),
+        }),
+      )
+      .default([]),
+    repeatSampleCount: z.number().int().min(0).default(0),
   })
   .refine((manifest) => manifest.claimsWorldModelGeneration === false, {
     message: "FactoryManifest must not claim world-model generation",

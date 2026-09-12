@@ -19,9 +19,10 @@ import {
   type WorldSnapshot,
   type AssetPlan,
   type FactoryManifest,
+  type ExpansionLog,
 } from "../schema/index.js";
 import { compileWorldRules } from "../spatial/compile-world-rules.js";
-import { runAssetFactory, glbHashesForRoute } from "../assets/index.js";
+import { applyCatalogToObject, runAssetFactory, glbHashesForRoute } from "../assets/index.js";
 import { extractGlbMaterialRefs } from "../assets/bind-glb-materials.js";
 import { interpretCommand } from "../steward/interpret-command.js";
 import { proposeRulePatch } from "../steward/propose-rule-patch.js";
@@ -69,13 +70,20 @@ import {
   parseCaptureCamera,
   textureHashFromSnapshot,
   applyRuntimeToObjects,
+  decideExpansion,
+  ExpansionTracker,
   extendPrimitiveGarden,
+  findLiveObject,
+  approachingDoor,
   hasAdjacentExtension,
   hasCommittedGltfAsset,
   interiorRegion,
+  isStructureObject,
   isValidAabb,
+  placeObject,
   shouldPreGenerateNextRegion,
   spatialWorldId,
+  structurePreserveIds,
   validateSpatialCandidate,
   type CommittedMapView,
 } from "../spatial/index.js";
@@ -145,6 +153,7 @@ export type Application = {
     globalDocuments: Record<string, string>;
     assetPlan?: AssetPlan;
     factoryManifest?: FactoryManifest;
+    expansionLog?: ExpansionLog;
   }>;
   subscribeEvents(
     worldId: string,
@@ -234,6 +243,7 @@ class CarinaApplication implements Application {
   private readonly observeBusy = new Set<string>();
   private readonly observeTasks = new Set<Promise<void>>();
   private readonly extending = new Set<string>();
+  private readonly expansion = new ExpansionTracker();
 
   constructor(
     private readonly config: CarinaConfig,
@@ -504,6 +514,11 @@ class CarinaApplication implements Application {
             }),
           }
         : {}),
+      expansionLog: this.expansion.snapshot({
+        worldId,
+        hasAdjacent: hasAdjacentExtension(mergedSnapshot),
+        inFlight: this.extending.has(worldId),
+      }),
     };
   }
 
@@ -824,7 +839,17 @@ class CarinaApplication implements Application {
   }
 
   private async handleSwitch(command: WorldCommand): Promise<CommandResult> {
-    const targetId = targetWorldIdOf(command);
+    let targetId = targetWorldIdOf(command);
+    const name = stringArg(command.arguments["name"]);
+    if (targetId === undefined && name !== undefined) {
+      const listed = await this.deps.sessions.listSessions();
+      const exact = listed.worlds.find((world) => world.name === name);
+      const fuzzy =
+        exact === undefined
+          ? listed.worlds.find((world) => world.name.includes(name))
+          : undefined;
+      targetId = exact?.worldId ?? fuzzy?.worldId;
+    }
     if (targetId === undefined) {
       return rejectResult(command, "COMMAND_REJECTED", "error.commandRejected");
     }
@@ -1111,40 +1136,7 @@ class CarinaApplication implements Application {
     if (!plan.ok) {
       return plan.result;
     }
-    if (this.deps.observe !== undefined) {
-      const session = await this.deps.sessions.openSession(worldId);
-      const prompt =
-        typeof command.arguments["prompt"] === "string"
-          ? command.arguments["prompt"]
-          : "门外花园";
-      const observed = await this.runObservation(
-        {
-          ...command,
-          intentKind: "generation.start",
-          arguments: {
-            ...command.arguments,
-            observeOnly: true,
-            shotKind: "camera",
-            fresh: false,
-            prompt,
-            camera:
-              "walk through the doorway, first-person, look into the garden courtyard outside, keep the same place",
-          },
-        },
-        worldId,
-        session.name,
-      );
-      if (!plan.changed) {
-        return observed;
-      }
-      return {
-        ...observed,
-        payload: {
-          ...(observed.payload ?? {}),
-          extended: true,
-        },
-      };
-    }
+    this.expansion.resumeAuto(worldId);
     const grown = await this.maybeExtendNearDoor(command, worldId, {
       force: true,
     });
@@ -1168,6 +1160,7 @@ class CarinaApplication implements Application {
     command: WorldCommand,
   ): Promise<CommandResult> {
     const worldId = await this.resolveWorldId(command);
+    this.expansion.stopAuto(worldId);
     const cancelled = await this.deps.jobs.cancelSimulation(worldId);
     return acceptResult(command, {
       worldId,
@@ -1186,51 +1179,112 @@ class CarinaApplication implements Application {
     const spec = sceneSpecFromSnapshot(snapshot);
     const planObject =
       spec !== undefined ? findSceneSpecObject(spec, objectId) : undefined;
-    const preserve = stringArray(command.arguments["preserveIds"]);
+    const objects = snapshot.objects.map((item) => structuredClone(item));
+    const target = findLiveObject(objects, objectId, planObject?.name);
+    const preserve = [
+      ...new Set([
+        ...stringArray(command.arguments["preserveIds"]),
+        ...structurePreserveIds(snapshot.objects, spec),
+      ]),
+    ];
     if (
       preserve.includes(objectId) ||
-      (planObject !== undefined && preserve.includes(planObject.objectId))
+      (planObject !== undefined && preserve.includes(planObject.objectId)) ||
+      (target !== undefined &&
+        (preserve.includes(target.sceneObjectId) ||
+          isStructureObject(target, spec)))
     ) {
       return rejectResult(command, "COMMAND_REJECTED", "error.commandRejected");
     }
-    const objects = snapshot.objects.map((item) => structuredClone(item));
-    const runtimeIds = new Set<string>([objectId]);
-    if (planObject !== undefined) {
-      runtimeIds.add(planObject.objectId);
-    }
-    const target = objects.find((item) => runtimeIds.has(item.sceneObjectId));
     if (planObject === undefined && target === undefined) {
       return rejectResult(command, "NOT_FOUND", "error.notFound");
     }
     const delta = vec3Arg(command.arguments["delta"]);
+    const catalogId = stringArg(command.arguments["catalogId"]);
     const heightRaw = command.arguments["heightMeters"];
     const height =
       typeof heightRaw === "number" && Number.isFinite(heightRaw)
         ? heightRaw
         : undefined;
-    if (target !== undefined) {
-      if (delta !== undefined) {
-        target.transform = {
-          ...target.transform,
-          position: {
-            x: target.transform.position.x + delta.x,
-            y: target.transform.position.y + delta.y,
-            z: target.transform.position.z + delta.z,
+    if (delta === undefined && height === undefined && catalogId === undefined) {
+      return rejectResult(command, "COMMAND_REJECTED", "error.commandRejected");
+    }
+    if (target !== undefined && delta !== undefined) {
+      for (let index = 0; index < objects.length; index += 1) {
+        const item = objects[index];
+        if (item === undefined) {
+          continue;
+        }
+        const follows =
+          item.sceneObjectId === target.sceneObjectId ||
+          item.parentId === target.sceneObjectId;
+        if (!follows || isStructureObject(item, spec)) {
+          continue;
+        }
+        objects[index] = placeObject(
+          item,
+          {
+            x: item.transform.position.x + delta.x,
+            y: item.transform.position.y + delta.y,
+            z: item.transform.position.z + delta.z,
           },
-        };
+          item.transform.rotation.y,
+        );
       }
-      if (height !== undefined) {
-        target.bounds = {
-          min: { ...target.bounds.min },
-          max: { ...target.bounds.max, y: target.bounds.min.y + height },
-        };
-      }
+    }
+    const live = findLiveObject(objects, objectId, planObject?.name);
+    if (live !== undefined && height !== undefined) {
+      live.bounds = {
+        min: { ...live.bounds.min },
+        max: { ...live.bounds.max, y: live.bounds.min.y + height },
+      };
     }
     let nextSnapshot: WorldSnapshot = {
       ...snapshot,
       objects,
       session: { ...snapshot.session, runState: "paused" },
     };
+    if (catalogId !== undefined) {
+      if (live === undefined) {
+        return rejectResult(command, "NOT_FOUND", "error.notFound");
+      }
+      let swapped: Awaited<ReturnType<typeof applyCatalogToObject>>;
+      try {
+        swapped = await applyCatalogToObject(spec, live, catalogId);
+      } catch (error) {
+        if (error instanceof CarinaError) {
+          return rejectResult(command, error.code, error.messageKey);
+        }
+        throw error;
+      }
+      if (swapped === undefined) {
+        return rejectResult(command, "COMMAND_REJECTED", "error.commandRejected");
+      }
+      const staged = await this.deps.pack.stageAsset(
+        worldId,
+        swapped.asset.bytes,
+        swapped.asset.ext,
+      );
+      const index = objects.findIndex(
+        (item) => item.sceneObjectId === live.sceneObjectId,
+      );
+      if (index >= 0) {
+        const current = objects[index];
+        if (current !== undefined) {
+          objects[index] = {
+            ...swapped.object,
+            assetRefs: [staged.posixPath],
+            transform: current.transform,
+            bounds: current.bounds,
+          };
+        }
+      }
+      nextSnapshot = {
+        ...nextSnapshot,
+        objects,
+        assetManifest: mergeAssetManifest(nextSnapshot.assetManifest, [staged]),
+      };
+    }
     if (
       spec !== undefined &&
       planObject !== undefined &&
@@ -1792,14 +1846,13 @@ class CarinaApplication implements Application {
       return undefined;
     }
     const snapshot = await this.deps.pack.readSnapshot(worldId);
-    if (this.deps.observe !== undefined) {
-      return undefined;
-    }
-    if (hasAdjacentExtension(snapshot)) {
-      return undefined;
-    }
     const runtime = await this.ensureRuntime(worldId);
     const player = runtime.snapshot().player.position;
+    const nearDoor =
+      approachingDoor(snapshot.objects, player) ||
+      opts.usingDoor === true ||
+      (opts.destination !== undefined &&
+        approachingDoor(snapshot.objects, opts.destination));
     const needed =
       opts.force === true ||
       shouldPreGenerateNextRegion({
@@ -1808,10 +1861,38 @@ class CarinaApplication implements Application {
         usingDoor: opts.usingDoor === true,
         ...(opts.destination !== undefined ? { destination: opts.destination } : {}),
       });
-    if (!needed) {
+    if ((needed || nearDoor) && opts.force !== true) {
+      this.expansion.countApproach(worldId);
+    }
+    const hasAdjacent = hasAdjacentExtension(snapshot);
+    const decision = decideExpansion({
+      hasAdjacent,
+      needed,
+      force: opts.force === true,
+      autoStopped: this.expansion.isAutoStopped(worldId),
+      inFlight: this.extending.has(worldId),
+      generateCount: this.expansion.generated(worldId),
+      maxAutoGenerates: snapshot.session.budgetPolicy.maxAutoJobs,
+    });
+    if (hasAdjacent && (nearDoor || opts.force === true)) {
+      this.expansion.countCacheHit(worldId);
+    }
+    if (decision.action !== "generate") {
       return undefined;
     }
-    return this.runExtension(command, worldId);
+    if (this.deps.observe !== undefined && opts.force !== true) {
+      return undefined;
+    }
+    const grown = await this.runExtension(command, worldId);
+    if (grown.accepted) {
+      this.expansion.countGenerate(worldId);
+      if (opts.force === true) {
+        this.expansion.resumeAuto(worldId);
+      }
+    } else {
+      this.expansion.countFail(worldId);
+    }
+    return grown;
   }
 
   /**
@@ -2600,8 +2681,8 @@ class CarinaApplication implements Application {
   }
 
   /**
-   * zh: 读当前计划物件 id，供无 apiKey 校准句选用 bar-front / bar。
-   * en: Read current plan object ids so no-apiKey calibrate phrases can pick bar-front / bar.
+   * zh: 读当前计划物件 id，供无 apiKey 校准句选用桌子/椅子/杯子/门/吧台。
+   * en: Read current plan object ids so no-apiKey calibrate phrases can pick table/chair/cup/door/bar.
    */
   private async readPlanObjectIds(
     worldId: string | undefined,

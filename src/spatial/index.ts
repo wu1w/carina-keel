@@ -33,6 +33,12 @@ export {
   spatialWorldId,
 } from "./extend-region.js";
 export {
+  decideExpansion,
+  ExpansionTracker,
+  type ExpansionDecision,
+  type ExpansionPolicyInput,
+} from "./expansion-scheduler.js";
+export {
   aabbToLocalMesh,
   captureCameraFromPlayer,
   EYE_HEIGHT,
@@ -48,6 +54,13 @@ export {
   applyRuntimeToObjects,
   placeObject,
 } from "./live-objects.js";
+export {
+  findLiveObject,
+  furnitureKindFromLabel,
+  isStructureObject,
+  structurePreserveIds,
+  type FurnitureKind,
+} from "./referents.js";
 export {
   bakeMapAssets,
   type BakedMapAssets,
