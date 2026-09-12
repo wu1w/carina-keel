@@ -1,0 +1,24 @@
+{
+  "at": "2026-09-11T15:11:29.397175+00:00",
+  "sidecarUpload": {
+    "status": 201,
+    "assetId": "8dd45448bbac70a0",
+    "contentHash": "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+    "byteLength": 34120,
+    "deduped": false,
+    "hashMatch": true,
+    "claimsWorldModelGeneration": false
+  },
+  "worldRuntime": {
+    "status": 200,
+    "worldId": "ue02-final",
+    "appliedRevision": "f2-sp-bb2",
+    "objectIds": [
+      "avocado",
+      "boombox"
+    ],
+    "prepareNotCalled": true,
+    "note": "Did not POST prepare/install/activate; Interchange cook would lock UE. Upload registry write is separate."
+  },
+  "blocked": []
+}

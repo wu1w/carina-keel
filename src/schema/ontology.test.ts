@@ -158,6 +158,10 @@ test("tool input schemas accept the frozen shapes and reject extras that matter"
   );
   assert.equal(toolInputSchema.go.safeParse({ placeId: "p1" }).success, true);
   assert.equal(toolInputSchema.go.safeParse({}).success, false);
+  assert.equal(
+    toolInputSchema.look.safeParse({ style: "oak bar", fresh: true }).success,
+    true,
+  );
 });
 
 test("render and tool result schemas accept phase-1 text media", () => {

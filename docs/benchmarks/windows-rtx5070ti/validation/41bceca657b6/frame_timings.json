@@ -1,0 +1,146 @@
+[
+  {
+    "frame": 0,
+    "render_ms": 0.095,
+    "readback_encode_ms": 21.588,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 1,
+    "render_ms": 0.485,
+    "readback_encode_ms": 2.198,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 2,
+    "render_ms": 0.153,
+    "readback_encode_ms": 1.734,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 3,
+    "render_ms": 0.139,
+    "readback_encode_ms": 13.001,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 4,
+    "render_ms": 0.253,
+    "readback_encode_ms": 1.738,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 5,
+    "render_ms": 0.208,
+    "readback_encode_ms": 1.729,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 6,
+    "render_ms": 0.186,
+    "readback_encode_ms": 12.659,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 7,
+    "render_ms": 0.197,
+    "readback_encode_ms": 1.997,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 8,
+    "render_ms": 0.182,
+    "readback_encode_ms": 1.787,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 9,
+    "render_ms": 0.121,
+    "readback_encode_ms": 12.689,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 10,
+    "render_ms": 0.193,
+    "readback_encode_ms": 2.123,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 11,
+    "render_ms": 0.197,
+    "readback_encode_ms": 1.685,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 12,
+    "render_ms": 0.145,
+    "readback_encode_ms": 12.703,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 13,
+    "render_ms": 0.195,
+    "readback_encode_ms": 1.778,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 14,
+    "render_ms": 0.149,
+    "readback_encode_ms": 1.704,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 15,
+    "render_ms": 0.159,
+    "readback_encode_ms": 13.076,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 16,
+    "render_ms": 0.266,
+    "readback_encode_ms": 1.785,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 17,
+    "render_ms": 0.157,
+    "readback_encode_ms": 1.686,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 18,
+    "render_ms": 0.121,
+    "readback_encode_ms": 13.12,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 19,
+    "render_ms": 0.199,
+    "readback_encode_ms": 1.739,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 20,
+    "render_ms": 0.16,
+    "readback_encode_ms": 1.654,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 21,
+    "render_ms": 0.197,
+    "readback_encode_ms": 12.947,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 22,
+    "render_ms": 0.193,
+    "readback_encode_ms": 1.705,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  },
+  {
+    "frame": 23,
+    "render_ms": 0.13,
+    "readback_encode_ms": 23.967,
+    "note": "render_ms = submit+shadow+shading+glFinish; NOT game FPS"
+  }
+]

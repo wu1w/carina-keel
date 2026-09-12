@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "activeWorldId": "01M28GAE0QBQ6DKSHANGVNWYB8",
+  "worlds": [
+    {
+      "worldId": "01M28FYTCWGTFX4MZZY83NPMRV",
+      "name": "湖边酒馆，旧木吧台",
+      "packDir": "/Users/william/world/docs/benchmarks/windows-rtx5070ti/validation/blender-export/data/worlds/01M28FYTCSGJETZ3QQAK1GBW0M.carina",
+      "updatedAt": "2026-09-11T15:10:33.592Z"
+    },
+    {
+      "worldId": "01M28GAE0QBQ6DKSHANGVNWYB8",
+      "name": "湖边酒馆，旧木吧台",
+      "packDir": "/Users/william/world/docs/benchmarks/windows-rtx5070ti/validation/blender-export/data/worlds/01M28GAE0F8JB78KP2H9QPQ55B.carina",
+      "updatedAt": "2026-09-11T15:10:33.602Z"
+    }
+  ]
+}

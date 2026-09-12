@@ -1,0 +1,28 @@
+{
+  "timestamp_local": "2026-09-11 Asia/Shanghai UTC+8",
+  "mac_en0": "192.168.241.95",
+  "vpn": "V2BOX utun4 default route",
+  "win_lan": "192.168.5.16",
+  "win_sws_bind": "127.0.0.1:8080 and 127.0.0.1:8888 only (loopback GREEN)",
+  "ping_loss": "100%",
+  "tcp_8080": {
+    "syn_connect_observed": true,
+    "http_player_html": "timeout http_code=000 size=0 (no bytes) \u2014 not a real SWS response; likely VPN path / non-serving endpoint",
+    "framesDecoded": null
+  },
+  "verdict": "HARD_BLOCK",
+  "reasons": [
+    "Mac not on Win LAN 192.168.5.0/24",
+    "SWS currently loopback-only (keep Win GREEN); LAN stack scripts ready but not switched",
+    "No HTTP player body from Mac; cannot measure framesDecoded",
+    "HTTP SSH tunnel alone must not be claimed as WebRTC ICE success"
+  ],
+  "mac_url_when_unblocked": "http://192.168.5.16:8080/player.html",
+  "unblock_steps": [
+    "Join Mac to home LAN (same L2/L3 as 192.168.5.16) or exclude 192.168.5.0/24 from VPN",
+    "On Win: G:\\carina-ue\\CarinaPS\\scripts\\restart_ps2_stack_lan.bat",
+    "From Mac browser measure framesDecoded delta (uiless.html or player.html)",
+    "Firewall already Private/LocalSubnet"
+  ],
+  "next_after_or_parallel": "GLB hotload / single-asset cook timing"
+}

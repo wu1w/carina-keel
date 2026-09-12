@@ -5,3 +5,4 @@
 export { executeTool } from "./execute.js";
 export { createToolContext } from "./create-tool-context.js";
 export type { ToolContext } from "./context.js";
+export { mapToolToCommand } from "./map-to-command.js";

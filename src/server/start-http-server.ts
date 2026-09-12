@@ -1,6 +1,13 @@
+import { basename } from "node:path";
 import type { CarinaConfig } from "../config.js";
 import { t } from "../i18n/index.js";
-import { createHttpApp } from "./create-http-app.js";
+import { createUlid } from "../world/ids.js";
+import {
+  closeApplication,
+  tryCreateApplication,
+  type Application,
+} from "./bind-application.js";
+import { createHttpApp, type HttpAppOptions } from "./create-http-app.js";
 import { listenOnLoopback } from "./listen.js";
 import type { RunTurnFn } from "./normalize-turn.js";
 
@@ -10,26 +17,75 @@ import type { RunTurnFn } from "./normalize-turn.js";
  */
 export async function startHttpServer(
   config: CarinaConfig,
-  options?: { runTurn?: RunTurnFn },
+  options?: { runTurn?: RunTurnFn; application?: Application },
 ): Promise<{ url: string; close: () => Promise<void> }> {
-  const runTurn = await resolveRunTurn(config, options?.runTurn);
-  const app = createHttpApp(config, { runTurn });
+  const httpOptions = await resolveHttpOptions(config, options);
+  const app = createHttpApp(config, httpOptions);
   const listening = await listenOnLoopback(app, config.port);
   console.error(`${t("cli.listening", config.lang)} ${listening.url}`);
-  return listening;
+  return {
+    url: listening.url,
+    close: async () => {
+      await listening.close();
+      await closeApplication(httpOptions.application);
+    },
+  };
 }
 
 /**
- * zh: 使用注入的 runTurn，否则再加载管家。
- * en: Use an injected runTurn, otherwise load the steward.
+ * zh: 使用注入的 runTurn/application，否则加载管家与 createApplication。
+ * en: Use injected runTurn/application, otherwise load the steward and createApplication.
  */
-async function resolveRunTurn(
+async function resolveHttpOptions(
   config: CarinaConfig,
-  runTurn: RunTurnFn | undefined,
-): Promise<RunTurnFn> {
-  if (runTurn !== undefined) {
-    return runTurn;
+  injected?: { runTurn?: RunTurnFn; application?: Application },
+): Promise<HttpAppOptions> {
+  const application =
+    injected?.application ?? (await tryCreateApplication(config));
+  if (
+    application !== undefined &&
+    config.pack !== undefined &&
+    config.pack !== ""
+  ) {
+    await registerPackWorld(application, config);
   }
-  const { createDefaultRunTurn } = await import("./default-turn.js");
-  return createDefaultRunTurn(config);
+  if (injected?.runTurn !== undefined) {
+    const options: HttpAppOptions = { runTurn: injected.runTurn };
+    if (application !== undefined) {
+      options.application = application;
+    }
+    return options;
+  }
+  const { createDefaultHttpOptions } = await import("./default-turn.js");
+  if (application === undefined) {
+    return createDefaultHttpOptions(config);
+  }
+  return createDefaultHttpOptions(config, application);
+}
+
+/**
+ * zh: 若启动时带了包路径，登记并打开为当前世界。
+ * en: If a pack path was given at start, register and open it as the active world.
+ */
+async function registerPackWorld(
+  application: Application,
+  config: CarinaConfig,
+): Promise<void> {
+  const packDir = config.pack;
+  if (packDir === undefined || packDir === "") {
+    return;
+  }
+  const name = basename(packDir).replace(/\.carina(\.zip)?$/i, "") || "world";
+  try {
+    await application.dispatchCommand({
+      commandId: createUlid(),
+      intentKind: "session.create",
+      arguments: { name, packDir },
+      origin: "cli",
+      mode: "author",
+      requestedBy: "cli",
+    });
+  } catch {
+    return;
+  }
 }

@@ -1,0 +1,23 @@
+{
+  "jobId": "847301ebc52c",
+  "assetId": "ac37c156cee5773d",
+  "requestedFrames": 1,
+  "actualFrames": 8,
+  "usedBundledScene": false,
+  "scope": "protocol only; visual quality failed; frame count discrepancy sent for correction",
+  "backend": "ModernGL PBR+shadowMap+IBL (NOT Lumen) OpenGL 3.3.0 NVIDIA 616.56",
+  "timings": {
+    "render_ms_p50": 0.236,
+    "render_ms_p95": 0.314,
+    "readback_encode_ms_p50": 7.3,
+    "readback_encode_ms_p95": 13.276,
+    "avg_render_ms": 0.246,
+    "avg_readback_encode_ms": 7.866,
+    "scene_load_ms": 0.108,
+    "queue_wait_ms": 43.041,
+    "wall_ms": 398.2,
+    "network_ms": null,
+    "network_ms_note": "measure at client only",
+    "honesty": "render_ms is glFinish-synced submit+GPU; not claimed as interactive game FPS"
+  }
+}

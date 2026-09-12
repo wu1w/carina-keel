@@ -1,0 +1,17 @@
+{
+  "before": 25,
+  "after": 40,
+  "unchangedOrigin": true,
+  "originBytes": 133848,
+  "planningMs": 44214.040458,
+  "assemblyMs": {
+    "min": 0.06541700000161654,
+    "max": 1.6647090000005846
+  },
+  "export": {
+    "bytes": 6597176,
+    "nodes": 3859,
+    "ms": 91.62149999999997
+  },
+  "archiveBytes": 4015321
+}

@@ -1,0 +1,42 @@
+{
+  "slice": "CARINA-RTX P0 post-package GLB/PBR/collision dynamic load timing",
+  "timestamp_asia_shanghai": "2026-09-11 12:02",
+  "timestamp_utc": "2026-09-11T04:02:00Z",
+  "machine": "DESKTOP-RLADDRR",
+  "source_glb": "C:\\Users\\wuyw\\carina-rtx-validation\\assets\\scenes\\DamagedHelmet\\DamagedHelmet.glb",
+  "source_glb_bytes": 3773916,
+  "packaged_pak_mtime_unchanged": "2026-09-11T10:56:58+08:00",
+  "packaged_pak_bytes": 11262059,
+  "full_repackage": false,
+  "win_ps2_green_preserved": true,
+  "runtime_glb_hotload_into_packaged": {"status": "BLOCKED"},
+  "editor_import_path": {
+    "status": "WORKS",
+    "timings_sec": {
+      "interchange_import_span_approx": 1.27,
+      "static_mesh_build": 0.64,
+      "commandlet_total": 1.91,
+      "process_wall_approx": 14.4
+    },
+    "windows_log": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p0_glb_import_cmd.log"
+  },
+  "cook_without_full_package": {
+    "status": "WORKS_WITH_CAVEATS",
+    "first_cook_with_new_asset": {
+      "process_wall_sec": 20.42,
+      "commandlet_sec": 12.1,
+      "cook_wall_time_sec": 16.01,
+      "packages_total": 594
+    },
+    "iterate_noop_after": {
+      "process_wall_sec": 10.42,
+      "commandlet_sec": 3.82,
+      "packages_cooked": 0,
+      "packages_incrementally_skipped": 587
+    },
+    "cooked_output_dir": "G:\\carina-ue\\CarinaPS\\Saved\\Cooked\\Windows\\CarinaPS\\Content\\Imported\\DamagedHelmet",
+    "windows_evidence": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p0_glb_cook_timing.json"
+  },
+  "pbr": {"status": "PARTIAL_IMPORT_OK"},
+  "collision": {"status": "PARTIAL_UNPROVEN"}
+}

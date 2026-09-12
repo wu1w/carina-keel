@@ -9,3 +9,5 @@ coverage/
 *.carina.zip
 !fixtures/**/*.carina/
 .tsx-cache/
+__pycache__/
+*.pyc

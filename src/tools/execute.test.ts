@@ -238,10 +238,77 @@ test("look does not write graph geometry", async () => {
     assert.equal(looked.ok, true);
     const data = looked.data as { media?: string; placeId?: string };
     assert.equal(data.placeId, place.id);
+    assert.equal(
+      (looked.data as { placeName?: string }).placeName,
+      "Tavern",
+    );
     assert.equal(typeof data.media, "string");
-    assert.match(String(data.media), new RegExp(place.id));
+    assert.match(String(data.media), /Tavern/);
     assert.equal(packHandle.graph.nodes.length, nodeCount);
     assert.equal(packHandle.graph.edges.length, edgeCount);
+  } finally {
+    await removeHarness(packDir);
+  }
+});
+
+test("look passes place name, intent, and fresh to the renderer", async () => {
+  const { ctx, packDir } = await createHarness();
+  try {
+    const spawned = await executeTool(
+      "spawn",
+      { type: NodeType.Place, name: "湖边酒馆" },
+      ctx,
+    );
+    const place = spawnedNode(spawned);
+    await executeTool("go", { placeId: place.id }, ctx);
+    let seen: {
+      placeName?: string;
+      intent?: string;
+      fresh?: boolean;
+    } = {};
+    ctx.userIntent = "看向吧台";
+    ctx.renderer = {
+      render(view) {
+        seen = view;
+        return { media: "ok" };
+      },
+    };
+    await executeTool("look", { style: "oak bar, warm lamps", fresh: true }, ctx);
+    assert.equal(seen.placeName, "湖边酒馆");
+    assert.equal(seen.intent, "看向吧台");
+    assert.equal(seen.fresh, true);
+  } finally {
+    await removeHarness(packDir);
+  }
+});
+
+test("look still is not written into the graph", async () => {
+  const { ctx, packHandle, packDir } = await createHarness();
+  try {
+    const spawned = await executeTool(
+      "spawn",
+      { type: NodeType.Place, name: "Tavern" },
+      ctx,
+    );
+    const place = spawnedNode(spawned);
+    await executeTool("go", { placeId: place.id }, ctx);
+    ctx.renderer = {
+      render() {
+        return {
+          media: `place ${place.id}`,
+          still: { mime: "image/jpeg", base64: "AAAA", width: 8, height: 8 },
+        };
+      },
+    };
+    const nodeCount = packHandle.graph.nodes.length;
+    const looked = await executeTool("look", {}, ctx);
+    const data = looked.data as {
+      still?: { mime: string; base64: string; width?: number };
+    };
+    assert.equal(looked.ok, true);
+    assert.equal(data.still?.mime, "image/jpeg");
+    assert.equal(data.still?.base64, "AAAA");
+    assert.equal(packHandle.graph.nodes.length, nodeCount);
   } finally {
     await removeHarness(packDir);
   }

@@ -1,0 +1,27 @@
+{
+  "slice": "CARINA-RTX P0 LIVE IoStore inject DamagedHelmet + soft-path proof",
+  "timestamp_asia_shanghai": "2026-09-11 12:30",
+  "live_inject": true,
+  "injected": ["DamagedHelmet-Windows.pak", "DamagedHelmet-Windows.utoc", "DamagedHelmet-Windows.ucas"],
+  "original_sha256_unchanged": true,
+  "live_mount_proof": {
+    "mounted": "DamagedHelmet-Windows.utoc Id=c41634b0364f4257 NumPackages=7",
+    "total_packages": 588,
+    "log": "G:/carina-ue/CarinaPS/Packaged/Windows/CarinaPS/Saved/Logs/CarinaPS.log"
+  },
+  "softpath_live": {
+    "log": "C:/Users/wuyw/carina-rtx-validation/logs/p0_live_inject_softexist.log",
+    "evidence": "Material_MR AssetLog under LIVE Packaged path (not SkipPackage)"
+  },
+  "spawn_visual": {
+    "status": "HARD_LIMIT",
+    "reason": "No packaged spawn API/Blueprint/level SoftRef; Premade AssetRegistry.bin lacks DamagedHelmet; no world placement without BP/level ref",
+    "visual_screenshot": false
+  },
+  "scripts": [
+    "G:/carina-ue/CarinaPS/scripts/inject_damagedhelmet_iostore.bat",
+    "G:/carina-ue/CarinaPS/scripts/inject_damagedhelmet_iostore.ps1"
+  ],
+  "ps2_green": {"sws_8080": 200, "streamer_8888": "LISTENING+ESTABLISHED", "sidecar_18793": "UP", "carina_ps_pid": 22060},
+  "win_evidence": "C:/Users/wuyw/carina-rtx-validation/logs/p0_live_inject_apply.json"
+}

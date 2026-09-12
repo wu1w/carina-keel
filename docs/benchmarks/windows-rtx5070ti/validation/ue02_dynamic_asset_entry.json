@@ -1,0 +1,57 @@
+{
+  "slice": "CARINA-RTX UE-02 generic dynamic asset entry WorldRuntime :18794",
+  "timestamp_asia_shanghai": "2026-09-11 16:05",
+  "contract": "review-1",
+  "baseUrl": "http://127.0.0.1:18794/v1/",
+  "live": true,
+  "win_evidence": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_dynamic_asset_entry.json",
+  "assets": {
+    "Avocado": {
+      "assetId": "85ae91e60ed519f5",
+      "assetHash": "85ae91e60ed519f53a7e2096508837fedd446dcc450f8e05678b7a204679bd12",
+      "hardRefInHost": false
+    },
+    "BoomBox": {
+      "assetId": "84c32a396684d0b3",
+      "assetHash": "84c32a396684d0b329bbe60428f5cb89c5f447356ccf359b0374856653eca331",
+      "hardRefInHost": false
+    }
+  },
+  "smoke_worldId": "ue02-final",
+  "stage_timings_ms": {
+    "prepare_avocado_cookMs": 13630,
+    "prepare_boombox_cookMs": 14144,
+    "install_ms": "~225 each (streamer stopped)",
+    "activate_ms": [
+      0.73,
+      0.7
+    ],
+    "spawn_ms": [
+      0.2,
+      0.33
+    ],
+    "move_ms": 0.028,
+    "destroy_ms": 0.064,
+    "respawn_ms": 0.139
+  },
+  "proven": [
+    "HTTP :18794 LIVE",
+    "two non-hardref assets",
+    "spawn/move/delete/respawn without LoadMap",
+    "opaque revision",
+    "Euler XYZ rad"
+  ],
+  "still_501_or_caveats": [
+    "install while streamer holds paks open -> Permission denied",
+    "shaderMergeOk=false (optional)",
+    "raw GLB hotload BLOCKED",
+    "collision walkaround hitch not separately instrumented (BlockAll set)",
+    "Mac WebRTC HARD_BLOCK"
+  ],
+  "followup_after_live": {
+    "timestamp_asia_shanghai": "2026-09-11 16:23",
+    "pbr_orbit": "PARTIAL",
+    "collision": "PARTIAL_INSTRUMENTED",
+    "win_logs": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_dynamic_asset_entry.json"
+  }
+}

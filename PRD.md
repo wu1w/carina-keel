@@ -1,580 +1,324 @@
-# Carina（龙骨）产品需求文档
+# Carina / 龙骨产品需求文档
 
-- 版本：0.5
-- 日期：2026-09-09
-- 阶段：第一期（个人开发者可交付）
-- 状态：已根据架构讨论冻结；改范围先改本文
+> 2026-09-11 最新实施基线：[下一代开发方案 NG-1](docs/NEXT_GENERATION_PLAN.md)。正式路线为 Windows 游戏运行时串流、持久三维世界与后台生成；以高质量酒馆验证。本文产品要求继续有效，冲突的技术路线及阶段顺序以 NG-1 为准。性能指标均为待验证目标。
 
----
+- 版本：1.0；日期：2026-09-10；同日增补用户可编写的全局/世界规则文档。
+- 定位：以自然语言控制生成式世界模型，将生成内容校准、固化为可游玩的持久世界，并导出为建模资源的 Agent 应用。
+- 状态：下一版产品与开发基线，描述目标能力，不表示现有代码已经实现。
+- 本文取代 [PRD v0.5](docs/archive/PRD-v0.5.md) 的产品范围与架构冻结约束。
+- 配套：[模块与数据架构](ARCHITECTURE.md)、[实施路线与验收关口](NEXT_ITERATION_PLAN.md)。现有运行环境参见 [历史联调交接](HANDOVER.md)。
 
-## 0. 命名
+## 1. 产品愿景
 
-**决定：英文名 Carina，中文名龙骨，CLI 与仓库名 `carina`。**
+用户打开一个世界 session，用自然语言让管家生成世界、探索世界、校准错误、暂停时间、修改内容并继续运行。满意的部分能够保存成稳定的三维空间；下次进入时继续使用同一空间，新的生成发生在已有世界的约束下。最终既可以游玩，也能把场景和独立物体带进建模工具继续加工。
 
-一句话：**专为生成式世界模型做的类 Agent 层：让世界有记忆、上下文、MCP、Skill，生成资源可导出、可迁移。**
+**核心循环：描述 → 生成 → 探索 → 校准 → 固化 → 继续运行或扩展 → 导出。**
 
-龙骨不改写 Marble / Genie。世界模型仍然只负责画面；记忆和可带走的状态在包里。
+Carina 的核心产物是一座拥有空间记忆、语义状态和事件历史的世界。管家是这座世界的控制者与协作者，世界模型是可替换的生成能力，3D 运行时负责稳定呈现和执行已固化内容。
 
-| 用法 | 写法 |
-| --- | --- |
-| 产品名 | Carina |
-| 中文名 | 龙骨 |
-| CLI | `carina` |
-| 守护进程 | `carina serve` |
-| 世界包目录 | `*.carina/`（目录即包） |
-| 导出件 | `*.carina.zip` |
-| 管家角色 | Steward（对用户可叫「管家」，不要叫龙虾以免品牌寄生） |
-| 定位句 | 住在世界包里的管家。图谱是龙骨，画面是船壳。 |
+### 产品原则
 
-### 为什么叫这个
+1. 一个世界就是 Agent 的一个长期 session；刷新、退出、重开不会创建新世界。
+2. 所有核心操作都能用自然语言完成；按钮、键鼠、对象选择和规则文档编辑用于加速操作和消除歧义。
+3. 已校准且固化的内容成为空间记忆，要参与下一轮生成约束，不仅用于导出。
+4. 世界运行与模型推理分开：暂停世界时间不等于不能观察、聊天、校准或导出。
+5. 用户认可的内容应稳定；变化必须有目标、有范围、有可追溯的版本。
+6. 能看到、能游玩、能编辑导出分别验收，不能用一段视频或一份 splat 文件替代全部能力。
+7. 模型建议、图像观测与已提交事实有明确边界；不把互相矛盾的画面直接登记为真相。
+8. 服务失败不能毁掉已有世界；已固化区域应在生成服务离线时仍能打开和基础游玩。
+9. 世界规则与全局规则是用户可编写、可版本化的文件，作用类似 `agent.md` / `identity.md` / `memory.md`；不是藏在系统提示里的隐藏设定。
 
-- **Carina** 是船的龙骨，也是龙骨座。世界模型造的是船壳（像素 / splat / 视频）；本项目造的是龙骨：身份、地点、因果、可带走的资产。
-- **龙骨** 两个字能记，和「龙虾」同有「龙」而不抄 OpenClaw。
-- 可检索，不像 Hearth / Keep / Atlas 那样被游戏和笔记产品淹没。
-- CLI 短：`carina go tavern`、`carina export`。
+## 2. 用户与首版场景
 
-### 备选（否决前可换）
+首先服务独立创作者、游戏原型开发者及希望边探索边创作的个人用户。
 
-| 名字 | 含义 | 不采用的原因 |
-| --- | --- | --- |
-| Hearth / 火塘 | 第二天还回到炉边 | 检索差，Hearthstone 过重 |
-| Chela / 螯 | 螯足，螯合=把资产绑到节点 | 发音门槛高，仍像开源龙虾皮肤 |
-| Worldclaw | 直球 | 永远活在 OpenClaw 影子里 |
+- **探索创作**：生成酒馆，走进去，发现喜欢的布局后固化，再扩展门外花园。
+- **自然语言校准**：“房间太窄，扩大到六米宽；桌子保持原位；窗外仍是刚才的湖。”
+- **可玩原型**：“让老板开始营业，精灵坐下喝酒，我去问她在找什么。”
+- **建模底稿**：“暂停，把这间屋子和三把椅子分别导出，我要继续建模。”
+- **多世界切换**：“保存这个世界，新开一个科幻空间站”；随后回到原酒馆。
+- **自订规则**：打开规则面板写“这个世界没有魔法、晚上十点打烊”；全局写“都叫我威廉，回答先给结论”。酒馆打烊不影响空间站。
 
-不要用的名字：龙虾、Claw、Molt、OpenWorld、WorldGPT、任何 `*forge` / `*atlas`。
+首个完整验收世界限定为一个室内空间与一个相邻室外区域，含一扇可开关的门、至少三个可独立操作的物件、一个有基本行为的 NPC。范围较小，但生成、校准、固化、运行和资源导出必须真正打通。
 
----
+## 3. 产品边界与成功定义
 
-## 1. 问题
+本项目不训练基础世界模型，不在首版重做完整 DCC 编辑器或通用游戏引擎。模型推理和重建通过独立适配服务接入；Carina 控制它们、组织结果、验证并运行世界。
 
-生成式世界（Marble、Genie 一类）会造可看的地方，但不负责五件事：
+首版必须实现：
 
-1. **记忆**：酒馆老板记得你，花瓶还碎着。Marble 的持久是几何；Genie 一类跨会话几乎不记得。
-2. **上下文**：不能把整座世界塞进窗口。要按地点、人物、事件做预算。
-3. **MCP**：Cursor / Claude / 别的 Agent 无法按同一套工具操作这座世界。
-4. **Skill**：没有可检查、可迁移的玩法说明书，每次都靠口头教管家。
-5. **资产可带走**：生成物不能当有名字、有出处、换机器仍能打开的内容用。
+- 世界 session 的新建、恢复、切换与隔离；每个世界具有自己的管家历史、规则文档和空间记忆。
+- 用户可编写全局规则与本世界规则，并能用自然语言修订；规则实际约束管家、生成与可执行动作。
+- 自然语言生成、定向控制、运行、暂停、校准、固化、扩展与导出。
+- 至少一种真实生成后端；明确其控制与导出能力，不能只接 mock。
+- 至少一条生成结果进入规范 3D 场景的路径；不要求每家世界模型都能固化。
+- 已固化区域内连续相机移动、碰撞与基本物品/NPC 交互。
+- 以已固化空间作为参考扩展相邻区域，并保持原区域不被静默重造。
+- 可恢复世界包，以及可在 Blender 中打开并分别选择对象的建模资源。
 
-个人开发者不做世界模型。做的是包在模型外面的 Agent 层。
+原型关口允许降级，但降级不能被宣称为首版完成。只有短片、只有静态展示、只有保存文字、只有不可编辑的背景，均未满足本 PRD。
 
----
+首版暂缓多人、无限地图、完整战斗、自动骨骼绑定、影视级拓扑、参数化 CAD、后台多个世界同时实时运行、任意模型兼容。后续能力不得挤占核心循环。
 
-## 2. 产品是什么
+## 4. 一个世界 = 一个 session
 
-Carina 是 **生成式世界的类 Agent 层**，本地优先。
+### 身份与持久化
 
-工作区是一个世界包，不是家目录。同一套八个工具，三条壳都能用：`carina chat`、loopback HTTP、MCP。关掉进程再打开，人还在原地。包可以 zip 走。
+- `WorldSession` 是持久身份，不是一次 HTTP 连接或一个模型窗口。首版统一 `worldId = sessionId`，避免两套同义标识。
+- 每个 session 包含世界规则文档、对话、图谱、空间版本、对象状态、玩家位置、世界时钟、检查点和任务记录。
+- 一次对话是 `turn`；一次推理/重建是 `job`；后端短生命周期句柄是 `providerSession`。它们都属于 world session，不能代替世界身份。
+- 用户可任意创建多个世界。首版一次只激活一个世界；切换默认暂停旧世界，写入检查点后加载目标世界。后台导出可以继续，但不得改变已暂停世界。
+- 新世界默认空白，不带入另一世界的人物、规则和记忆。只有用户明确要求才复用模板或导入资产。
+- 重开默认暂停在最近提交状态，用户说“继续”后推进。模型 KV 缓存丢失不应等于世界丢失。
+- 首版提供恢复检查点；复制为另一个世界时生成新 ID，并记录来源。复杂版本分支合并后置。
 
-它克隆 OpenClaw 的契约（记忆文件、Skill、MCP、工具写盘），不 fork 代码，也不把宿主机当电脑：
+### 界面
 
-| OpenClaw | Carina |
-| --- | --- |
-| 本机 Gateway | loopback daemon |
-| 工作区 | `*.carina/` 世界包 |
-| SOUL / USER / MEMORY | `WORLD.md` / `PLAYER.md` / `MEMORY.md` |
-| Skills | 包内 `skills/*/SKILL.md`，只注入上下文，不执行脚本 |
-| MCP | 同一套八工具的 stdio MCP |
-| 会写盘的工具 | 只改包，无 host shell |
+首页是世界列表：名称、缩略图、最后保存时间、世界状态。进入后以 3D/生成视口为主体，旁边是管家对话。显示运行/暂停、当前任务与已保存状态；支持对象选中、区域框选、查看检查点、编辑规则文档及导出。另有独立的全局规则入口，不属于某一个世界。
 
-**系统真相：图谱 + 事件日志。** 画面只是 `look`。商业世界 API 是可选渲染后端。
+普通用户看到“正在生成露台”“已暂停”“桌子已移动”“规则已更新”，无需理解 pose、revision 或后端工具名。详细任务记录放在可展开的诊断面板。
 
----
+### 用户可编写的规则文档
 
-## 3. 产品不是什么
+每个用户和每个世界都有一组可直接编辑的 Markdown 文件。它们的用法对齐常见 Agent 工作区里的 `agent.md`、`identity.md`、`memory.md`：用户自己设计管家怎么做事、自己是谁、这座世界有什么法则。模板可以给起点，不能代替用户设计。
 
-- 不是世界模型，不训练、不微调生成模型。
-- 不是 Unity / Blender，不做场景编辑器。
-- 不是 OpenClaw 的 fork，不给 Steward 执行宿主机 shell / 浏览器。
-- 不是多玩家服务器，不是飞书 / Telegram 矩阵。
-- 不是通用 Agent OS。MCP 只暴露世界工具，不暴露 shell / 浏览器 / 任意文件。
-- 不是 Skill 市场。Skill 是包内 Markdown，随包迁移。
+**两层作用域**
 
----
-
-## 4. 原则
-
-1. **包是产品。** 能在 Finder 里打开、能邮件发出去，才叫「拿出来用」。
-2. **图先于像素。** 先改图，再可选渲染。纯文本必须能玩完整期。
-3. **没有用户读不到的状态。** 记忆就是文件。禁止隐式数据库当唯一真相。
-4. **上下文预算是功能。** 每轮只注入：宪法文件 + 压缩 MEMORY + 当前地点 N 跳 + 今昨编年。
-5. **适配层只有一个函数。** 先 mock，再接一家付费 API。
-6. **本体锁死。** 七种节点、七种边。演示被卡住再加类型。
-
----
-
-## 5. 谁用、干什么
-
-一期用户就是开发者本人，以及能接受 CLI 的创作者。
-
-| 角色 | 要完成的工作 |
-| --- | --- |
-| 创作者 / 自己 | 把一个地方用成「能回去的世界」，而不是一次性生成 |
-| 后续（一期不服务） | 制片、独立游戏叙事、资产管线集成 |
-
-第一期证明：**跨天连续 + MCP 能改同一座世界 + 包可迁移。**
-
----
-
-## 6. 第一期范围
-
-产品五件事，全部要做。实现上仍是包、工具、管家、三张壳。
-
-| 产品能力 | 一期怎么做 |
-| --- | --- |
-| **记忆** | 图谱 + `events/` + `MEMORY.md` + `session.json`。杀进程仍在。 |
-| **上下文** | 每轮只注入宪法、MEMORY、N 跳、今昨编年、当前对话。整图禁止进 prompt。 |
-| **MCP** | stdio MCP，工具 = 八个世界工具，Resource = 包内只读文件。无 host exec。 |
-| **Skill** | 加载 `skills/*/SKILL.md` 进 Steward 上下文（有 token 上限）。不跑脚本、无市场。 |
-| **导出 / 迁移** | `export` 打 zip；另一台机器 `carina serve` 打开。路径 POSIX。 |
-
-支撑能力（仍要做）：daemon、`carina chat`、presence、八工具、mock `look`。
-
-默认带一份示例 Skill：`skills/tavern-continuity/SKILL.md`（过夜时该 remember 什么）。
-
-### 一期明确砍掉
-
-- 世界心跳 / NPC 定时行动
-- 多聊天软件、子 Steward
-- 宿主机 shell / 浏览器 / MCP 暴露包外路径
-- Skill 市场、Skill 里的代码/exec
-- 付费世界 API 作为运行依赖
-- 多世界同时打开、云同步、多人
-
----
-
-## 7. 用户故事与验收
-
-### 故事 A — 过夜
-
-1. 用户 `carina new tavern.carina`，用几句话种下一间酒馆。
-2. `carina chat`：走进去，告诉老板自己的名字，打碎一只花瓶。
-3. 退出并杀掉 daemon。
-4. 第二天 `carina serve` + `carina chat`。
-
-**通过：** Steward 不用用户提醒就能说到：人在酒馆、老板叫得出名字、花瓶仍碎。
-
-### 故事 B — 带走
-
-1. 用户 `export`。
-2. 在另一目录或另一台机器 `carina serve other.carina.zip`。
-
-**通过：** 地点、人物、碎花瓶、MEMORY 中的名字都在。路径上没有商业世界 API。
-
-### 故事 C — 纯文本
-
-关掉一切渲染后端（默认即关）。
-
-**通过：** A 和 B 仍然成立。`look` 只返回文字。
-
-### 故事 D — MCP 与迁移
-
-1. 用 MCP 客户端对同一包调用 `go` / `remember`（或等价工具）。
-2. `export` 后在另一路径打开。
-3. `carina chat` 仍能说到 MCP 写下的事实。
-
-**通过：** 聊天、CLI、MCP 改的是同一座世界；zip 换目录后仍在。
-
----
-
-## 8. 世界包规格（v0）
-
-目录示例：`tavern.carina/`
-
-```
-WORLD.md          规则、语气、边界（对应 SOUL）
-PLAYER.md         你是谁、希望被如何称呼
-STEWARD.md        管家如何操作这张图、何时 remember
-MEMORY.md         精炼的跨会话事实，不是流水账
-graph.json        节点与边
-events/           只追加；建议 events/YYYY-MM-DD.jsonl
-assets/           二进制 + 同名 sidecar（出处、license、node id）
-skills/           一期仅示例 SKILL.md
-session.json      当前地点、上一轮、模型 id
-```
-
-### 节点（7）
-
-`World` `Place` `Entity` `Object` `Event` `Asset` `Claim`
-
-### 边（7）
-
-`in` `contains` `knows` `owns` `caused` `depicted_as` `derived_from`
-
-属性一律进节点/边的 JSON，不新增类型。
-
-`Event` 既是图上的节点类型，也以 jsonl 落在 `events/`。文件是日志；图是投影。冲突时以日志重放为准。
-
----
-
-## 9. 工具契约
-
-所有工具禁止访问世界包以外的路径。没有 `exec`。
-
-| 工具 | 做什么 | 写入 |
-| --- | --- | --- |
-| `look` | 描述「这里」；可选渲染 | 无，或一件 Asset |
-| `go` | 把玩家移到一个 Place | presence + Event |
-| `say` | 对视野内 Entity 说话 | Event，或一条 Claim |
-| `remember` | 把耐久事实晋升 | MEMORY.md 与/或 Claim |
-| `spawn` | 创建 Place / Entity / Object | 节点 + Event |
-| `relate` | 增加或撤销一条边 | 边 + Event |
-| `attach` | 把文件绑到节点 | Asset 记录 |
-| `export` | 写出可分发包 | zip 或目录 |
-
-`look` 的渲染端口（冻结，一期只实现 mock）：
-
-```
-render(view: { placeId, entities, camera?, style? }) → { media, warnings? }
-```
-
-`media` 一期可以是纯文本。禁止把渲染结果写回为地点的权威几何。
-
----
-
-## 10. 上下文组装（每轮）
-
-按顺序注入，超限则截断靠后的检索结果，不截断 WORLD.md 的硬边界句：
-
-1. `STEWARD.md` + `WORLD.md` 硬规则
-2. 当前包内 `skills/*/SKILL.md`（有总 token 上限；超了只留 frontmatter 名称）
-3. `PLAYER.md`
-4. `MEMORY.md`（过长则只保留头部精炼段）
-5. Presence：当前 Place、N 跳子图（默认 N=2）
-6. `events/` 今天 + 昨天
-7. 本会话最近对话（独立于世界编年，有条数上限）
-
-模型可换。换模型不得换包格式。
-
----
-
-## 11. 技术栈（已冻结）
-
-**语言：TypeScript（`strict`）。运行时：Node 22 LTS 官方构建。** CLI、daemon、图谱、工具循环同仓、同一语言。不引入第二运行时。
-
-一期支持：**macOS、Windows 10+、Linux（glibc）× amd64 / arm64**。世界包在这六种组合上必须能打开。不保证：Alpine/musl、浏览器内运行、iOS/Android、无 Node 的双击即用（那是二期可选 SEA / 独立二进制）。
-
-选它而不是 Python：产品是网关 + 包格式 + 流式聊天。契约要用类型钉死。PyInstaller / 原生 wheel 是跨平台的坑，不是优势。
-
-选它而不是 Go / Rust：八周要的是改工具循环的速度。Go 在「无 Node 单文件」上更强，但一期分发是 `npx` / `npm i -g`，不是六套交叉编译。**代价是必须零 native addon**，否则 Windows / ARM 会把 TS 的跨平台优势吃掉。包格式稳定后，可以用 Go 写只读加载器，不改 pack。
-
-选它而不是 Bun / Deno：Node 官方构建覆盖 Win/macOS/Linux 最完整；Bun 的 Windows 与 addon 生态仍是风险。Deno `compile` 留作二期分发备选，不作为开发运行时。
-
-| 层 | 选择 | 不选（跨平台原因） |
-| --- | --- | --- |
-| 包管理 | pnpm | 不要 monorepo |
-| 校验 | Zod | 裸 `as` |
-| CLI | citty 或 commander + `node:readline` | Ink / blessed / 依赖 raw TTY 的 TUI |
-| daemon | Hono + **TCP `127.0.0.1` + HTTP + SSE** | Unix socket、命名管道、gRPC、Electron |
-| 流式 | SSE | 一期不上 WebSocket |
-| Agent | Vercel AI SDK + OpenAI 兼容 provider | LangChain；绑死一家 SDK |
-| 模型 | 用户 Key；OpenAI 兼容端点 | 产品内置模型 |
-| 包内数据 | UTF-8、LF、**包内路径一律 POSIX**（`assets/foo.png`） | SQLite 当唯一真相 |
-| 索引 | 一期不建。若需要：只许 `node:sqlite`（随 Node 分发） | `better-sqlite3`、`sqlite3`、任何 node-gyp |
-| 压缩 | JS 实现的 zip（如 fflate） | 调用系统 `zip` / `tar` |
-| 测试 | node:test 或 vitest | 只在 darwin 上测 |
-
-### 跨平台硬规则
-
-- **零 native addon。** `optionalDependencies` 里的平台二进制也不要。CI 在 ubuntu-latest、windows-latest、macos-latest 跑同一套测试。
-- **进程间只用 HTTP。** CLI 连 `http://127.0.0.1:<port>`，带 token。禁止 Unix socket（Windows 行为不一致）。
-- **包内路径永远 `/`。** 只有「包根目录」用 `node:path` 拼到宿主 FS。禁止把 `C:\` 或反斜杠写进 `graph.json`。
-- **导出 zip 自包含。** 另一台机器只需要 Node 22 + 本 CLI，不需要同一套 shell 工具。
-- **聊天是协议，不是终端。** daemon 暴露同一套 SSE API。`carina chat` 是 readline 瘦客户端；daemon 同时提供一份**零构建静态页**（无打包器、无原生模块），TTY 不可用时打开浏览器。这是一个协议的两个壳，不是两个产品面。
-- **不要为「打开浏览器」调系统命令。** 打印 URL；需要时用纯 JS 的 opener 并处理 win/mac/linux 三分支，失败则只打印。
-- 文件监视不作为正确性依赖（`fs.watch` 在 Windows 上不可靠）。
-
-其余约束：
-
-- daemon 默认 `127.0.0.1`，请求带 token。
-- LLM 走用户自己的 API Key；产品不带模型。
-- 一期无向量。子图 + 关键字通过验收。
-- 禁止宿主机 `exec`、浏览器自动化依赖。
-- 适配层：一个 `Renderer` 接口 + `MockRenderer`。不把 Marble SDK 写进核心。渲染器返回的是字节或 URL，不假设 OS 预览器。
-
----
-
-## 12. 成功标准
-
-第一期结束当且仅当：
-
-1. 故事 A、B、C、D 全过。
-2. 一个未读过代码的人只靠 `README` 能 `new` → `chat` → 过夜 → `export`，并能把 MCP 接到 Cursor。
-3. 适配层代码不超过「一个接口 + mock」。没有第二家 provider 实现也可以发布。
-4. 八周内（兼职则按等效工时）能对着镜头演示故事 A+B，并顺手展示 MCP 改同一座世界。
-
-不作为一期成功标准：画面好看、多模型评测、用户量、技能生态。
-
----
-
-## 13. 风险
-
-| 风险 | 对策 |
-| --- | --- |
-| 本体膨胀 | 类型写死在 PRD；新类型必须先改本文 |
-| 做成渲染客户端 | 故事 C 不过就不能接付费 API |
-| 做成 OpenClaw 皮肤 | 禁止 host shell；聊天面只有 `carina chat` |
-| 实验室自己做实体图 | 护城河是包格式和创作流程，不是画面 |
-| LLM 费用 | 工具优先；能图上解决的不问模型 |
-
----
-
-## 14. 里程碑
-
-| 周 | 交付 | 完成定义 |
-| --- | --- | --- |
-| 1–2 | 包格式 + CLI：`new` `query` `spawn` `relate` `export`，无 LLM | 不用模型也能建酒馆、碎花瓶、导出 |
-| 3–5 | daemon + `carina chat` + 八工具 + 上下文预算 | 故事 A 在同一次开机内可走通 |
-| 6 | 杀进程过夜 + 故事 C | 故事 A、C 稳定 |
-| 7–8 | 导出迁移 + MCP + 示例 Skill + README | 故事 B、D；可演示 |
-
-周次是日历建议。验收只认故事，不认周次。
-
----
-
-## 15. 第一期之后（不实施，只占位）
-
-- 一个付费 `look` 后端（例如 Marble generate/export）
-- 静帧 / 全景作为 Asset
-- 把静态聊天页做成完整 UI（一期只有零构建退路页）
-- Skill 市场、带代码的 Skill
-- 包格式版本迁移
-- MCP 以外的渠道（飞书等）
-
-未写进第 6 节的，一律视为第一期不存在。
-
----
-
-## 16. 第一期模块（冻结）
-
-**9 个目录，一个仓。** 不是 npm workspaces。依赖只能向下。
-
-核心（无 HTTP、无 MCP、无 `ai`）：`schema` `pack` `world` `render` `tools`  
-壳：`steward`（唯一可 import `ai`）`server` `mcp` `cli`
-
-```
-schema → pack → world → tools → steward → server
-                       ↗                ↘
-                 render            cli / mcp
-```
-
-`cli` 在 1–2 周直连 `world` / `tools`。`carina chat` 走 `server`。MCP 与 HTTP 只调 `executeTool`。
-
-### 目录与公开函数（名字冻结）
-
-```
-src/
-  schema/     契约。无 fs
-  pack/       目录与 zip
-  world/      图、编年、session、MEMORY
-  render/     Renderer + mock
-  tools/      八工具
-  steward/    上下文、Skill 注入、runTurn
-  server/     Hono + SSE + chat.html
-  mcp/        stdio MCP
-  cli/        入口
-  config.ts   CarinaConfig，读 CARINA_* 环境变量
-  errors.ts   CarinaError
-```
-
-| 模块 | 公开名字（一期只许这些当跨模块 API） |
-| --- | --- |
-| schema | `NodeType` `EdgeType` `NodeRecord` `EdgeRecord` `GraphFile` `ChronicleEvent` `ToolName` `toolInputSchema` `RenderView` `RenderResult` |
-| pack | `createPack` `openPack` `exportZip` `resolvePosix` `listSkills` `readMarkdown` |
-| world | `WorldStore`：`query` `mutate` `appendEvent` `setPresence` `remember` `hopNeighborhood` |
-| render | `Renderer` `MockRenderer` `render` |
-| tools | `executeTool` `ToolContext` |
-| steward | `assembleContext` `runTurn` |
-| server | `createHttpApp` `startHttpServer` |
-| mcp | `startMcpServer` |
-| cli | `main` |
-
-每个模块一个 `index.ts`，外部只从 `index.ts` 进。
-
-### 依赖规则
-
-1. `schema` 只依赖 `zod`。
-2. `world` 不 import `hono` / `ai` / `@modelcontextprotocol/*`。
-3. `tools` 不 import `ai`。`look` 只调 `Renderer`。`export` 只调 `exportZip`。
-4. 只有 `steward` 可依赖 `ai`。
-5. `cli` / `server` / `mcp` 禁止再实现一套工具。
-6. `mcp` 不 import `ai`。对话走 `server`。
-
-### 与产品能力
-
-| 能力 | 模块 |
-| --- | --- |
-| 世界包 | schema + pack |
-| 记忆 / 编年 / Presence | world |
-| 八工具 / 导出 | tools + pack |
-| Mock look | render |
-| 上下文 + Skill | steward |
-| MCP | mcp |
-| 聊天 | server + cli |
-
-### 开工顺序
-
-| 步 | 模块 | 可演示 |
-| --- | --- | --- |
-| 1 | schema + pack | `carina new tavern.carina` |
-| 2 | world + spawn/relate/query | 无模型建酒馆、碎花瓶 |
-| 3 | exportZip | 换目录打开 |
-| 4 | session + remember | 杀进程状态还在 |
-| 5 | look/go/say/attach | 八工具齐，无模型 |
-| 6 | steward + server + chat | 故事 A |
-| 7 | mcp + 示例 Skill + README | 故事 A/B/C/D |
-
-### 不要建的目录
-
-`plugins/` `vector/` `channels/` `marble/` `packages/` `skills-runtime/`。
-
----
-
-## 17. 代码与命名（冻结）
-
-语言：TypeScript `strict`。ESM（`"type": "module"`）。开发用 `tsx`，发布用 `tsc`。NodeNext：相对 import 写 `.js` 后缀。
-
-**代码标识符用英语。** 注释、说明、CLI、前端、MCP 描述、错误文案、默认世界模板：中英双语从第一行代码就要在，禁止只写一种语言再「以后补翻译」。
-
-### 17.1 拼写形状
-
-| 种类 | 规则 | 正例 | 反例 |
+| 作用域 | 存放位置 | 用户侧对应 | 文件 |
 | --- | --- | --- | --- |
-| 目录 / 文件 | kebab-case，`.ts` | `event-log.ts` `world-store.ts` | `eventLog.ts` `WorldStore.ts` |
-| 函数 / 变量 / 参数 | camelCase | `openPack` `hopCount` `placeId` | `open_pack` `hop_count` |
-| 类型 / 类 / 接口 | PascalCase，不要 `I` 前缀 | `WorldStore` `ObjectNode` | `IWorld` `TPlace` |
-| 常量（真常量） | `SCREAMING_SNAKE` | `DEFAULT_HOP_COUNT` `TOOL_NAMES` | |
-| Zod schema | camelCase + `Schema` | `nodeRecordSchema` | `NodeRecordSchema` 与类型重名也可，但一期用 camelCase schema |
-| 环境变量 | `CARINA_` + SCREAMING | `CARINA_API_KEY` | `OPENAI_API_KEY` 可作 fallback，代码里仍映射到 `CarinaConfig` |
-| npm 包 / bin | `carina` | | |
-| JSON 字段 | camelCase | `placeId` `createdAt` | `place_id` |
-| 包内路径字符串 | POSIX，`/` | `assets/vase.png` | `assets\\vase.png` |
-| 磁盘文件名 | 已在第 8 节冻结 | `WORLD.md` `graph.json` | 不要改成 `world.md` |
+| 全局，跨所有世界 | 应用数据目录的用户档案，不属于单个世界包 | `agent.md`：管家默认人格与工作方式；`identity.md`：创作者是谁、希望被如何称呼；`GLOBAL.md`：始终生效的偏好与硬边界 | `AGENT.md`、`IDENTITY.md`、`GLOBAL.md` |
+| 本世界 | 该 WorldSession 的包，随世界 revision 提交 | 本世界宪法、本世界身份、本世界管家补充、本世界记忆与可选技能说明书 | `WORLD.md`、`PLAYER.md`、`STEWARD.md`、`MEMORY.md`、`skills/*/SKILL.md` |
 
-布尔：`is` / `has` / `can` 开头（`isLoopback` `hasPresence`）。  
-函数：动词开头。工厂：`createX` / `openX` / `startX`。  
-不要缩写：`id` `uri` `url` `mcp` `sse` 除外。禁止 `ctx2` `tmp` `data1`。
+全局不设会自动注入所有世界的记忆文件。创作者偏好放在 `IDENTITY.md` / `GLOBAL.md`；“酒馆老板叫什么”只属于该世界的 `MEMORY.md` 与语义状态。新世界默认空白法则与空白记忆，不带入另一世界的人物和规则。用户可选择“用当前全局档案作为起点”，仍复制为这个世界自己的文件，之后两边独立修改。
 
-### 17.2 避开 JS 保留字（磁盘字符串不变）
+对应关系：全局 `AGENT.md` 是默认管家；本世界 `STEWARD.md` 只追加或收紧，不能放宽产品硬约束。全局 `IDENTITY.md` 是创作者；`PLAYER.md` 是你在这座世界里的角色，可以与创作者不是同一个人。`WORLD.md` 是这座世界的宪法：物理、禁忌、语气、营业法则、生成时必须遵守的叙事与空间边界。
 
-图谱里的字面量按第 8 节；TypeScript 类型另开一名。
+**编写与生效**
 
-| 磁盘 / JSON | TypeScript 类型 | 变量名 |
-| --- | --- | --- |
-| `"type": "World"` | `WorldNode` | `worldNode` |
-| `"type": "Object"` | `ObjectNode` | `objectNode`（禁止 `Object` `object` 当类型名） |
-| `"type": "Event"` | `EventNode` | `eventNode` |
-| `"type": "in"` | `EdgeType.In`（值仍是 `"in"`） | `edgeType`；禁止 `const in =` |
-| jsonl 一行 | `ChronicleEvent` | `chronicleEvent` |
-| 运行中的世界 | `WorldStore` | `store` 或 `worldStore`（禁止类名 `World`） |
+- 规则面板可直接打开、编辑、保存这些 Markdown；不必会写 JSON、提示词或对象 ID。
+- 自然语言同样能改，例如“以后这个世界没有魔法”“全局记住，都叫我威廉，先给结论”。管家展示将写入哪一份文件、哪一段，用户确认后提交。不可默默改宪法。
+- 改规则是创作者编辑：走统一命令、写入检查点、产生新 revision；暂停世界时钟。玩家动作和 NPC 台词不能改规则文档。
+- 规则必须进入管家规划、生成条件、动作校验和可结构化的运行时前置条件，不能只出现在提示词日志里。
+- `MEMORY.md` 仍是便于阅读的摘要，不是几何、归属、门锁的唯一事实源。宪法与已提交类型化状态冲突时，先按已提交状态执行，并向用户指出矛盾，请其修订规则或校准世界。
+- 能提取的规则（禁止瞬移、晚十点锁门、锁定对象）写入 `WorldRules` 与对象约束；无法结构化的散文仍约束管家，但不能假装已经在物理层执行。
+- 全局规则变更作用于之后的管家回合，不改写已暂停世界的空间资产，也不把全局人设自动变成某世界 NPC。
+- 优先级从高到低：产品硬约束（无宿主命令、不静默覆盖冻结区域、世界隔离）→ 全局文档 → 本世界 `WORLD.md` 硬规则 → 已提交语义状态与空间记忆 → `STEWARD.md` 与 skills → 当前对话。
 
-`NodeType` / `EdgeType` 用 `as const` 对象 + 联合类型，不要 `enum`。
+首版必须能用规则面板和自然语言两种方式完成一次全局修改与一次本世界修改，并在切换世界时证明规则没有串台。
 
-```ts
-export const NodeType = {
-  World: "World",
-  Place: "Place",
-  Entity: "Entity",
-  Object: "Object",
-  Event: "Event",
-  Asset: "Asset",
-  Claim: "Claim",
-} as const;
-```
+## 5. 自然语言控制契约
 
-工具名单冻结，全小写：`look` `go` `say` `remember` `spawn` `relate` `attach` `export`。实现函数与之一一对应：`runLook` `runGo` … `runExport`（`export` 是保留字，故加 `run` 前缀，八个一律 `run` + PascalCase）。
+自然语言贯穿全流程：创建世界、移动/观察、生成事件、调节时间、修改空间、校准尺寸、固化区域、撤销、恢复和导出。核心操作不存在必须填写 JSON、模型提示词或 ID 的步骤。
 
-### 17.3 id、时间、错误
+### 典型指令与结果
 
-- 所有节点 / 边 / 事件：`id` 为 ULID 字符串（可排序）。不要 `uuid` 混用。
-- 时间：ISO-8601 UTC，字段名 `createdAt` `occurredAt`。不要 epoch 混用。
-- 错误：只抛 `CarinaError`，带 `code: string`（`PACK_NOT_FOUND` `SANDBOX` `UNKNOWN_TOOL` …）。边界用 Zod `safeParse`，不把 `error` 吃掉。
-- 禁止 `any`。跨边界用 Zod。禁止非空断言 `!`，除非上一行刚收窄。
+- “新建一个黄昏湖边酒馆。”创建新 session，生成初始场景并标记待校准区域。
+- “慢慢走到窗边，向左看。”转成有限目标/轨迹；相机高频移动由控制器执行，不逐帧请求 LLM。
+- “停下移动。”停止导航；不会自动暂停整个世界。
+- “暂停世界。”停止世界时钟、NPC、物理推进和生成驱动的世界变化；仍可自由观察。
+- “暂停生成。”停止发起新生成任务并取消可取消任务；已固化区域的正常运行不必停止。
+- “把桌子向窗边移动一米，其他东西别动。”定位对象和参照，校验单位及约束，在明确范围内修改。
+- “固定这间屋子，以后不要改变布局。”提交通过校准的区域版本，并建立布局保护约束。
+- “在门外生成花园，保留屋子。”在边界锚点外扩展，使用原空间约束生成。
+- “继续运行，让老板开始招待客人。”恢复时间，并建立可执行的 NPC 行为目标。
+- “退回刚才移动桌子之前。”恢复对应检查点为新的提交版本，保留历史。
+- “把大厅和椅子导出成建模资源。”针对同一世界版本导出场景、独立对象、材质和资产映射。
+- “打开世界规则，写上：这里没有魔法，晚上十点打烊。”更新本世界 `WORLD.md` 并提交检查点；此后玩家瞬移或超时营业按规则拒绝。
+- “全局记住：都叫我威廉，回答先给结论。”写入用户档案，切换到另一个世界仍然生效；不把这句话写进酒馆记忆。
 
-### 17.4 模块内部文件名
+### 歧义、权限与反馈
 
-一期建议（可增文件，不可改公开 API 名）：
+当前选中对象优先用于“它/这个”；其次使用当前视野和最近对话。多个候选会导致不同几何或规则结果时，管家给出可点击候选并只问一个必要问题。不可默默修改整座世界。
 
-| 目录 | 文件 |
-| --- | --- |
-| schema | `node-types.ts` `edge-types.ts` `graph-file.ts` `chronicle.ts` `tool-io.ts` `render.ts` `index.ts` |
-| pack | `paths.ts` `create.ts` `open.ts` `zip.ts` `sandbox.ts` `markdown.ts` `skills.ts` `index.ts` |
-| world | `world-store.ts` `graph.ts` `events.ts` `session.ts` `memory.ts` `query.ts` `index.ts` |
-| render | `renderer.ts` `mock-renderer.ts` `index.ts` |
-| tools | `execute.ts` `run-look.ts` … `run-export.ts` `index.ts` |
-| steward | `assemble-context.ts` `inject-skills.ts` `run-turn.ts` `index.ts` |
-| server | `create-http-app.ts` `chat-sse.ts` `public/chat.html` `index.ts` |
-| mcp | `start-mcp-server.ts` `index.ts` |
-| cli | `main.ts` `commands/*.ts` |
+默认用户拥有创作者权限。明确的“改成、生成、校准”是编辑意图；“我拿起杯子、我开门”是玩家动作，服从世界规则。无法分辨时简短澄清。创作者可以明确改写规则或锁定对象，但系统要显示修改范围并留检查点。世界中的 NPC 台词不是控制系统的指令。
 
-### 17.5 环境变量
+范围清晰、可撤销、预算内的编辑自动执行并提供撤销入口。跨越用户设定预算或会覆盖明确保护范围的额外变更，需要展示具体影响；用户明确要求改该保护范围时不重复索要同一授权。
 
-| 变量 | 含义 |
-| --- | --- |
-| `CARINA_API_KEY` | LLM |
-| `CARINA_MODEL` | 模型 id |
-| `CARINA_MODEL_BASE_URL` | OpenAI 兼容端点 |
-| `CARINA_TOKEN` | daemon / HTTP 鉴权 |
-| `CARINA_PORT` | 默认如 `18790`（避开 OpenClaw 18789） |
-| `CARINA_PACK` | 当前包路径 |
-| `CARINA_LANG` | `zh` 或 `en`，界面与说明的显示语言，缺省 `zh` |
+复合指令如“暂停，把门扩大，再继续”必须拆成有依赖的操作序列。前一步失败时停止后续依赖步骤，保留已完成的检查点并说明结果；编辑未成功不能直接恢复运行后声称整条指令完成。
 
-配置对象：`CarinaConfig`。禁止在业务模块里直接 `process.env`，只在 `config.ts` 读。
+先显示已接受的操作及进度，再报告实际结果；模型无法做到时说明限制和可用替代，不把未生成/未校准内容说成已完成。
 
-### 17.6 格式与测试
+## 6. 运行、暂停与修改
 
-- `strict`：`strict` `noUncheckedIndexedAccess` `exactOptionalPropertyTypes`。
-- 格式：Prettier 默认（无分号争议则用 Prettier 默认）。不引入 Biome / 带 native 的 lint 作为运行时依赖。
-- 测试：`node:test` 或 vitest，文件 `*.test.ts` 与实现同目录或 `test/` 下一期统一用 `src/**/*.test.ts`。
-- 日志：`console.error` 给 CLI 致命错误；daemon 用简单 `log.info` 函数，不要 winston。面向用户的日志句子走 i18n，不要在 `console.log` 里写死某一种语言。
+### 三种独立状态
 
-未写进本节的风格不要另开一套。
+- **Session 生命周期**：`opening / active / suspended / closed / error`。
+- **世界时间**：`running / paused`。只在 active 时允许 running。
+- **区域资产状态**：`draft / calibrating / frozen`，并单独记录质量等级。
 
-### 17.7 中英双语（冻结）
+推理任务另有 queued/running/cancelRequested/succeeded/failed/cancelled/stale，不使用“暂停世界”来冒充任务已在 GPU 上停止。
 
-从仓库第一天起，中文和英文是对等的，不是「中文产品、英文以后再说」。
+### 暂停语义
 
-**1. 用户看得见的字：只许从词表出。**
+收到明确暂停后，控制通道立即设置暂停屏障，停止接纳自动推进；已原子提交的动作保留，未提交的世界推进不得越过屏障。暂停后仍允许用户明确发起的编辑提交，这类提交不增加世界时间。
 
-- 词表：`src/i18n/zh.ts` 与 `src/i18n/en.ts`，同一组 key，两边都要有值。
-- 取值：`t(key)`，语言来自 `CarinaConfig.lang`（`CARINA_LANG`）。
-- 禁止在 `cli/`、`server/public/chat.html`、MCP `description`、`CarinaError` 的用户报文里写死单语字符串。
-- `chat.html` 用 `data-i18n="key"` 或启动时注入词表，禁止 HTML 里只写中文或只写英文。
-- MCP 工具描述用词表拼出「中文。English.」一句，Cursor 里两种语言都能搜到。
+后台不可取消推理可以计算完，但其输出先隔离，不能改变画面中的已提交世界、NPC 或对象。界面显示真实的后台任务状态。恢复时按新世界版本重新验证，不盲目播放暂停前排队的旧结果。
 
-**2. 注释与 JSDoc：中英都写。**
+暂停时允许相机检查、聊天、校准、导出和可撤销编辑；玩家物理移动与 NPC 行动停止。首版支持“前进一步/运行五秒再暂停”，使用同一可检查时钟。
 
-导出函数、类型、模块顶注释必须用：
+### 修改语义
 
-```ts
-/**
- * zh: 打开世界包并校验 graph.json。
- * en: Open a world pack and validate graph.json.
- */
-export function openPack(packDir: string): PackHandle {}
-```
+空间、碰撞或规则编辑默认短暂停止相关世界推进，建立基线后生成候选，校验并原子切换。编辑失败保留基线。原先 paused 的世界不自动恢复；原先 running 的世界完成安全提交后恢复，除非用户要求保持暂停。
 
-行内注释同一格式，可写一行：
+“固化”不是永久禁止修改，也不是暂停时间：固定的是某区域的空间/资产版本；NPC 和独立物体仍可在其中活动。改动固化区域产生新版本，旧版本可恢复。
 
-```ts
-// zh: 包内路径必须是 POSIX。 en: Pack-relative paths must be POSIX.
-```
+## 7. 控制生成式世界模型
 
-禁止只有 `zh:` 或只有 `en:`。实现细节的短注释也要双语，不要用「太短就只写英文」当例外。
+管家将意图转为生成计划：场景目标、区域范围、相机轨迹、动作、事件、参考资产、必须保留的约束和预算。
 
-**3. 说明文档与模板。**
+适配器声明是否支持文本、图像/深度参考、相机/动作控制、连续生成、取消、局部编辑、空间资产导出及恢复。无此能力时不得用文字提示模拟“已支持”。
 
-- `README.md` 中英分节都要有（或 `README.zh.md` + `README.en.md` 同时存在，禁止只交一份）。
-- 默认世界模板：`src/i18n/templates/zh/` 与 `src/i18n/templates/en/` 成对（`WORLD.md` `PLAYER.md` `STEWARD.md` `MEMORY.md` 与示例 Skill）。`createPack` 按 `CARINA_LANG` 选一套，另一套仍留在仓库里。
-- 用户写进自己世界包的正文不强制双语（那是用户的世界）。
+- **已固化区域**由 3D 运行时稳定渲染和运行，日常移动不调用生成模型。
+- **待生成区域**调用世界模型探索、扩展或更新，并将结果作为候选。
+- **接缝**必须匹配坐标、尺度、入口和通行性。切回已知区域时读取保存空间，不能用新生成画面替代它。
+- **预览与游玩**在界面中明确区分：候选区域可观察并接受生成指令，但未验证碰撞的区域不允许玩家实体直接进入。默认自动在预算内准备可玩资产，无法完成时保留边界并说明原因；不能用画面上的地面冒充可行走空间。
+- 若后端不能直接接受已有几何，适配器可从空间记忆生成参考视图、深度、遮罩与相机轨迹；这是条件适配路径，必须验证约束效果，不承诺像原生几何条件一样可靠。
+- 保存必要参考与输入；可记录后端缓存提升续接效率，但可恢复性依赖世界资产和状态，不依赖未公开的模型内部状态。
 
-**4. 错误码对用户。**
+首版允许有限动作集和分块生成；不承诺生成边界内达到实时 60fps。连续操控已固化 3D 区域是硬要求。
 
-- `CarinaError.code` 仍是英语大写（`PACK_NOT_FOUND`）。
-- `CarinaError.message` 对用户展示时走 `t("error.packNotFound")`，词表里中英都有。日志可同时打 `code`。
+## 8. 校准与固化：世界的空间记忆
 
-**5. 检查。**
+### 8.1 校准内容
 
-- 新增 key 必须同时改 `zh.ts` 和 `en.ts`。缺一边视为构建失败（一期用简单测试：两个对象 key 集合相等）。
-- 不引入 i18n 框架全家桶。`t` 就是查表。
+管家支持语义、外观与几何三类校准：对象是谁/是什么；材质、颜色和光照；尺度、朝向、位置、墙体、入口及接缝。用户可用自然语言指定“门高两米”“右侧才是窗户”“这两把椅子是同一把”。
 
-`src/i18n/` 是基础设施，不算第 10 个产品模块；`cli` / `server` / `mcp` / `pack` 都依赖它取文案。`schema` / `world` 不依赖 i18n（不拼用户句子）。
+校准流程：定位对象/区域 → 确定基线和保护范围 → 获取证据或补充视角 → 估计/编辑 → 检查差异 → 提交。单目深度没有可靠尺度时记录尺度未知，不能把估计值伪装成精确尺寸。已指定米制锚点后才做相应尺寸承诺。
+
+观察互相矛盾时，保留来源、置信度与候选；用户明确校正优先于模型猜测。未观测背面等补全部分需记录为推测内容，避免被当成已验证事实。
+
+### 8.2 固化管线
+
+1. 固定某次世界版本和目标区域，分离静态背景、动态 NPC 与可移动物件。
+2. 优先接收后端原生三维资产；若只有视频/图像，则采集重叠多视角，估计相机、深度和几何。
+3. 对齐到世界坐标，校准尺度与重力方向，绑定图谱对象 ID。
+4. 生成可视资产、碰撞表示、可行走区域以及独立交互对象；补足可玩性所需结构。
+5. 检查视角一致、保护区差异、空间接缝、碰撞与对象完整性。
+6. 写入不可变资产和区域版本，原子提交索引；此后重访优先读空间记忆。
+
+视频重建是候选路径，不保证任意生成视频都可恢复可靠 3D。若覆盖不足、几何矛盾或重建失败，区域保持 draft，管家主动补采集或提出有限修复方案。禁止把失败输出自动提升为 frozen/playable。
+
+### 8.3 三个质量等级
+
+- `viewable`：可从多个视角观看的 3D 表示，带覆盖/缺失区域说明。
+- `playable`：在 viewable 基础上有经过验收的碰撞、出生点、通路和独立交互对象。
+- `editable`：有可导出的可视网格、材质、规范变换与对象分组，可在建模工具中编辑。
+
+等级记录验证报告，不能仅由模型声称。用户只说“固化”时默认以 playable 为目标；先只达成 viewable 时明确显示部分完成。建模导出必须满足 editable，不能把 splat 换扩展名作为网格。
+
+### 8.4 记忆读回
+
+空间记忆负责几何和外观，语义状态负责身份/归属/规则，事件历史负责变化及原因。用户编写的规则文档负责宪法、身份与管家工作方式。管家按当前地点、目标对象、生成边界检索相关记忆，并始终载入当前全局档案与本世界规则。MEMORY.md 是便于阅读的摘要，不是几何或对象状态的唯一事实源。
+
+新生成必须引用基线空间版本和保护范围；未改变的固化资产引用保持相同。扩展或修改必须通过差异检查。检索的结果应实际进入生成条件和校验器，不能只在日志里写“参考了记忆”。
+
+## 9. 可游玩的世界
+
+基础玩法包括移动、观察、开关门、拿取/放下/使用物品、NPC 对话与简单目标行为。位置、归属、可达性和状态前置条件由运行时校验，并叠加本世界 WorldRules；LLM 负责理解与提出行为，不直接无限制改写事实。违反 WORLD.md 已提取条款的玩家动作被拒绝，不改布局。
+
+NPC 至少具有稳定身份、独立外观资源、位置、目标、可知信息和行为状态。运行时驱动移动/等待/交互，LLM 在有意义的决策节点参与。暂停必须停止 NPC 时间推进。首版可以使用简单可动画代理资产，但不得把背景中的人物画面冒充可独立控制 NPC。
+
+首版不追求复杂 RPG 系统，但要求一次玩家行动改变可见状态并可保存。例如：拿起杯子后桌上不再有同一只杯子；门打开后可通过；离开回来状态不重置。
+
+## 10. 导出产品
+
+### A. 世界包 `.carina.zip`
+
+包含某次一致性快照：世界身份、本世界规则文档、管家历史、语义状态、时钟、玩家状态、空间版本、当前引用资产和必要事件。包含恢复该快照所需数据，不要求将全部原始视频和所有历史大文件打包；完整归档作为可选配置。全局规则留在用户档案，导出时可附带当时引用的全局文档哈希，默认不把全局档案写成另一个世界的内容。
+
+默认不包含 API key、机器绝对路径、临时下载令牌或不可移植的 providerSession。导入冲突时提供“打开已有世界/作为副本导入”，不静默覆盖或忽略用户选中的包。没有模型服务时可打开已固化场景。
+
+### B. 建模资源包
+
+首版：`scene.glb` + 独立对象 GLB（若用户选择）+ 资产映射/来源/单位清单。规范世界采用米制、右手系、Y 向上；导出适配负责坐标转换。材质与贴图自包含或使用包内相对路径，不依赖临时外链。
+
+保留对象名称、ID、层级、变换、材质及支持的自定义属性。碰撞网格与可视网格分开标记。视觉 splat 可另行导出，但不替代建模网格。首版不承诺自动得到生产级拓扑、骨骼或参数化 CAD；未支持项目在导出清单中明确说明。
+
+导出绑定 world revision。世界继续运行时，导出依然读取固定快照，不混用两个时刻的对象和资源。验收为在 Blender 中导入、分别选中物体、检查尺度和贴图；游戏引擎导入为后续扩展验收。
+
+## 11. 稳定性、性能与预算
+
+首版使用本地优先世界存储，核心跨平台；GPU 能力通过独立服务提供，不要求重建依赖在每台用户设备本机运行。Key 留在宿主配置，管家只有受类型约束的世界工具，没有任意宿主命令权限。
+
+- 每个世界唯一写入者；写操作有请求 ID、预期版本和幂等结果。
+- 新空间版本、语义变化、对象绑定与提交记录要一致；中断可恢复到最近完整提交。
+- 暂停、取消与切换拥有独立控制通道，不能排在数分钟推理后面。
+- 后端取消分为停止提交与停止计算；不能取消计算时明确说明。
+- 单任务记录耗时、进度、失败原因与预算消耗；自动补采集/重试有上限，超限保持现有世界。
+- 自动运行受用户配置的时长、生成频率和预算约束，不能无限调用模型。
+
+以下是验收目标，不是当前基准：指定测试设备上本地操作反馈 p95 ≤100ms；暂停屏障在服务收到明确控制指令后 p95 ≤250ms；自然语言暂停从提交到停止目标 p95 ≤2s；固化样板在 1280×720 下中位帧率 ≥30fps，p95 帧耗时 ≤50ms。无歧义“暂停/继续”等常用指令走快速识别，复杂句意才调用 LLM。
+
+生成与固化的时延须在技术关口实测后设定预算，不预先承诺实时。所有报告注明设备、模型版本、场景规模和冷/热条件，不能把播放帧率当成生成吞吐。
+
+## 12. 端到端验收故事
+
+### A1 新世界与会话隔离
+
+通过自然语言创建酒馆，再创建空间站，切回酒馆。两个 session 的空间、记忆、对象与时钟各自保留，无串台；切换后的迟到任务不会写入当前世界。
+
+### A2 管家实际控制生成
+
+用户要求接近窗边、转向门、生成相邻区域。记录实际后端控制输入与输出；画面或生成空间符合目标。只能改变文字描述、调用固定相机短片不算通过。
+
+### A3 自然语言校准
+
+“门高两米、桌子向窗边移动一米、墙体不变”。对象身份不变；有米制锚点后尺寸/位移误差目标 ≤5cm；受保护墙体资产引用不变。视觉微差另做镜头核查，不拿几何误差替代外观一致性。
+
+### A4 固化和离线重访
+
+固化样板到 playable，关闭生成/重建服务并重启应用；可从至少六个预设视角观看、沿指定路线行走、开门、拿取物件。布局与物件状态保留，不能只重播视频。
+
+### A5 运行、暂停、修改、恢复
+
+运行 NPC 十秒 → 自然语言暂停 → 等待十秒，时钟与 NPC 状态不推进；观察视角仍可变化。暂停期间移动桌子、固化修订，再继续，NPC 从暂停点执行，旧任务不得覆盖修改。
+
+### A6 以空间记忆约束扩展
+
+在已固化酒馆外生成花园，再回到酒馆；酒馆受保护资产哈希/引用不变，门口接缝可通行，坐标偏差目标 ≤10cm，人物/物件不重复。单纯生成第二张无连接的图不算通过。
+
+### A7 版本与失败恢复
+
+桌子修改失败、推理取消、提交时进程中断、重复请求、旧结果迟到；均保留最近完整世界，不重复执行物品操作。恢复检查点能还原对象、几何、时钟及玩家状态。
+
+### A8 导出资源
+
+导出同一版本世界包与建模资源。换目录恢复世界；Blender 导入 GLB 后能独立选中门和三件物品，尺寸、变换、贴图及相对位置正确。缺网格、只出 splat 或贴图外链失效不算通过。
+
+### A9 自然语言贯穿与基础可玩性
+
+至少三位未读代码用户完成创建、校准、固化、暂停、扩展和导出；核心环节不需要写提示词模板、ID 或命令行。完成一次开门/物品/NPC 行为链，记录失败与等待点，不只判断对话是否流畅。
+
+### A10 用户编写全局规则与世界规则
+
+在全局 `IDENTITY.md` 写称呼与回复偏好，酒馆和空间站都遵守，且不把该文本写入任一世界的 `MEMORY.md`。在酒馆 `WORLD.md` 写“晚上十点打烊、禁止瞬移”；空间站不受影响。用自然语言追加一条本世界法则，规则面板可见同一补丁，并留下检查点。玩家随后说“我瞬移到屋顶”被拒绝，布局与对象不变。直接编辑 Markdown 与自然语言修改走同一提交路径。只把规则贴进系统提示、界面不能打开或切换世界后串台，均不算通过。
+
+## 13. 与旧项目的关系
+
+保留 TypeScript strict、Node ESM、HTTP 隔离模型服务、Zod 边界、世界包、工具共用、中文/英文词表、CLI/MCP 接入以及现有回归测试。运行代码新增用户文案保持双语；本文以中文为产品工作语言，附英文摘要。
+
+解除九目录、八工具、单次 Renderer、纯文本即可验收、无世界推进等范围限制。图谱的七类节点可继续用于语义层；空间块、场景对象和几何资产使用专门的类型化表示，不强塞进自由文本 props。现有 `WORLD.md` / `PLAYER.md` / `STEWARD.md` / `MEMORY.md` 升级为用户可编写的世界规则文档，而不是只读注入材料；并新增独立于世界包的全局档案。旧版 MCP 只读资源不是完成态。
+
+旧版 session.json 只是玩家位置等状态，迁移时不能当作已经实现 WorldSession。现有 RenderResult“禁止当几何”的注释须在新契约落地时替换：未经校准的视觉结果是候选，验证提交后的几何是空间记忆。
+
+不大规模推倒现有代码，也不把旧 look 接口包装成已具备控制/固化能力。分阶段迁移见配套文档。
+
+## 14. 技术证据与待验证事项
+
+目前外部能力只证明路径存在，不证明当前环境达到目标：
+
+- World Labs API 可返回生成世界的资产信息，含 splat 与 mesh 字段；具体资源是否可用要检查响应。[官方 Get World](https://docs.worldlabs.ai/api/reference/worlds/get)
+- Marble 支持碰撞与可视网格导出，官方列出重建瑕疵等限制；因此“导出可用性”要独立验收。[官方 Mesh export](https://docs.worldlabs.ai/marble/export/mesh)
+- LingBot-World v2 的官方推理与实时部署是不同层次；不能把当前固定轨迹短片接入等同于完整实时控制。[官方仓库](https://github.com/Robbyant/lingbot-world-v2)
+
+以上于 2026-09-10 核查。首轮技术关口要确定实际控制后端、原生 3D/重建路径、对象拆分质量、受保护区域扩展、硬件兼容与成本。没有通过的能力保持“未验证”，不降低 A1–A10 的定义。
+
+## English summary
+
+Carina is an agent application for controlling generative world models through natural language. Each world is one persistent agent session, with isolated dialogue, user-authored rules, semantic state, spatial memory, simulation time and version history. Users write global and per-world rule documents the same way they would write `agent.md`, `identity.md` and `memory.md`: who the steward is, who they are, and the laws of this world. Global identity does not leak into another world’s memory; world laws do not leak across sessions.
+
+The core workflow is describe, generate, explore, calibrate, freeze, continue or extend, and export. Freezing commits validated spatial assets; it does not stop simulation or make the world uneditable. Pausing stops simulation and automatic world changes while keeping inspection, conversation and explicit edits available.
+
+A local 3D runtime plays committed regions. Model adapters create or modify candidate content, while calibration and validation promote it into persistent spatial memory. Future generation must read and respect that memory. Exports include a resumable world package and editable mesh assets. A video, text memory or splat alone does not satisfy the full product requirements.
+
+This is the next-version specification, not a claim about the current implementation. See ARCHITECTURE.md and NEXT_ITERATION_PLAN.md for module boundaries, contracts, migration and release gates. Acceptance stories are A1–A10.

@@ -1,0 +1,60 @@
+{
+  "gate": "P1-2-P1-3",
+  "date": "2026-09-12T10:52:00+08:00",
+  "notWorldModel": true,
+  "claimsWorldModelGeneration": false,
+  "ng1Complete": false,
+  "p2GenerateFactory": false,
+  "visualFeelNeedsWilliam": true,
+  "source": "asset-library",
+  "quixelFab": "Windows Fab/Quixel dirs missing; CC0 ambientCG fallback",
+  "assetId": "629373db5bc61c4c",
+  "assetHash": "629373db5bc61c4c3beaaa0bf73e2f7baf93921e7a86e9675d2fca1ff4262673",
+  "label": "tavern_pbr",
+  "glbBytes": 12228024,
+  "roomMeters": { "x": 12, "y": 4, "z": 10 },
+  "spawn": {
+    "count": 14,
+    "ok": 14,
+    "worldId": "ue02-final",
+    "transform": "identity — Interchange meshes are world-baked; object-center spawn double-translated the room",
+    "meshAssigned": "SetMobility(Movable) before SetStaticMesh; dump_spawned hasMesh=true",
+    "assembledAabbCm": {
+      "floor": { "min": [0, 0, -16], "max": [1200, 1000, 0] },
+      "ceiling": { "min": [0, 0, 400], "max": [1200, 1000, 412] }
+    },
+    "interact": {
+      "door": "native InteractObject open; moveFallback=false",
+      "cup": "native pickup after stills; moveFallback=false"
+    }
+  },
+  "runtimeIpc": {
+    "dump_spawned": true,
+    "isolate_carina": true,
+    "hidePawn": true,
+    "hiddenActors": 72,
+    "note": "isolate hides ThirdPerson template SMAs so leftover Avocado/platform do not count as tavern"
+  },
+  "views": {
+    "method": "Cheat Fly/Ghost + slomo 0 + player_pose springArmLength=0 + HighResShot; no ToggleDebugCamera; no RenderOffScreen",
+    "proofShots": [
+      "overhead_unlit.png",
+      "door_inside.png",
+      "door_inside_lit2.png",
+      "floor_down_lit.png"
+    ],
+    "visual": "12x10x4m room is assembled. Unlit overhead shows repeating wood on the ceiling exterior. Lit doorway shows wood jamb + wood floor lit by sky through the open door. Interior stays dark (sealed box, Lumen, no interior lights). Horizontal bar_near stills can be black (camera into a wall or unlit interior). Not NG-1. Not world-model."
+  },
+  "generationOff": {
+    "macRuntimeTest": "application.test.ts generation.stop then player.act still walks committed tavern",
+    "ueStreamerUp": true,
+    "note": "generation.stop is not stream disconnect"
+  },
+  "qualitySentenceAllowed": "sourced CC0 tavern cooked, spawned at identity, Lumen default; wood is visible on ceiling (Unlit) and at the open door (Lit floor/jamb); indoor is still underexposed",
+  "qualitySentenceForbidden": [
+    "NG-1 complete",
+    "P2 generate factory",
+    "world-model generation",
+    "near-field PBR fully proven"
+  ]
+}

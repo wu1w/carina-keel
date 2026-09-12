@@ -1,0 +1,26 @@
+{
+  "commandId": "01M29SMWY1JS98FB6VN1CTQ4KY",
+  "accepted": true,
+  "worldId": "01M29SHVACTNWW7J35BSFAF637",
+  "revision": "01M29SHVC20V8P4K9FPXVZG8MZ",
+  "controlEpoch": 0,
+  "payload": {
+    "provider": "lingbot-legacy",
+    "legacy": true,
+    "frozen": false,
+    "prompt": "first-person wooden tavern interior, oak bar, fireplace, warm lanterns",
+    "shotKind": "scene",
+    "camera": "eye-level first-person, hold still, no head sway",
+    "text": "按「first-person wooden tavern interior, oak bar, fireplace, warm lanterns」改了场景。这是候选画面，还没有固化成网格。",
+    "still": {
+      "mime": "image/jpeg",
+      "width": 832,
+      "height": 464,
+      "b64Chars": 61572
+    },
+    "clip": {
+      "fps": 8,
+      "frames": 13
+    }
+  }
+}

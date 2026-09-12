@@ -5,7 +5,7 @@ import { CarinaError } from "../errors.js";
 import { t, type MessageKey } from "../i18n/index.js";
 import { zh } from "../i18n/zh.js";
 import { exportZip, type PackHandle } from "../pack/index.js";
-import { MockRenderer } from "../render/index.js";
+import { createRenderer } from "../render/index.js";
 import {
   toolInputSchema,
   type ToolName,
@@ -18,6 +18,11 @@ import {
   type AssembleContextOptions,
 } from "./assemble-context.js";
 import { DEFAULT_MAX_TOOL_STEPS, UTTERANCE_KIND } from "./constants.js";
+import {
+  eventsFromStreamPart,
+  lookDataOf,
+  type TurnEvent,
+} from "./turn-event.js";
 
 /**
  * zh: 一轮管家对话所需的世界、工具与模型配置。
@@ -59,13 +64,13 @@ export type RunTurnContext = {
 };
 
 /**
- * zh: 跑一轮管家对话：组装上下文、流式工具循环、把发言写入编年。产出文本增量（可供 SSE 使用）。
- * en: Run one steward turn: assemble context, stream a tool loop, persist utterances to the chronicle. Yields text deltas (usable for SSE).
+ * zh: 跑一轮管家对话：组装上下文、流式工具循环、把发言写入编年。产出文本与 look 静帧。
+ * en: Run one steward turn: assemble context, stream a tool loop, persist utterances. Yields text and look stills.
  */
 export async function* runTurn(
   message: string,
   ctx: RunTurnContext,
-): AsyncIterable<string> {
+): AsyncIterable<TurnEvent> {
   const config = ctx.config ?? loadConfig();
   const lang = config.lang;
   const apiKey = config.apiKey;
@@ -74,7 +79,10 @@ export async function* runTurn(
   }
 
   const pack = resolvePack(ctx);
-  const toolContext = resolveToolContext(ctx, pack, lang);
+  const toolContext = resolveToolContext(ctx, pack, lang, config);
+  if (message.length > 0) {
+    toolContext.userIntent = message;
+  }
 
   const system = await assembleContext(
     ctx.store,
@@ -123,9 +131,24 @@ export async function* runTurn(
   });
 
   let fullText = "";
-  for await (const delta of result.textStream) {
-    fullText += delta;
-    yield delta;
+  for await (const part of result.fullStream) {
+    if (part.type === "error") {
+      streamError = part.error;
+      continue;
+    }
+    for (const event of eventsFromStreamPart({
+      type: part.type,
+      ...("text" in part && typeof part.text === "string"
+        ? { text: part.text }
+        : {}),
+      ...("toolName" in part ? { toolName: part.toolName } : {}),
+      ...("output" in part ? { output: part.output } : {}),
+    })) {
+      if (event.type === "text") {
+        fullText += event.text;
+      }
+      yield event;
+    }
   }
 
   if (streamError !== undefined) {
@@ -159,20 +182,21 @@ function resolvePack(ctx: RunTurnContext): PackHandle {
 }
 
 /**
- * zh: 缺省用 mock 渲染器组装 ToolContext。
- * en: Build a ToolContext with the mock renderer when one was not provided.
+ * zh: 缺省按配置组装 ToolContext。未设 sidecar 则为 mock。
+ * en: Build a ToolContext from config. Unset sidecar keeps mock.
  */
 function resolveToolContext(
   ctx: RunTurnContext,
   pack: PackHandle,
   lang: CarinaLang,
+  config: CarinaConfig,
 ): ToolContext {
   if (ctx.toolContext !== undefined) {
     return ctx.toolContext;
   }
   return {
     store: ctx.store,
-    renderer: new MockRenderer(),
+    renderer: createRenderer(config),
     exportZip,
     packHandle: pack,
     lang,
@@ -201,12 +225,14 @@ async function persistUtterance(
  * en: Expose the eight world tools to the model; execution goes through executeTool.
  */
 function createStewardTools(toolContext: ToolContext, lang: CarinaLang) {
+  const lookTool = tool({
+    description: t("mcp.look", lang),
+    inputSchema: toolInputSchema.look,
+    execute: async (input) => executeNamed("look", input, toolContext, lang),
+  });
+  Object.assign(lookTool, { toModelOutput: lookToModelOutput });
   return {
-    look: tool({
-      description: t("mcp.look", lang),
-      inputSchema: toolInputSchema.look,
-      execute: async (input) => executeNamed("look", input, toolContext, lang),
-    }),
+    look: lookTool,
     go: tool({
       description: t("mcp.go", lang),
       inputSchema: toolInputSchema.go,
@@ -246,6 +272,83 @@ function createStewardTools(toolContext: ToolContext, lang: CarinaLang) {
       execute: async (input) =>
         executeNamed("export", input, toolContext, lang),
     }),
+  };
+}
+
+/**
+ * zh: look 的静帧用 file-data 交给模型，JSON 里不带 base64。
+ * en: Send look stills to the model as file-data; omit base64 from the JSON.
+ */
+function lookToModelOutput(options: {
+  toolCallId: string;
+  input: unknown;
+  output: unknown;
+}):
+  | { type: "json"; value: ToolResult }
+  | {
+      type: "content";
+      value: Array<
+        | { type: "text"; text: string }
+        | {
+            type: "file";
+            mediaType: string;
+            data: { type: "data"; data: string };
+          }
+      >;
+    } {
+  const output = options.output as ToolResult;
+  const data = lookDataOf(output);
+  const still = data?.still;
+  const forModel = data === undefined ? output.data : withoutClip(data, still);
+  if (still === undefined) {
+    return {
+      type: "json",
+      value: { ok: output.ok, summary: output.summary, data: forModel },
+    };
+  }
+  const stripped: ToolResult = {
+    ok: output.ok,
+    summary: output.summary,
+    data: forModel,
+  };
+  return {
+    type: "content",
+    value: [
+      { type: "text", text: JSON.stringify(stripped) },
+      {
+        type: "file",
+        mediaType: still.mime,
+        data: { type: "data", data: still.base64 },
+      },
+    ],
+  };
+}
+
+/**
+ * zh: 给模型的 JSON 不含 clip 帧，也不含 still.base64。
+ * en: JSON for the model omits clip frames and still.base64.
+ */
+function withoutClip(
+  data: NonNullable<ReturnType<typeof lookDataOf>>,
+  still:
+    | {
+        mime: string;
+        width?: number;
+        height?: number;
+      }
+    | undefined,
+): Record<string, unknown> {
+  const { clip: _clip, still: _still, ...rest } = data;
+  if (still === undefined) {
+    return rest;
+  }
+  return {
+    ...rest,
+    still: {
+      mime: still.mime,
+      ...(still.width !== undefined ? { width: still.width } : {}),
+      ...(still.height !== undefined ? { height: still.height } : {}),
+    },
   };
 }
 

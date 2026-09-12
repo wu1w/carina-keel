@@ -13,6 +13,7 @@
         --accent: #8c2f12;
         --line: #d7c4a3;
         --focus: #2b6a4a;
+        --well: #0c0a08;
       }
       @media (prefers-color-scheme: light) {
         :root {
@@ -43,7 +44,7 @@
       .shell {
         display: flex;
         flex-direction: column;
-        max-width: 42rem;
+        max-width: 56rem;
         min-height: 100vh;
         margin: 0 auto;
         background: var(--paper);
@@ -56,7 +57,7 @@
         align-items: baseline;
         justify-content: space-between;
         gap: 1rem;
-        padding: 1.25rem 1.5rem 0.75rem;
+        padding: 1rem 1.5rem 0.7rem;
         border-bottom: 1px solid var(--line);
       }
       h1 {
@@ -84,6 +85,71 @@
         color: var(--paper);
         border-color: var(--ink);
       }
+      #viewport {
+        margin: 0;
+      }
+      #stage {
+        position: relative;
+        margin: 0;
+        background: var(--well);
+        aspect-ratio: 16 / 9;
+        max-height: 52vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      #stage-frame {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: var(--well);
+        transform-origin: 50% 55%;
+      }
+      #stage.has-frame.idle #stage-frame {
+        animation: stage-breathe 6.2s ease-in-out infinite;
+      }
+      #stage.looking #stage-frame {
+        opacity: 0.42;
+        animation: none;
+      }
+      @keyframes stage-breathe {
+        0%,
+        100% {
+          transform: scale(1) translate3d(0, 0, 0);
+          filter: brightness(1);
+        }
+        50% {
+          transform: scale(1.012) translate3d(0, -0.35%, 0);
+          filter: brightness(1.03);
+        }
+      }
+      #stage-placeholder,
+      #stage-status {
+        position: absolute;
+        margin: 0;
+        padding: 0 1.5rem;
+        color: #cbbba0;
+        text-align: center;
+        max-width: 28rem;
+        line-height: 1.45;
+      }
+      #stage-status {
+        color: #f4ead6;
+      }
+      #stage.has-frame #stage-placeholder {
+        display: none;
+      }
+      #stage-caption {
+        margin: 0;
+        padding: 0.35rem 1.5rem 0.2rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: var(--paper);
+        border-bottom: 1px solid var(--line);
+      }
       main {
         display: flex;
         flex-direction: column;
@@ -93,18 +159,19 @@
       #log {
         flex: 1;
         margin: 0;
-        padding: 1rem 1.5rem 0.5rem;
+        padding: 0.85rem 1.5rem 0.5rem;
         overflow: auto;
         list-style: none;
         display: flex;
         flex-direction: column;
         gap: 0.9rem;
+        min-height: 7rem;
       }
       #log:empty {
         display: none;
       }
       #empty {
-        margin: 2.5rem 1.5rem;
+        margin: 0.9rem 1.5rem;
         color: var(--muted);
       }
       .shell.has-messages #empty {
@@ -181,6 +248,9 @@
         * {
           transition: none !important;
         }
+        #stage.has-frame.idle #stage-frame {
+          animation: none;
+        }
       }
     </style>
   </head>
@@ -194,6 +264,14 @@
           <button type="button" data-lang="en">English</button>
         </nav>
       </header>
+      <figure id="viewport">
+        <div id="stage">
+          <img id="stage-frame" alt="" hidden />
+          <p id="stage-placeholder" data-i18n="chat.stageEmpty"></p>
+          <p id="stage-status" hidden data-i18n="chat.stageLooking"></p>
+        </div>
+        <figcaption id="stage-caption" data-i18n="chat.stageCaption"></figcaption>
+      </figure>
       <main>
         <p id="empty" data-i18n="chat.empty"></p>
         <ol id="log" aria-live="polite"></ol>
@@ -225,6 +303,18 @@
         const input = document.getElementById("message");
         const sendBtn = form.querySelector("button[type=submit]");
         const shell = document.querySelector(".shell");
+        const stage = document.getElementById("stage");
+        const frame = document.getElementById("stage-frame");
+        const placeholder = document.getElementById("stage-placeholder");
+        const stageStatus = document.getElementById("stage-status");
+        const allowedMime = {
+          "image/jpeg": true,
+          "image/png": true,
+          "image/webp": true,
+          "image/gif": true,
+        };
+        let frameUrl = "";
+        let playToken = 0;
 
         function table() {
           return catalogs[lang] || catalogs.zh || {};
@@ -234,6 +324,8 @@
           const value = table()[key];
           return typeof value === "string" ? value : key;
         }
+
+        let placeCaption = "";
 
         function applyI18n() {
           document.documentElement.lang = lang;
@@ -253,12 +345,20 @@
             el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria")));
           });
           document.title = t("chat.title");
+          frame.setAttribute("alt", t("chat.stageAlt"));
           document.querySelectorAll("nav [data-lang]").forEach(function (btn) {
             btn.setAttribute(
               "aria-pressed",
               elLang(btn) === lang ? "true" : "false",
             );
           });
+          setPlaceCaption(placeCaption);
+        }
+
+        function setPlaceCaption(name) {
+          placeCaption = typeof name === "string" ? name : "";
+          const caption = document.getElementById("stage-caption");
+          caption.textContent = placeCaption || t("chat.stageCaption");
         }
 
         function elLang(btn) {
@@ -268,6 +368,102 @@
         function showError(text) {
           errorEl.hidden = !text;
           errorEl.textContent = text || "";
+        }
+
+        function setLooking(on) {
+          if (on && !stage.classList.contains("has-frame")) {
+            stage.classList.add("looking");
+            stageStatus.hidden = false;
+            return;
+          }
+          if (!on) {
+            stage.classList.remove("looking");
+            stageStatus.hidden = true;
+          }
+        }
+
+        function showFrame(mime, base64) {
+          if (!allowedMime[mime] || typeof base64 !== "string" || !base64) {
+            return;
+          }
+          if (frameUrl.indexOf("blob:") === 0) {
+            URL.revokeObjectURL(frameUrl);
+          }
+          frameUrl = "data:" + mime + ";base64," + base64;
+          frame.hidden = false;
+          frame.src = frameUrl;
+          stage.classList.add("has-frame");
+          placeholder.hidden = true;
+          if (!stage.classList.contains("looking")) {
+            stageStatus.hidden = true;
+          }
+        }
+
+        function holdLast(mime, frames) {
+          stage.classList.add("idle");
+          const last = frames[frames.length - 1];
+          showFrame(mime, last);
+          const reduce =
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (reduce) return;
+          const tail = frames.slice(Math.max(0, frames.length - 3));
+          if (tail.length < 2) return;
+          const token = playToken;
+          let i = tail.length - 1;
+          let dir = -1;
+          function idleTick() {
+            if (token !== playToken) return;
+            i += dir;
+            if (i <= 0) {
+              i = 0;
+              dir = 1;
+            } else if (i >= tail.length - 1) {
+              i = tail.length - 1;
+              dir = -1;
+            }
+            showFrame(mime, tail[i]);
+            window.setTimeout(idleTick, 1700);
+          }
+          window.setTimeout(idleTick, 1700);
+        }
+
+        function playClip(clip) {
+          if (!clip || !Array.isArray(clip.frames) || clip.frames.length < 2) {
+            if (clip && typeof clip.base64 === "string") {
+              ++playToken;
+              showFrame(clip.mime, clip.base64);
+              stage.classList.add("idle");
+            }
+            return;
+          }
+          const mime = allowedMime[clip.mime] ? clip.mime : "image/jpeg";
+          const reduce =
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (reduce) {
+            ++playToken;
+            holdLast(mime, clip.frames);
+            return;
+          }
+          const token = ++playToken;
+          const fps = clip.fps > 0 ? clip.fps : 8;
+          const delay = Math.max(40, 1000 / fps);
+          let i = 0;
+          stage.classList.remove("idle");
+          stage.classList.remove("looking");
+          stageStatus.hidden = true;
+          function tick() {
+            if (token !== playToken) return;
+            showFrame(mime, clip.frames[i]);
+            i += 1;
+            if (i >= clip.frames.length) {
+              holdLast(mime, clip.frames);
+              return;
+            }
+            window.setTimeout(tick, delay);
+          }
+          tick();
         }
 
         function appendMessage(role, text) {
@@ -310,6 +506,35 @@
                 throw new Error(message);
               }
               if (parsed.event === "done") return;
+              if (parsed.event === "status") {
+                try {
+                  const data = JSON.parse(parsed.data);
+                  if (data && data.tool === "look") setLooking(true);
+                } catch (e) {}
+                continue;
+              }
+              if (parsed.event === "clip") {
+                try {
+                  const data = JSON.parse(parsed.data);
+                  if (data) {
+                    if (data.placeName) setPlaceCaption(data.placeName);
+                    playClip(data);
+                  }
+                } catch (e) {}
+                continue;
+              }
+              if (parsed.event === "still") {
+                try {
+                  const data = JSON.parse(parsed.data);
+                  if (data) {
+                    ++playToken;
+                    if (data.placeName) setPlaceCaption(data.placeName);
+                    showFrame(data.mime, data.base64);
+                    stage.classList.add("idle");
+                  }
+                } catch (e) {}
+                continue;
+              }
               if (parsed.event === "text" || parsed.event === "message") {
                 onText(decodeData(parsed.data));
               }
@@ -392,12 +617,37 @@
             if (!stewardBody.textContent)
               stewardBody.textContent = t("chat.error");
           } finally {
+            setLooking(false);
             sendBtn.disabled = false;
             input.focus();
           }
         }
 
+        function loadLastFrame() {
+          fetch("/v1/view", {
+            headers: { authorization: "Bearer " + token },
+          })
+            .then(function (res) {
+              if (!res.ok) return null;
+              return res.blob();
+            })
+            .then(function (blob) {
+              if (!blob || !allowedMime[blob.type]) return;
+              if (frameUrl.indexOf("blob:") === 0) {
+                URL.revokeObjectURL(frameUrl);
+              }
+              frameUrl = URL.createObjectURL(blob);
+              frame.hidden = false;
+              frame.src = frameUrl;
+              stage.classList.add("has-frame");
+              stage.classList.add("idle");
+              placeholder.hidden = true;
+            })
+            .catch(function () {});
+        }
+
         applyI18n();
+        loadLastFrame();
         input.focus();
       })();
     </script>

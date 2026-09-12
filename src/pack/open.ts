@@ -100,6 +100,10 @@ export async function openPack(packPath: string): Promise<PackHandle> {
   const packDir = await resolvePackDirectory(resolvedPath);
   const graph = await readGraphFile(packDir);
   const session = await readSessionFile(packDir);
+  // zh: 动态加载以免 open ↔ revision 循环初始化。
+  // en: Dynamic import so open and revision do not cycle at init.
+  const { ensureV1 } = await import("./revision.js");
+  await ensureV1(packDir);
   const handle: PackHandle = {
     packDir,
     graph,

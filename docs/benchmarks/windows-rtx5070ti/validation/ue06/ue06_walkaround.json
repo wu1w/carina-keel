@@ -1,0 +1,140 @@
+{
+  "slice": "UE-06 ground walkaround BoomBox clean relaunch",
+  "timestamp_asia_shanghai": "2026-09-11 21:06",
+  "timestamp_utc": "2026-09-11T13:06:17Z",
+  "method": "player_pose + HighResShot (RenderOffScreen relaunch; no ToggleDebugCamera; no BugItGo; no Avocado recook)",
+  "launch": "CarinaPS -PixelStreamingConnectionURL=ws://127.0.0.1:8888 -RenderOffScreen (needed after BugItGo residue; HighResShot path)",
+  "boombox_carina": {
+    "position": {
+      "x": 25.0,
+      "y": 0.35,
+      "z": 0.0
+    },
+    "rotation": {
+      "x": 0.0,
+      "y": -0.8,
+      "z": 0.2
+    },
+    "scale": {
+      "x": 4.0,
+      "y": 4.0,
+      "z": 4.0
+    }
+  },
+  "boombox_ue_cm_approx": {
+    "x": 2500,
+    "y": 0,
+    "z": 35
+  },
+  "poses": {
+    "start_contact": {
+      "pose": {
+        "ipcId": "c35c0fbf-acab-49d5-94fe-87601754db02",
+        "op": "player_pose",
+        "ok": true,
+        "ms": 0.059600002714432776
+      },
+      "hr": {
+        "ipcId": "51c4ce61-0e89-42ac-811e-081d43f94b0f",
+        "op": "highresshot",
+        "ok": true,
+        "ms": 0.01410000550094992
+      },
+      "files": [
+        "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue06_for_mac\\ue06_start_contact.png"
+      ],
+      "loc": [
+        2500,
+        -280,
+        110
+      ],
+      "rot": [
+        -12,
+        90,
+        0
+      ],
+      "note": "closer front contact reframed"
+    },
+    "after_strafe": {
+      "pose": {
+        "ipcId": "b66a71fc-771b-4431-ad64-a510a458be90",
+        "op": "player_pose",
+        "ok": true,
+        "ms": 0.057900004321709275
+      },
+      "hr": {
+        "ipcId": "cb5cd383-1cb0-4da4-a372-f2eef24c70ec",
+        "op": "highresshot",
+        "ok": true,
+        "ms": 0.01200000406242907
+      },
+      "files": [
+        "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue06_for_mac\\ue06_after_strafe.png"
+      ],
+      "loc": [
+        2700,
+        0,
+        120
+      ],
+      "rot": [
+        -10,
+        180,
+        0
+      ]
+    },
+    "after_around": {
+      "pose": {
+        "ipcId": "2a4b5016-ec93-4301-9020-fd754595e306",
+        "op": "player_pose",
+        "ok": true,
+        "ms": 0.05789998976979405
+      },
+      "hr": {
+        "ipcId": "414b5884-a0e7-40b2-bb5f-767233621a3e",
+        "op": "highresshot",
+        "ok": true,
+        "ms": 0.011900003300979733
+      },
+      "files": [
+        "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue06_for_mac\\ue06_after_around.png"
+      ],
+      "loc": [
+        2500,
+        400,
+        140
+      ],
+      "rot": [
+        -10,
+        -90,
+        0
+      ]
+    }
+  },
+  "pose_deltas_cm": {
+    "start_to_strafe_cm": {
+      "dx": 200,
+      "dy": 400,
+      "dz": 0
+    },
+    "strafe_to_around_cm": {
+      "dx": -200,
+      "dy": 400,
+      "dz": 20
+    },
+    "start_to_around_cm": {
+      "dx": 0,
+      "dy": 800,
+      "dz": 20
+    }
+  },
+  "pose_before": [
+    2500,
+    -280,
+    110
+  ],
+  "pose_after": [
+    2500,
+    400,
+    140
+  ]
+}

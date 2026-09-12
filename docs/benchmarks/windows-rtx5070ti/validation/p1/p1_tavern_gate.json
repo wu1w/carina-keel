@@ -1,0 +1,360 @@
+{
+  "gate": "P1-2-P1-3",
+  "notWorldModel": true,
+  "claimsWorldModelGeneration": false,
+  "source": "asset-library",
+  "assetId": "629373db5bc61c4c",
+  "assetHash": "629373db5bc61c4c3beaaa0bf73e2f7baf93921e7a86e9675d2fca1ff4262673",
+  "prepare": {
+    "cookMs": 27181.50289999903,
+    "shaderMergeOk": false,
+    "softObjectPath": "/Game/Imported/Dynamic/tavern_pbr/asset/StaticMeshes/Bar",
+    "meshes": null,
+    "label": null,
+    "timingsMs": {
+      "importMs": 9942.47519999044,
+      "cookMs": 27181.50289999903,
+      "classicPakMs": 548.6791999719571,
+      "iostoreMs": 351.3425000128336
+    }
+  },
+  "install": {
+    "installMs": 238.42049998347647,
+    "mountedPackages": [
+      "CarinaPS-Windows_tavern_pbr.pak",
+      "CarinaPS-Windows_tavern_pbr.utoc",
+      "CarinaPS-Windows_tavern_pbr.ucas"
+    ],
+    "ok": true
+  },
+  "activate": {
+    "ok": true,
+    "revision": "p1-8a7175fb0f"
+  },
+  "spawned": [
+    {
+      "objectId": "p1-Bar",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482376",
+      "meshName": {
+        "position": {
+          "x": 1.399999976158142,
+          "y": 0.550000011920929,
+          "z": 5.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-BarFootRest",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482375",
+      "meshName": {
+        "position": {
+          "x": 1.850000023841858,
+          "y": 0.18000000715255737,
+          "z": 5.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": null,
+      "ok": false,
+      "ueActorId": null,
+      "meshName": {}
+    },
+    {
+      "objectId": "p1-Cup",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482373",
+      "meshName": {
+        "position": {
+          "x": 1.5499999523162842,
+          "y": 1.159999966621399,
+          "z": 4.599999904632568
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-Door",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482372",
+      "meshName": {
+        "position": {
+          "x": 6.0,
+          "y": 1.100000023841858,
+          "z": 9.979999542236328
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-Fireplace",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482371",
+      "meshName": {
+        "position": {
+          "x": 9.199999809265137,
+          "y": 0.699999988079071,
+          "z": 0.3499999940395355
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-Floor",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482370",
+      "meshName": {
+        "position": {
+          "x": 6.0,
+          "y": -0.07999999821186066,
+          "z": 5.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-HearthMetal",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482369",
+      "meshName": {
+        "position": {
+          "x": 9.199999809265137,
+          "y": 0.07999999821186066,
+          "z": 0.6200000047683716
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-WallEast",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482368",
+      "meshName": {
+        "position": {
+          "x": 12.125,
+          "y": 2.0,
+          "z": 5.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-WallNorthL",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482367",
+      "meshName": {
+        "position": {
+          "x": 2.75,
+          "y": 2.0,
+          "z": 10.125
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-WallNorthLintel",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482366",
+      "meshName": {
+        "position": {
+          "x": 6.0,
+          "y": 3.0999999046325684,
+          "z": 10.125
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": "p1-WallNorthR",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482365",
+      "meshName": {
+        "position": {
+          "x": 9.25,
+          "y": 2.0,
+          "z": 10.125
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    },
+    {
+      "objectId": null,
+      "ok": false,
+      "ueActorId": null,
+      "meshName": {}
+    },
+    {
+      "objectId": "p1-WallWest",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482362",
+      "meshName": {
+        "position": {
+          "x": -0.125,
+          "y": 2.0,
+          "z": 5.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      }
+    }
+  ],
+  "door": {
+    "ok": true,
+    "worldId": "ue02-final",
+    "objectId": "p1-Door",
+    "kind": "open",
+    "commandId": "f3534828-2dad-40fc-8d81-09855f415dd1",
+    "revision": "p1-5d7bb5a7d5",
+    "interactMs": 0.02720000338740647,
+    "notWorldModel": true,
+    "moveFallback": true,
+    "appliedRevision": "p1-5d7bb5a7d5"
+  },
+  "cup": {
+    "ok": true,
+    "worldId": "ue02-final",
+    "objectId": "p1-Cup",
+    "kind": "pickup",
+    "commandId": "ec57adc5-7f0b-4f57-b0fa-c13afa0d6205",
+    "revision": "p1-2ae58e8bd5",
+    "interactMs": 0.01479999627918005,
+    "notWorldModel": true,
+    "moveFallback": true,
+    "appliedRevision": "p1-2ae58e8bd5"
+  },
+  "views": [
+    "bar_near",
+    "fireplace",
+    "door_inside",
+    "door_outside",
+    "cup",
+    "bar_behind"
+  ],
+  "shots": [
+    "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Saved\\Screenshots\\Windows\\HighresScreenshot00104.png",
+    "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Saved\\Screenshots\\Windows\\HighresScreenshot00105.png",
+    "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Saved\\Screenshots\\Windows\\HighresScreenshot00106.png",
+    "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Saved\\Screenshots\\Windows\\HighresScreenshot00107.png",
+    "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Saved\\Screenshots\\Windows\\HighresScreenshot00108.png",
+    "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Saved\\Screenshots\\Windows\\HighresScreenshot00109.png",
+    "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Saved\\Screenshots\\Windows\\HighresScreenshot00110.png",
+    "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Saved\\Screenshots\\Windows\\HighresScreenshot00111.png"
+  ],
+  "playerSpawn": {
+    "x": 6.0,
+    "y": 0.0,
+    "z": 2.2
+  },
+  "generationOffPlayable": "mac-runtime-tested; UE route still walkable with streamer up"
+}

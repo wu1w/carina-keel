@@ -1,0 +1,53 @@
+{
+  "job": {
+    "id": "f171f649263c",
+    "mode": "baseline",
+    "resolution": [
+      1280,
+      720
+    ],
+    "frames": 60,
+    "state": "completed",
+    "progress": 1,
+    "error": null,
+    "reason": null,
+    "created_at": "2026-09-10T23:14:23+08:00",
+    "started_at": "2026-09-10T23:14:23+08:00",
+    "finished_at": "2026-09-10T23:14:24+08:00",
+    "artifacts": [
+      "after.png",
+      "before.png",
+      "benchmark.json",
+      "frame_0000.png",
+      "frame_0007.png",
+      "frame_0014.png",
+      "frame_0021.png",
+      "frame_0028.png",
+      "frame_0035.png",
+      "frame_0042.png",
+      "frame_0049.png",
+      "frame_0056.png",
+      "frame_0059.png",
+      "frame_strip.png",
+      "frame_timings.json"
+    ]
+  },
+  "poll_total_ms": 31.36,
+  "artifact_downloads": [
+    {
+      "file": "after.png",
+      "bytes": 4321,
+      "total_ms": 23.18
+    },
+    {
+      "file": "before.png",
+      "bytes": 679304,
+      "total_ms": 132.04
+    },
+    {
+      "file": "benchmark.json",
+      "bytes": 793,
+      "total_ms": 67.93
+    }
+  ]
+}

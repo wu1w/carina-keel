@@ -26,6 +26,11 @@ export const lookCommand = defineCommand({
       type: "string",
       description: t("cli.styleArg", lang),
     },
+    fresh: {
+      type: "boolean",
+      description: t("cli.freshArg", lang),
+      default: false,
+    },
   },
   async run({ args }) {
     await runSafely(lang, async () => {
@@ -39,9 +44,12 @@ export const lookCommand = defineCommand({
         return;
       }
       const ctx = await createToolContext(packDir, config.lang);
-      const input: { style?: string } = {};
+      const input: { style?: string; fresh?: boolean } = {};
       if (args.style !== undefined && args.style !== "") {
         input.style = args.style;
+      }
+      if (args.fresh === true) {
+        input.fresh = true;
       }
       const result = await executeTool("look", input, ctx);
       console.log(result.summary);

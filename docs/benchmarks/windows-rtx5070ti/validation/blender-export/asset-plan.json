@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "sceneSpecSource": "heuristic-plan",
+  "meshProviderUrlSet": false,
+  "claimsWorldModelGeneration": false,
+  "items": [
+    {
+      "objectId": "floor",
+      "name": "地板",
+      "role": "structure",
+      "route": "scaffold",
+      "status": "scaffold-primitive",
+      "meshProviderRequired": false,
+      "notes": "Playable scaffold primitive. Not a world-model mesh."
+    },
+    {
+      "objectId": "walls",
+      "name": "墙",
+      "role": "structure",
+      "route": "scaffold",
+      "status": "scaffold-primitive",
+      "meshProviderRequired": false,
+      "notes": "Playable scaffold primitive. Not a world-model mesh."
+    },
+    {
+      "objectId": "door",
+      "name": "门",
+      "role": "door",
+      "route": "reuse",
+      "status": "reuse-unresolved",
+      "meshProviderRequired": false,
+      "notes": "Catalog reuse is planned; no qualified catalog hit in this compiler."
+    },
+    {
+      "objectId": "bar",
+      "name": "吧台",
+      "role": "furniture",
+      "route": "reuse",
+      "status": "reuse-unresolved",
+      "meshProviderRequired": false,
+      "notes": "Catalog reuse is planned; no qualified catalog hit in this compiler."
+    },
+    {
+      "objectId": "bar-front",
+      "name": "吧台正面",
+      "role": "feature",
+      "route": "generate",
+      "status": "generate-blocked-no-provider",
+      "meshProviderRequired": true,
+      "notes": "CARINA_MESH_PROVIDER_URL unset. generate route is blocked."
+    },
+    {
+      "objectId": "table",
+      "name": "桌子",
+      "role": "furniture",
+      "route": "reuse",
+      "status": "reuse-unresolved",
+      "meshProviderRequired": false,
+      "notes": "Catalog reuse is planned; no qualified catalog hit in this compiler."
+    },
+    {
+      "objectId": "chair",
+      "name": "椅子",
+      "role": "furniture",
+      "route": "reuse",
+      "status": "reuse-unresolved",
+      "meshProviderRequired": false,
+      "notes": "Catalog reuse is planned; no qualified catalog hit in this compiler."
+    },
+    {
+      "objectId": "cup",
+      "name": "杯子",
+      "role": "prop",
+      "route": "reuse",
+      "status": "reuse-unresolved",
+      "meshProviderRequired": false,
+      "notes": "Catalog reuse is planned; no qualified catalog hit in this compiler."
+    },
+    {
+      "objectId": "sign",
+      "name": "招牌",
+      "role": "feature",
+      "route": "generate",
+      "status": "generate-blocked-no-provider",
+      "meshProviderRequired": true,
+      "notes": "CARINA_MESH_PROVIDER_URL unset. generate route is blocked."
+    },
+    {
+      "objectId": "garden-gate",
+      "name": "园门",
+      "role": "door",
+      "route": "scaffold",
+      "status": "scaffold-primitive",
+      "meshProviderRequired": false,
+      "notes": "Playable scaffold primitive. Not a world-model mesh."
+    }
+  ]
+}

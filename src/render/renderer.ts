@@ -2,8 +2,8 @@ import type { RenderResult, RenderView } from "../schema/index.js";
 import { MockRenderer } from "./mock-renderer.js";
 
 /**
- * zh: 渲染适配层。一期只接 mock；禁止把 Marble SDK 写进核心。
- * en: Render adapter. Phase 1 is mock only; do not add a Marble SDK to core.
+ * zh: 渲染适配层。缺省 mock；可选 HTTP 静帧 sidecar。禁止把世界模型 SDK 写进核心。
+ * en: Render adapter. Mock by default; optional HTTP still sidecar. Do not add a world-model SDK to core.
  */
 export interface Renderer {
   /**

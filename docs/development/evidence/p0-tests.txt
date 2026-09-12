@@ -1,0 +1,1265 @@
+$ tsx --test "src/**/*.test.ts"
+TAP version 13
+# Subtest: A1 create tavern and station, switch, names and WORLD.md isolated
+ok 1 - A1 create tavern and station, switch, names and WORLD.md isolated
+  ---
+  duration_ms: 942.904042
+  type: 'test'
+  ...
+# Subtest: A5 run advances the clock; pause freezes simTime
+ok 2 - A5 run advances the clock; pause freezes simTime
+  ---
+  duration_ms: 350.947875
+  type: 'test'
+  ...
+# Subtest: A10 append no-teleport; teleport rejected; global identity not in MEMORY.md
+ok 3 - A10 append no-teleport; teleport rejected; global identity not in MEMORY.md
+  ---
+  duration_ms: 57.138459
+  type: 'test'
+  ...
+# Subtest: same commandId twice does not duplicate objects
+ok 4 - same commandId twice does not duplicate objects
+  ---
+  duration_ms: 61.556916
+  type: 'test'
+  ...
+# Subtest: pause does not require apiKey
+ok 5 - pause does not require apiKey
+  ---
+  duration_ms: 67.91475
+  type: 'test'
+  ...
+# Subtest: late simulation job from A is stale and cannot commit to B
+ok 6 - late simulation job from A is stale and cannot commit to B
+  ---
+  duration_ms: 99.687792
+  type: 'test'
+  ...
+# Subtest: expectedRevision mismatch returns REVISION_CONFLICT
+ok 7 - expectedRevision mismatch returns REVISION_CONFLICT
+  ---
+  duration_ms: 33.437084
+  type: 'test'
+  ...
+# Subtest: A8 export committed snapshot as glb and world pack zip
+ok 8 - A8 export committed snapshot as glb and world pack zip
+  ---
+  duration_ms: 55.893167
+  type: 'test'
+  ...
+# Subtest: look observeOnly stores clip and does not replace mesh
+ok 9 - look observeOnly stores clip and does not replace mesh
+  ---
+  duration_ms: 22.45875
+  type: 'test'
+  ...
+# Subtest: camera-only observe keeps last scene and only moves the camera
+ok 10 - camera-only observe keeps last scene and only moves the camera
+  ---
+  duration_ms: 14.728667
+  type: 'test'
+  ...
+# Subtest: camera-only observe without a last shot still starts
+ok 11 - camera-only observe without a last shot still starts
+  ---
+  duration_ms: 30.945667
+  type: 'test'
+  ...
+# Subtest: create with world model does not commit mock tavern meshes
+ok 12 - create with world model does not commit mock tavern meshes
+  ---
+  duration_ms: 18.793291
+  type: 'test'
+  ...
+# Subtest: world.run ticks simulation without idle GPU spam
+ok 13 - world.run ticks simulation without idle GPU spam
+  ---
+  duration_ms: 235.610417
+  type: 'test'
+  ...
+# Subtest: create bakes walkable meshes and paused move updates the player
+ok 14 - create bakes walkable meshes and paused move updates the player
+  ---
+  duration_ms: 59.16425
+  type: 'test'
+  ...
+# Subtest: pickup persists across reopen and drop stays off the table
+ok 15 - pickup persists across reopen and drop stays off the table
+  ---
+  duration_ms: 71.5775
+  type: 'test'
+  ...
+# Subtest: approaching the door extends a garden without replacing tavern assets
+ok 16 - approaching the door extends a garden without replacing tavern assets
+  ---
+  duration_ms: 73.48375
+  type: 'test'
+  ...
+# Subtest: interpretFast recognizes pause and create world
+ok 17 - interpretFast recognizes pause and create world
+  ---
+  duration_ms: 1.224833
+  type: 'test'
+  ...
+# Subtest: interpretFast recognizes freeze as spatial.freeze
+ok 18 - interpretFast recognizes freeze as spatial.freeze
+  ---
+  duration_ms: 0.284625
+  type: 'test'
+  ...
+# Subtest: interpretFast recognizes pickup and drop
+ok 19 - interpretFast recognizes pickup and drop
+  ---
+  duration_ms: 0.330208
+  type: 'test'
+  ...
+# Subtest: interpretFast recognizes garden extend and does not treat walk-in as look
+ok 20 - interpretFast recognizes garden extend and does not treat walk-in as look
+  ---
+  duration_ms: 0.138083
+  type: 'test'
+  ...
+# Subtest: interpretFast recognizes look as observeOnly generation
+ok 21 - interpretFast recognizes look as observeOnly generation
+  ---
+  duration_ms: 0.457375
+  type: 'test'
+  ...
+# Subtest: interpretFast classifies camera vs scene utterances
+ok 22 - interpretFast classifies camera vs scene utterances
+  ---
+  duration_ms: 0.3375
+  type: 'test'
+  ...
+# Subtest: idleObservationView keeps the scene baseline and does not rebake
+ok 23 - idleObservationView keeps the scene baseline and does not rebake
+  ---
+  duration_ms: 0.413291
+  type: 'test'
+  ...
+# Subtest: observationView scene title skips demo names
+ok 24 - observationView scene title skips demo names
+  ---
+  duration_ms: 0.069042
+  type: 'test'
+  ...
+# Subtest: parseSseBlock reads event and JSON data
+ok 25 - parseSseBlock reads event and JSON data
+  ---
+  duration_ms: 0.347875
+  type: 'test'
+  ...
+# Subtest: main registers look go say remember attach alongside pack commands
+ok 26 - main registers look go say remember attach alongside pack commands
+  ---
+  duration_ms: 0.690375
+  type: 'test'
+  ...
+# Subtest: cli tool-session persists look go say remember attach
+ok 27 - cli tool-session persists look go say remember attach
+  ---
+  duration_ms: 168.940417
+  type: 'test'
+  ...
+# Subtest: loadConfig defaults lang to zh and port to 18790
+ok 28 - loadConfig defaults lang to zh and port to 18790
+  ---
+  duration_ms: 0.419292
+  type: 'test'
+  ...
+# Subtest: loadConfig reads CARINA_* and falls back to OPENAI_API_KEY
+ok 29 - loadConfig reads CARINA_* and falls back to OPENAI_API_KEY
+  ---
+  duration_ms: 0.109958
+  type: 'test'
+  ...
+# Subtest: loadConfig prefers CARINA_API_KEY over OPENAI_API_KEY
+ok 30 - loadConfig prefers CARINA_API_KEY over OPENAI_API_KEY
+  ---
+  duration_ms: 0.047917
+  type: 'test'
+  ...
+# Subtest: loadConfig treats empty CARINA_RENDERER_URL as unset
+ok 31 - loadConfig treats empty CARINA_RENDERER_URL as unset
+  ---
+  duration_ms: 0.038
+  type: 'test'
+  ...
+# Subtest: exploration defaults are proactive and invalid budgets stay bounded
+ok 32 - exploration defaults are proactive and invalid budgets stay bounded
+  ---
+  duration_ms: 0.053292
+  type: 'test'
+  ...
+# Subtest: GLB names the door and three chairs
+ok 33 - GLB names the door and three chairs
+  ---
+  duration_ms: 7.151625
+  type: 'test'
+  ...
+# Subtest: i18n keys match
+ok 34 - i18n keys match
+  ---
+  duration_ms: 0.601583
+  type: 'test'
+  ...
+# Subtest: simulation jobs go stale after pause while edit jobs may still apply
+ok 35 - simulation jobs go stale after pause while edit jobs may still apply
+  ---
+  duration_ms: 6.4675
+  type: 'test'
+  ...
+# Subtest: cancel queued jobs and stop-commit succeeded jobs
+ok 36 - cancel queued jobs and stop-commit succeeded jobs
+  ---
+  duration_ms: 0.264625
+  type: 'test'
+  ...
+# Subtest: graphSummary is a compact read-only view
+ok 37 - graphSummary is a compact read-only view
+  ---
+  duration_ms: 0.365459
+  type: 'test'
+  ...
+# Subtest: mcp tool path writes survive reopen and resource reads
+ok 38 - mcp tool path writes survive reopen and resource reads
+  ---
+  duration_ms: 126.844542
+  type: 'test'
+  ...
+# Subtest: story D MCP-path writes survive export and importZip
+ok 39 - story D MCP-path writes survive export and importZip
+  ---
+  duration_ms: 225.224458
+  type: 'test'
+  ...
+# Subtest: createPack writes a zh pack that openPack can load
+ok 40 - createPack writes a zh pack that openPack can load
+  ---
+  duration_ms: 96.062875
+  type: 'test'
+  ...
+# Subtest: createPack copies en templates
+ok 41 - createPack copies en templates
+  ---
+  duration_ms: 80.781208
+  type: 'test'
+  ...
+# Subtest: openPack rejects a missing pack
+ok 42 - openPack rejects a missing pack
+  ---
+  duration_ms: 0.811041
+  type: 'test'
+  ...
+# Subtest: openPack rejects invalid graph.json
+ok 43 - openPack rejects invalid graph.json
+  ---
+  duration_ms: 36.796667
+  type: 'test'
+  ...
+# Subtest: createPack refuses to overwrite an existing pack
+ok 44 - createPack refuses to overwrite an existing pack
+  ---
+  duration_ms: 33.5375
+  type: 'test'
+  ...
+# Subtest: save writes graph and session atomically
+ok 45 - save writes graph and session atomically
+  ---
+  duration_ms: 40.640916
+  type: 'test'
+  ...
+# Subtest: story B export zip then importZip reopens the same world
+ok 46 - story B export zip then importZip reopens the same world
+  ---
+  duration_ms: 223.2965
+  type: 'test'
+  ...
+# Subtest: story B openPack accepts a .carina.zip path
+ok 47 - story B openPack accepts a .carina.zip path
+  ---
+  duration_ms: 191.01675
+  type: 'test'
+  ...
+# Subtest: openPack zip does not extract over a live sibling pack
+ok 48 - openPack zip does not extract over a live sibling pack
+  ---
+  duration_ms: 157.767584
+  type: 'test'
+  ...
+# Subtest: ensureV1 on a stripped v0 pack keeps WORLD.md and graph.json bytes
+ok 49 - ensureV1 on a stripped v0 pack keeps WORLD.md and graph.json bytes
+  ---
+  duration_ms: 154.286084
+  type: 'test'
+  ...
+# Subtest: commitRevision twice is serialized and HEAD moves
+ok 50 - commitRevision twice is serialized and HEAD moves
+  ---
+  duration_ms: 137.351875
+  type: 'test'
+  ...
+# Subtest: restoreCheckpoint copies the target snapshot into a new commit
+ok 51 - restoreCheckpoint copies the target snapshot into a new commit
+  ---
+  duration_ms: 110.353625
+  type: 'test'
+  ...
+# Subtest: stageAsset is content-addressed and updateWorldDocument checks expectedHash
+ok 52 - stageAsset is content-addressed and updateWorldDocument checks expectedHash
+  ---
+  duration_ms: 68.077583
+  type: 'test'
+  ...
+# Subtest: resolvePosix joins a safe POSIX path with node:path
+ok 53 - resolvePosix joins a safe POSIX path with node:path
+  ---
+  duration_ms: 0.402375
+  type: 'test'
+  ...
+# Subtest: resolvePosix rejects parent segments, absolute paths, and backslashes
+ok 54 - resolvePosix rejects parent segments, absolute paths, and backslashes
+  ---
+  duration_ms: 0.2475
+  type: 'test'
+  ...
+# Subtest: exportZip round-trips through unzip and openPack
+ok 55 - exportZip round-trips through unzip and openPack
+  ---
+  duration_ms: 228.93225
+  type: 'test'
+  ...
+# Subtest: zipPackBytes returns a zip without writing a dest file
+ok 56 - zipPackBytes returns a zip without writing a dest file
+  ---
+  duration_ms: 79.907792
+  type: 'test'
+  ...
+# Subtest: importZip and openPack accept a .carina.zip
+ok 57 - importZip and openPack accept a .carina.zip
+  ---
+  duration_ms: 126.631667
+  type: 'test'
+  ...
+# Subtest: importZip refuses a non-empty dest that is not a vacant folder
+ok 58 - importZip refuses a non-empty dest that is not a vacant folder
+  ---
+  duration_ms: 67.060708
+  type: 'test'
+  ...
+# Subtest: openPack rejects a zip whose entries escape the dest
+ok 59 - openPack rejects a zip whose entries escape the dest
+  ---
+  duration_ms: 13.965959
+  type: 'test'
+  ...
+# Subtest: mock nativeMesh is true and LingBot legacy is videoOnly
+ok 60 - mock nativeMesh is true and LingBot legacy is videoOnly
+  ---
+  duration_ms: 0.37375
+  type: 'test'
+  ...
+# Subtest: LingBot submitGeneration throws UNSUPPORTED
+ok 61 - LingBot submitGeneration throws UNSUPPORTED
+  ---
+  duration_ms: 0.282625
+  type: 'test'
+  ...
+# Subtest: mock submitGeneration returns a native mesh tavern candidate
+ok 62 - mock submitGeneration returns a native mesh tavern candidate
+  ---
+  duration_ms: 2.635375
+  type: 'test'
+  ...
+# Subtest: createRenderer uses MockRenderer without a URL
+ok 63 - createRenderer uses MockRenderer without a URL
+  ---
+  duration_ms: 0.315125
+  type: 'test'
+  ...
+# Subtest: createRenderer uses HttpStillRenderer when a URL is set
+ok 64 - createRenderer uses HttpStillRenderer when a URL is set
+  ---
+  duration_ms: 0.078542
+  type: 'test'
+  ...
+# Subtest: HttpStillRenderer attaches a still and keeps place text
+ok 65 - HttpStillRenderer attaches a still and keeps place text
+  ---
+  duration_ms: 11.428833
+  type: 'test'
+  ...
+# Subtest: HttpStillRenderer posts intent and fresh for a new seed
+ok 66 - HttpStillRenderer posts intent and fresh for a new seed
+  ---
+  duration_ms: 0.295667
+  type: 'test'
+  ...
+# Subtest: HttpStillRenderer falls back to text when the sidecar fails
+ok 67 - HttpStillRenderer falls back to text when the sidecar fails
+  ---
+  duration_ms: 0.167542
+  type: 'test'
+  ...
+# Subtest: MockRenderer media contains place id
+ok 68 - MockRenderer media contains place id
+  ---
+  duration_ms: 0.459709
+  type: 'test'
+  ...
+# Subtest: MockRenderer media contains the place name
+ok 69 - MockRenderer media contains the place name
+  ---
+  duration_ms: 0.05975
+  type: 'test'
+  ...
+# Subtest: render helper media contains place id
+ok 70 - render helper media contains place id
+  ---
+  duration_ms: 0.056292
+  type: 'test'
+  ...
+# Subtest: mock with no entities still names the place
+ok 71 - mock with no entities still names the place
+  ---
+  duration_ms: 0.039375
+  type: 'test'
+  ...
+# Subtest: mock includes camera and style when set
+ok 72 - mock includes camera and style when set
+  ---
+  duration_ms: 0.049709
+  type: 'test'
+  ...
+# Subtest: render helper uses the given renderer
+ok 73 - render helper uses the given renderer
+  ---
+  duration_ms: 0.062375
+  type: 'test'
+  ...
+# Subtest: story C look stays plain text without a paid renderer
+ok 74 - story C look stays plain text without a paid renderer
+  ---
+  duration_ms: 0.375167
+  type: 'test'
+  ...
+# Subtest: pause freezes simTime and NPC motion
+ok 75 - pause freezes simTime and NPC motion
+  ---
+  duration_ms: 6.591042
+  type: 'test'
+  ...
+# Subtest: no_teleport rejects teleport
+ok 76 - no_teleport rejects teleport
+  ---
+  duration_ms: 0.550083
+  type: 'test'
+  ...
+# Subtest: pickup removes the cup from its table position
+ok 77 - pickup removes the cup from its table position
+  ---
+  duration_ms: 0.331875
+  type: 'test'
+  ...
+# Subtest: paused runtime still accepts walk in a committed room
+ok 78 - paused runtime still accepts walk in a committed room
+  ---
+  duration_ms: 0.315542
+  type: 'test'
+  ...
+# Subtest: closed door blocks the doorway and open door allows passage
+ok 79 - closed door blocks the doorway and open door allows passage
+  ---
+  duration_ms: 3.291583
+  type: 'test'
+  ...
+# Subtest: paused allows walk authorPlace and pickup
+ok 80 - paused allows walk authorPlace and pickup
+  ---
+  duration_ms: 0.482708
+  type: 'test'
+  ...
+# Subtest: lock_after_hour rejects opening doors
+ok 81 - lock_after_hour rejects opening doors
+  ---
+  duration_ms: 0.577959
+  type: 'test'
+  ...
+# Subtest: NodeType is locked to the seven PRD node kinds
+ok 82 - NodeType is locked to the seven PRD node kinds
+  ---
+  duration_ms: 2.740333
+  type: 'test'
+  ...
+# Subtest: EdgeType is locked to the seven PRD edge kinds
+ok 83 - EdgeType is locked to the seven PRD edge kinds
+  ---
+  duration_ms: 0.072917
+  type: 'test'
+  ...
+# Subtest: TOOL_NAMES is locked to the eight world tools
+ok 84 - TOOL_NAMES is locked to the eight world tools
+  ---
+  duration_ms: 0.111875
+  type: 'test'
+  ...
+# Subtest: graphFileSchema accepts version 0 and rejects unknown node types
+ok 85 - graphFileSchema accepts version 0 and rejects unknown node types
+  ---
+  duration_ms: 1.336875
+  type: 'test'
+  ...
+# Subtest: edgeRecordSchema accepts depicted_as and rejects unknown edge types
+ok 86 - edgeRecordSchema accepts depicted_as and rejects unknown edge types
+  ---
+  duration_ms: 0.423042
+  type: 'test'
+  ...
+# Subtest: sessionFileSchema allows null presence fields
+ok 87 - sessionFileSchema allows null presence fields
+  ---
+  duration_ms: 0.185375
+  type: 'test'
+  ...
+# Subtest: chronicleEventSchema requires id, occurredAt, kind, payload, relatedNodeIds
+ok 88 - chronicleEventSchema requires id, occurredAt, kind, payload, relatedNodeIds
+  ---
+  duration_ms: 0.305041
+  type: 'test'
+  ...
+# Subtest: tool input schemas accept the frozen shapes and reject extras that matter
+ok 89 - tool input schemas accept the frozen shapes and reject extras that matter
+  ---
+  duration_ms: 0.367708
+  type: 'test'
+  ...
+# Subtest: render and tool result schemas accept phase-1 text media
+ok 90 - render and tool result schemas accept phase-1 text media
+  ---
+  duration_ms: 0.5705
+  type: 'test'
+  ...
+# Subtest: worldCommandSchema parses pause and rules.update
+ok 91 - worldCommandSchema parses pause and rules.update
+  ---
+  duration_ms: 1.365834
+  type: 'test'
+  ...
+# Subtest: worldSessionRecordSchema requires worldId-shaped sessionId
+ok 92 - worldSessionRecordSchema requires worldId-shaped sessionId
+  ---
+  duration_ms: 0.755958
+  type: 'test'
+  ...
+# Subtest: GET /health is public
+ok 93 - GET /health is public
+  ---
+  duration_ms: 6.968084
+  type: 'test'
+  ...
+# Subtest: POST /v1/chat requires a token
+ok 94 - POST /v1/chat requires a token
+  ---
+  duration_ms: 0.783042
+  type: 'test'
+  ...
+# Subtest: POST /v1/chat streams SSE with either auth header
+ok 95 - POST /v1/chat streams SSE with either auth header
+  ---
+  duration_ms: 15.450834
+  type: 'test'
+  ...
+# Subtest: POST /v1/chat still event is cached at GET /v1/view
+ok 96 - POST /v1/chat still event is cached at GET /v1/view
+  ---
+  duration_ms: 2.0135
+  type: 'test'
+  ...
+# Subtest: POST /v1/chat clip event updates the view cache
+ok 97 - POST /v1/chat clip event updates the view cache
+  ---
+  duration_ms: 1.240667
+  type: 'test'
+  ...
+# Subtest: GET / injects bilingual catalogs
+ok 98 - GET / injects bilingual catalogs
+  ---
+  duration_ms: 12.588958
+  type: 'test'
+  ...
+# Subtest: listenOnLoopback binds 127.0.0.1
+ok 99 - listenOnLoopback binds 127.0.0.1
+  ---
+  duration_ms: 69.768667
+  type: 'test'
+  ...
+# Subtest: GET /brand/carina-wordmark.png is public
+ok 100 - GET /brand/carina-wordmark.png is public
+  ---
+  duration_ms: 80.095792
+  type: 'test'
+  ...
+# Subtest: GET /legacy injects chat catalogs
+ok 101 - GET /legacy injects chat catalogs
+  ---
+  duration_ms: 2.688
+  type: 'test'
+  ...
+# Subtest: GET /v1/sessions requires a token
+ok 102 - GET /v1/sessions requires a token
+  ---
+  duration_ms: 1.190166
+  type: 'test'
+  ...
+# Subtest: POST control pause is accepted without apiKey
+ok 103 - POST control pause is accepted without apiKey
+  ---
+  duration_ms: 1.601
+  type: 'test'
+  ...
+# Subtest: GET session map returns a walkable room
+ok 104 - GET session map returns a walkable room
+  ---
+  duration_ms: 0.5865
+  type: 'test'
+  ...
+# Subtest: GET /v1/sessions and runtime work with a fake application
+ok 105 - GET /v1/sessions and runtime work with a fake application
+  ---
+  duration_ms: 0.662417
+  type: 'test'
+  ...
+# Subtest: GET session events accepts query token
+ok 106 - GET session events accepts query token
+  ---
+  duration_ms: 0.850209
+  type: 'test'
+  ...
+# Subtest: POST exports downloads glb or world pack
+ok 107 - POST exports downloads glb or world pack
+  ---
+  duration_ms: 0.8195
+  type: 'test'
+  ...
+# Subtest: numeric relative cameras follow the same navigation axes
+ok 108 - numeric relative cameras follow the same navigation axes
+  ---
+  duration_ms: 0.374459
+  type: 'test'
+  ...
+# Subtest: prefetch is asynchronous, deduplicated, cancellable and retained across restart
+ok 109 - prefetch is asynchronous, deduplicated, cancellable and retained across restart
+  ---
+  duration_ms: 45.903458
+  type: 'test'
+  ...
+# Subtest: warmup runs without movement and keeps expanding after readiness within its budget
+ok 110 - warmup runs without movement and keeps expanding after readiness within its budget
+  ---
+  duration_ms: 118.127625
+  type: 'test'
+  ...
+# Subtest: depth retry reuses the saved generated frame instead of repeating GPU inference
+ok 111 - depth retry reuses the saved generated frame instead of repeating GPU inference
+  ---
+  duration_ms: 43.847041
+  type: 'test'
+  ...
+# Subtest: rejects invalid reconstruction dimensions and nonphysical depth
+ok 112 - rejects invalid reconstruction dimensions and nonphysical depth
+  ---
+  duration_ms: 1.883166
+  type: 'test'
+  ...
+# Subtest: coalesces reconstruction and restores the captured camera offline without cross-session reuse
+ok 113 - coalesces reconstruction and restores the captured camera offline without cross-session reuse
+  ---
+  duration_ms: 31.945541
+  type: 'test'
+  ...
+# Subtest: self-contained GLB validation rejects malformed containers and remote resources
+ok 114 - self-contained GLB validation rejects malformed containers and remote resources
+  ---
+  duration_ms: 1.635458
+  type: 'test'
+  ...
+# Subtest: asset upload forwards multipart with server credential and checks exact content identity
+ok 115 - asset upload forwards multipart with server credential and checks exact content identity
+  ---
+  duration_ms: 12.300875
+  type: 'test'
+  ...
+# Subtest: invalid uploads never reach upstream; busy uploads are never retried
+ok 116 - invalid uploads never reach upstream; busy uploads are never retried
+  ---
+  duration_ms: 0.738709
+  type: 'test'
+  ...
+# Subtest: PBR accepts one assetId or legacy relative path, never ambiguous references
+ok 117 - PBR accepts one assetId or legacy relative path, never ambiguous references
+  ---
+  duration_ms: 0.773875
+  type: 'test'
+  ...
+# Subtest: HTTP upload route parses multipart, bounds body and strips remote metadata
+ok 118 - HTTP upload route parses multipart, bounds body and strips remote metadata
+  ---
+  duration_ms: 6.412
+  type: 'test'
+  ...
+# Subtest: HTTP upload admits only one concurrent request and releases its slot
+ok 119 - HTTP upload admits only one concurrent request and releases its slot
+  ---
+  duration_ms: 2.132458
+  type: 'test'
+  ...
+# Subtest: graphics credentials stay server-side and missing neural capability remains false
+ok 120 - graphics credentials stay server-side and missing neural capability remains false
+  ---
+  duration_ms: 19.975083
+  type: 'test'
+  ...
+# Subtest: graphics integration distinguishes unconfigured, unauthorized and invalid capability evidence
+ok 121 - graphics integration distinguishes unconfigured, unauthorized and invalid capability evidence
+  ---
+  duration_ms: 8.696167
+  type: 'test'
+  ...
+# Subtest: bad endpoint configuration never throws or sends a request
+ok 122 - bad endpoint configuration never throws or sends a request
+  ---
+  duration_ms: 0.148
+  type: 'test'
+  ...
+# Subtest: graphics job forwards bounded request and preserves blocked status
+ok 123 - graphics job forwards bounded request and preserves blocked status
+  ---
+  duration_ms: 2.176625
+  type: 'test'
+  ...
+# Subtest: graphics service backpressure is not retried into duplicate GPU jobs
+ok 124 - graphics service backpressure is not retried into duplicate GPU jobs
+  ---
+  duration_ms: 0.255792
+  type: 'test'
+  ...
+# Subtest: artifact proxy limits paths and bytes and never forwards upstream cookies
+ok 125 - artifact proxy limits paths and bytes and never forwards upstream cookies
+  ---
+  duration_ms: 2.66625
+  type: 'test'
+  ...
+# Subtest: PBR scene options reject traversal, ignored mode options and invalid camera bases
+ok 126 - PBR scene options reject traversal, ignored mode options and invalid camera bases
+  ---
+  duration_ms: 1.829958
+  type: 'test'
+  ...
+# Subtest: PBR and Falcor capability flags remain separate from neural rendering
+ok 127 - PBR and Falcor capability flags remain separate from neural rendering
+  ---
+  duration_ms: 0.362583
+  type: 'test'
+  ...
+# Subtest: camera keyframes are sampled continuously instead of jumping then freezing
+ok 128 - camera keyframes are sampled continuously instead of jumping then freezing
+  ---
+  duration_ms: 0.435708
+  type: 'test'
+  ...
+# Subtest: single-frame camera requests remain valid across route and client validation
+ok 129 - single-frame camera requests remain valid across route and client validation
+  ---
+  duration_ms: 0.347375
+  type: 'test'
+  ...
+# Subtest: view basis agrees with +X strafe and picking, including pitch
+ok 130 - view basis agrees with +X strafe and picking, including pitch
+  ---
+  duration_ms: 0.811125
+  type: 'test'
+  ...
+# Subtest: diagonal movement has the same speed; D moves screen-right; damping is frame-rate independent
+ok 131 - diagonal movement has the same speed; D moves screen-right; damping is frame-rate independent
+  ---
+  duration_ms: 1.706291
+  type: 'test'
+  ...
+# Subtest: depth mesh reprojects to the source image at its capture camera
+ok 132 - depth mesh reprojects to the source image at its capture camera
+  ---
+  duration_ms: 0.370709
+  type: 'test'
+  ...
+# Subtest: neighbor switch preserves camera pose, extends coverage and reuses the return view
+ok 133 - neighbor switch preserves camera pose, extends coverage and reuses the return view
+  ---
+  duration_ms: 0.394042
+  type: 'test'
+  ...
+# Subtest: 3D movement is local, collision slides along walls and unloaded chunks block escape
+ok 134 - 3D movement is local, collision slides along walls and unloaded chunks block escape
+  ---
+  duration_ms: 7.675625
+  type: 'test'
+  ...
+# Subtest: normalizeTurnStream accepts strings, text objects, and stills
+ok 135 - normalizeTurnStream accepts strings, text objects, and stills
+  ---
+  duration_ms: 1.054708
+  type: 'test'
+  ...
+# Subtest: create two worlds, switch, list, and active pointer
+ok 136 - create two worlds, switch, list, and active pointer
+  ---
+  duration_ms: 344.240583
+  type: 'test'
+  ...
+# Subtest: global IDENTITY update does not appear in either MEMORY.md
+ok 137 - global IDENTITY update does not appear in either MEMORY.md
+  ---
+  duration_ms: 63.647625
+  type: 'test'
+  ...
+# Subtest: WORLD.md update in world A does not change world B
+ok 138 - WORLD.md update in world A does not change world B
+  ---
+  duration_ms: 53.154917
+  type: 'test'
+  ...
+# Subtest: reopen after process (new listSessions) restores registry
+ok 139 - reopen after process (new listSessions) restores registry
+  ---
+  duration_ms: 35.932041
+  type: 'test'
+  ...
+# Subtest: commitRevision twice is serialized and HEAD moves
+ok 140 - commitRevision twice is serialized and HEAD moves
+  ---
+  duration_ms: 18.041083
+  type: 'test'
+  ...
+# Subtest: v0 pack from createPack then ensureV1/openPack still has WORLD.md and graph
+ok 141 - v0 pack from createPack then ensureV1/openPack still has WORLD.md and graph
+  ---
+  duration_ms: 9.347708
+  type: 'test'
+  ...
+# Subtest: importing the same packDir returns the existing world
+ok 142 - importing the same packDir returns the existing world
+  ---
+  duration_ms: 14.291083
+  type: 'test'
+  ...
+# Subtest: aabbToLocalMesh writes 12 triangles
+ok 143 - aabbToLocalMesh writes 12 triangles
+  ---
+  duration_ms: 4.674917
+  type: 'test'
+  ...
+# Subtest: bakeMapAssets writes a mesh file per object and freezes regions
+ok 144 - bakeMapAssets writes a mesh file per object and freezes regions
+  ---
+  duration_ms: 1.855125
+  type: 'test'
+  ...
+# Subtest: garden bake does not rewrite interior meshes or bind the room still
+ok 145 - garden bake does not rewrite interior meshes or bind the room still
+  ---
+  duration_ms: 1.592084
+  type: 'test'
+  ...
+# Subtest: compileWorldRules extracts teleport ban and closing hour
+ok 146 - compileWorldRules extracts teleport ban and closing hour
+  ---
+  duration_ms: 1.5185
+  type: 'test'
+  ...
+# Subtest: cupToLocalMesh is not a box
+ok 147 - cupToLocalMesh is not a box
+  ---
+  duration_ms: 3.00825
+  type: 'test'
+  ...
+# Subtest: buildPrimitiveTavern is a frozen playable interior
+ok 148 - buildPrimitiveTavern is a frozen playable interior
+  ---
+  duration_ms: 3.001042
+  type: 'test'
+  ...
+# Subtest: validate rejects empty candidate as playable
+ok 149 - validate rejects empty candidate as playable
+  ---
+  duration_ms: 0.23825
+  type: 'test'
+  ...
+# Subtest: buildReferenceBundle copies committed visualRef hashes
+ok 150 - buildReferenceBundle copies committed visualRef hashes
+  ---
+  duration_ms: 0.658417
+  type: 'test'
+  ...
+# Subtest: validate fails when preserved hashes change
+ok 151 - validate fails when preserved hashes change
+  ---
+  duration_ms: 0.957333
+  type: 'test'
+  ...
+# Subtest: extendPrimitiveGarden keeps interior visualRefs and a walkable seam
+ok 152 - extendPrimitiveGarden keeps interior visualRefs and a walkable seam
+  ---
+  duration_ms: 0.839083
+  type: 'test'
+  ...
+# Subtest: assembleContext injects constitution and the sample skill
+ok 153 - assembleContext injects constitution and the sample skill
+  ---
+  duration_ms: 86.890292
+  type: 'test'
+  ...
+# Subtest: assembleSlices injects sections in PRD order
+ok 154 - assembleSlices injects sections in PRD order
+  ---
+  duration_ms: 0.539375
+  type: 'test'
+  ...
+# Subtest: assembleSlices never truncates WORLD.md hard rules
+ok 155 - assembleSlices never truncates WORLD.md hard rules
+  ---
+  duration_ms: 0.118375
+  type: 'test'
+  ...
+# Subtest: assembleSlices keeps the head of a long MEMORY.md
+ok 156 - assembleSlices keeps the head of a long MEMORY.md
+  ---
+  duration_ms: 0.289708
+  type: 'test'
+  ...
+# Subtest: assembleSlices keeps skill names only when the skill budget is exceeded
+ok 157 - assembleSlices keeps skill names only when the skill budget is exceeded
+  ---
+  duration_ms: 0.206791
+  type: 'test'
+  ...
+# Subtest: formatPresence describes a missing place
+ok 158 - formatPresence describes a missing place
+  ---
+  duration_ms: 0.353166
+  type: 'test'
+  ...
+# Subtest: formatChronicle skips utterances and formatChatTurns keeps them
+ok 159 - formatChronicle skips utterances and formatChatTurns keeps them
+  ---
+  duration_ms: 0.194583
+  type: 'test'
+  ...
+# Subtest: asSubgraph reads nodes and edges
+ok 160 - asSubgraph reads nodes and edges
+  ---
+  duration_ms: 0.877125
+  type: 'test'
+  ...
+# Subtest: injectSkills keeps full bodies under budget
+ok 161 - injectSkills keeps full bodies under budget
+  ---
+  duration_ms: 0.455875
+  type: 'test'
+  ...
+# Subtest: injectSkills keeps frontmatter names when over budget
+ok 162 - injectSkills keeps frontmatter names when over budget
+  ---
+  duration_ms: 0.127167
+  type: 'test'
+  ...
+# Subtest: parseSkillName falls back to the provided name
+ok 163 - parseSkillName falls back to the provided name
+  ---
+  duration_ms: 0.041917
+  type: 'test'
+  ...
+# Subtest: skillNameFromPosix reads the skills folder name
+ok 164 - skillNameFromPosix reads the skills folder name
+  ---
+  duration_ms: 0.050334
+  type: 'test'
+  ...
+# Subtest: applyContextBudget truncates later slices first
+ok 165 - applyContextBudget truncates later slices first
+  ---
+  duration_ms: 0.15725
+  type: 'test'
+  ...
+# Subtest: parseStewardTurn reads camera translation
+ok 166 - parseStewardTurn reads camera translation
+  ---
+  duration_ms: 1.050042
+  type: 'test'
+  ...
+# Subtest: parseStewardTurn reads scene translation
+ok 167 - parseStewardTurn reads scene translation
+  ---
+  duration_ms: 0.209709
+  type: 'test'
+  ...
+# Subtest: observationView sends steward style, not mesh names
+ok 168 - observationView sends steward style, not mesh names
+  ---
+  duration_ms: 0.105209
+  type: 'test'
+  ...
+# Subtest: runTurn throws CONFIG when the API key is missing
+ok 169 - runTurn throws CONFIG when the API key is missing
+  ---
+  duration_ms: 27.67625
+  type: 'test'
+  ...
+# Subtest: runTurn writes the user utterance before the model fails
+ok 170 - runTurn writes the user utterance before the model fails
+  ---
+  duration_ms: 60.932209
+  type: 'test'
+  ...
+# Subtest: runTurn streams mock model text and persists the assistant utterance
+ok 171 - runTurn streams mock model text and persists the assistant utterance
+  ---
+  duration_ms: 21.927834
+  type: 'test'
+  ...
+# Subtest: stillEventFromLookOutput reads still and placeId
+ok 172 - stillEventFromLookOutput reads still and placeId
+  ---
+  duration_ms: 0.581292
+  type: 'test'
+  ...
+# Subtest: stillEventFromLookOutput returns undefined without still
+ok 173 - stillEventFromLookOutput returns undefined without still
+  ---
+  duration_ms: 0.093083
+  type: 'test'
+  ...
+# Subtest: eventsFromStreamPart maps look start, still, and text
+ok 174 - eventsFromStreamPart maps look start, still, and text
+  ---
+  duration_ms: 0.177584
+  type: 'test'
+  ...
+# Subtest: classifyShot splits camera framing from scene edits
+ok 175 - classifyShot splits camera framing from scene edits
+  ---
+  duration_ms: 0.575333
+  type: 'test'
+  ...
+# Subtest: isViewUtterance ignores pause and questions
+ok 176 - isViewUtterance ignores pause and questions
+  ---
+  duration_ms: 0.261166
+  type: 'test'
+  ...
+# Subtest: heuristic camera keeps last style and does not rebake
+ok 177 - heuristic camera keeps last style and does not rebake
+  ---
+  duration_ms: 0.294417
+  type: 'test'
+  ...
+# Subtest: heuristic scene strips look verbs and names the place
+ok 178 - heuristic scene strips look verbs and names the place
+  ---
+  duration_ms: 0.374542
+  type: 'test'
+  ...
+# Subtest: spawn creates a Place node and chronicle event
+ok 179 - spawn creates a Place node and chronicle event
+  ---
+  duration_ms: 15.399125
+  type: 'test'
+  ...
+# Subtest: go sets presence on the spawned place
+ok 180 - go sets presence on the spawned place
+  ---
+  duration_ms: 5.642208
+  type: 'test'
+  ...
+# Subtest: go rejects a missing place
+ok 181 - go rejects a missing place
+  ---
+  duration_ms: 1.39825
+  type: 'test'
+  ...
+# Subtest: relate adds and retracts an edge
+ok 182 - relate adds and retracts an edge
+  ---
+  duration_ms: 8.810834
+  type: 'test'
+  ...
+# Subtest: unknown tool and bad input throw CarinaError
+ok 183 - unknown tool and bad input throw CarinaError
+  ---
+  duration_ms: 1.335791
+  type: 'test'
+  ...
+# Subtest: look does not write graph geometry
+ok 184 - look does not write graph geometry
+  ---
+  duration_ms: 4.603125
+  type: 'test'
+  ...
+# Subtest: look passes place name, intent, and fresh to the renderer
+ok 185 - look passes place name, intent, and fresh to the renderer
+  ---
+  duration_ms: 3.715625
+  type: 'test'
+  ...
+# Subtest: look still is not written into the graph
+ok 186 - look still is not written into the graph
+  ---
+  duration_ms: 4.75475
+  type: 'test'
+  ...
+# Subtest: attach rejects a path that escapes the pack
+ok 187 - attach rejects a path that escapes the pack
+  ---
+  duration_ms: 2.352666
+  type: 'test'
+  ...
+# Subtest: say chronicles speech to an entity in view
+ok 188 - say chronicles speech to an entity in view
+  ---
+  duration_ms: 7.912292
+  type: 'test'
+  ...
+# Subtest: say rejects an object and an entity out of view
+ok 189 - say rejects an object and an entity out of view
+  ---
+  duration_ms: 9.35575
+  type: 'test'
+  ...
+# Subtest: remember writes MEMORY.md and a Claim node
+ok 190 - remember writes MEMORY.md and a Claim node
+  ---
+  duration_ms: 5.749667
+  type: 'test'
+  ...
+# Subtest: attach copies a pack file, writes sidecar, and binds an Asset
+ok 191 - attach copies a pack file, writes sidecar, and binds an Asset
+  ---
+  duration_ms: 7.543958
+  type: 'test'
+  ...
+# Subtest: export writes a zip that contains graph.json
+ok 192 - export writes a zip that contains graph.json
+  ---
+  duration_ms: 6.431625
+  type: 'test'
+  ...
+# Subtest: immutable geometry, valid indices/normals, material batching preserves triangle count
+ok 193 - immutable geometry, valid indices/normals, material batching preserves triangle count
+  ---
+  duration_ms: 10.424208
+  type: 'test'
+  ...
+# Subtest: neighbor seams, spawn and four exits have unobstructed collision clearance
+ok 194 - neighbor seams, spawn and four exits have unobstructed collision clearance
+  ---
+  duration_ms: 10.968542
+  type: 'test'
+  ...
+# Subtest: preparation coalesces, background chunks persist, replay and export work with models offline
+ok 195 - preparation coalesces, background chunks persist, replay and export work with models offline
+  ---
+  duration_ms: 79.658791
+  type: 'test'
+  ...
+# Subtest: model recipes reject unbounded or invalid outputs
+ok 196 - model recipes reject unbounded or invalid outputs
+  ---
+  duration_ms: 0.614292
+  type: 'test'
+  ...
+# Subtest: story A overnight: presence, name, and broken vase survive reopen
+ok 197 - story A overnight: presence, name, and broken vase survive reopen
+  ---
+  duration_ms: 72.489709
+  type: 'test'
+  ...
+# Subtest: query finds nodes by id, type, and name in props
+ok 198 - query finds nodes by id, type, and name in props
+  ---
+  duration_ms: 5.251667
+  type: 'test'
+  ...
+# Subtest: mutate adds and removes nodes and edges for spawn/relate
+ok 199 - mutate adds and removes nodes and edges for spawn/relate
+  ---
+  duration_ms: 5.682875
+  type: 'test'
+  ...
+# Subtest: hopNeighborhood returns the N-hop subgraph
+ok 200 - hopNeighborhood returns the N-hop subgraph
+  ---
+  duration_ms: 1.802958
+  type: 'test'
+  ...
+# Subtest: appendEvent writes jsonl and may add Event nodes
+ok 201 - appendEvent writes jsonl and may add Event nodes
+  ---
+  duration_ms: 6.453333
+  type: 'test'
+  ...
+# Subtest: setPresence writes session.placeId and a chronicle line
+ok 202 - setPresence writes session.placeId and a chronicle line
+  ---
+  duration_ms: 2.955
+  type: 'test'
+  ...
+# Subtest: remember appends MEMORY.md and a Claim node
+ok 203 - remember appends MEMORY.md and a Claim node
+  ---
+  duration_ms: 4.626875
+  type: 'test'
+  ...
+# Subtest: NOT_FOUND when place or node is missing
+ok 204 - NOT_FOUND when place or node is missing
+  ---
+  duration_ms: 1.3765
+  type: 'test'
+  ...
+# Subtest: GRAPH_INVALID on dangling edges at construct or mutate
+ok 205 - GRAPH_INVALID on dangling edges at construct or mutate
+  ---
+  duration_ms: 0.884125
+  type: 'test'
+  ...
+# Subtest: GRAPH_INVALID when an edge points at a missing node
+ok 206 - GRAPH_INVALID when an edge points at a missing node
+  ---
+  duration_ms: 0.8845
+  type: 'test'
+  ...
+# Subtest: replayChronicle lets the log win over Event nodes
+ok 207 - replayChronicle lets the log win over Event nodes
+  ---
+  duration_ms: 3.578625
+  type: 'test'
+  ...
+# Subtest: appendEvent keeps a caller-supplied chronicle id
+ok 208 - appendEvent keeps a caller-supplied chronicle id
+  ---
+  duration_ms: 2.805417
+  type: 'test'
+  ...
+# Subtest: createPack then WorldStore persists presence and memory
+ok 209 - createPack then WorldStore persists presence and memory
+  ---
+  duration_ms: 31.874667
+  type: 'test'
+  ...
+1..209
+# tests 209
+# suites 0
+# pass 209
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2819.291792

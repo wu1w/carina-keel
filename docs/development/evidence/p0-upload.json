@@ -1,0 +1,31 @@
+{
+  "result": {
+    "state": "connected",
+    "asset": {
+      "assetId": "ac37c156cee5773d",
+      "contentHash": "ac37c156cee5773dff2d15c1236d687e4feb221a7f98c2f75704d097ea90daca",
+      "byteLength": 88320,
+      "deduped": true
+    }
+  },
+  "lookup": {
+    "state": "connected",
+    "asset": {
+      "assetId": "ac37c156cee5773d",
+      "contentHash": "ac37c156cee5773dff2d15c1236d687e4feb221a7f98c2f75704d097ea90daca",
+      "byteLength": 88320
+    }
+  },
+  "network_samples": [
+    {
+      "path": "/assets/glb",
+      "bytes": 175,
+      "total_ms": 85.894
+    },
+    {
+      "path": "/assets/ac37c156cee5773d",
+      "bytes": 160,
+      "total_ms": 34.472
+    }
+  ]
+}

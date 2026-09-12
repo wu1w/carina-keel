@@ -1,0 +1,53 @@
+--- a/service/glb_loader.py
++++ b/service/glb_loader.py
+@@ -27,7 +27,7 @@
+     if stride == item:
+         arr = np.frombuffer(buf, dtype=dtype, count=count * comp, offset=offset).reshape(count, comp)
+     else:
+-        raw = np.frombuffer(buf, dtype=np.uint8, count=stride * count, offset=offset)
++        raw = np.frombuffer(buf, dtype=np.uint8, count=(count - 1) * stride + item if count else 0, offset=offset)
+         flat = np.empty(count * comp, dtype=dtype)
+         for i in range(count):
+             flat[i * comp : (i + 1) * comp] = np.frombuffer(
+@@ -79,7 +79,7 @@
+ 
+     def walk(ni: int, parent: np.ndarray):
+         node = nodes[ni]
+-        # ignore full TRS for brevity; apply matrix if present else identity
++        # glTF node transforms use T * R * S; matrix arrays are column-major.
+         M = parent
+         if "matrix" in node:
+             m = np.array(node["matrix"], dtype=np.float32).reshape(4, 4).T
+@@ -89,10 +89,6 @@
+             if "translation" in node:
+                 t = node["translation"]
+                 T[0, 3], T[1, 3], T[2, 3] = t
+-            if "scale" in node:
+-                s = node["scale"]
+-                S = np.diag([s[0], s[1], s[2], 1.0]).astype(np.float32)
+-                T = T @ S
+             if "rotation" in node:
+                 x, y, z, w = node["rotation"]
+                 xx, yy, zz = x * x, y * y, z * z
+@@ -108,6 +104,9 @@
+                     dtype=np.float32,
+                 )
+                 T = T @ R
++            if "scale" in node:
++                scale = node["scale"]
++                T = T @ np.diag([*scale, 1.0]).astype(np.float32)
+             M = parent @ T
+         if "mesh" in node:
+             mesh = json_chunk["meshes"][node["mesh"]]
+@@ -122,7 +121,10 @@
+                 pos_w = (M @ pos_h.T).T[:, :3]
+                 if "NORMAL" in attrs:
+                     nor = _read_accessor(json_chunk, buffers, attrs["NORMAL"]).astype(np.float32)[:, :3]
+-                    N3 = M[:3, :3]
++                    try:
++                        N3 = np.linalg.inv(M[:3, :3]).T
++                    except np.linalg.LinAlgError as exc:
++                        raise GlbLoadError("singular node transform") from exc
+                     nor = (N3 @ nor.T).T
+                     nor /= np.linalg.norm(nor, axis=1, keepdims=True) + 1e-8
+                 else:

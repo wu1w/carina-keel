@@ -1,0 +1,160 @@
+{
+  "slice": "UE-03 closeout \u2014 Cursor acceptance gate",
+  "agent": "Grok Bot / ling (Windows UE)",
+  "timestamp_asia_shanghai": "2026-09-11 16:51",
+  "timestamp_utc": "2026-09-11T08:51:40Z",
+  "p0_p1_claim": "NOT claimed complete \u2014 stop for Cursor acceptance",
+  "constraints_ok": {
+    "no_tavern_art": true,
+    "no_helmet_lighting_polish": true,
+    "no_mac_src_edit": true,
+    "no_vpn_v2box_public_ports": true,
+    "no_aiga_llama_sshd_reboot": true,
+    "sidecar_18793": "LISTENING 127.0.0.1 pid 2108 untouched"
+  },
+  "item1_collision_walkaround": {
+    "status": "PARTIAL\u2192VISUAL_PROVEN_VIA_PLAYER_POSE",
+    "collision_profile": "BlockAll QueryAndPhysics on dyn StaticMeshComponent (CarinaWorldRuntimeSubsystem.cpp)",
+    "objects": [
+      "avocado",
+      "boombox"
+    ],
+    "method": [
+      "PS2 WASD under -RenderOffScreen remains sky-locked (input does not pitch camera); API timings alone = FAIL",
+      "Added IPC op player_pose + highresshot (Win Source only; Mac src/ untouched); rebuilt CarinaPS.exe and copied to Packaged",
+      "player_pose approach/stop/strafe/around + HighResShot disk captures; mannequin contact against BoomBox surface"
+    ],
+    "before_transforms_example": {
+      "avocado": {
+        "position": {
+          "x": 25.0,
+          "y": 0.25,
+          "z": -2.5
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 1.1,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 6.0,
+          "y": 6.0,
+          "z": 6.0
+        }
+      },
+      "boombox": {
+        "position": {
+          "x": 25.0,
+          "y": 0.35,
+          "z": 0.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": -0.8,
+          "z": 0.2
+        },
+        "scale": {
+          "x": 4.0,
+          "y": 4.0,
+          "z": 4.0
+        }
+      }
+    },
+    "after_api_move_example": {
+      "avocado": {
+        "position": {
+          "x": 25.3,
+          "y": 0.25,
+          "z": -2.5
+        },
+        "moveMs": 0.0144
+      }
+    },
+    "hitch": {
+      "source": "prior PS rAF sampling ue02/ue03 headless walk (video advances; camera sky-locked)",
+      "during_walkaround_wallMs_max": 34.2,
+      "hitch_over_40ms_count": 0,
+      "note": "No hitch >40ms while PS video advanced; contact visuals from HighResShot+player_pose not from WASD frames"
+    },
+    "screenshots": {
+      "col_contact_boombox": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03bb_orbit_a_HighresScreenshot00021.png",
+      "col_strafe_boombox": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03bb_col_strafe_HighresScreenshot00025.png",
+      "strafe_surface": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03f_strafe_HighresScreenshot00014.png",
+      "orbit_surface": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03f_vis_orbit_HighresScreenshot00018.png",
+      "orbit_far": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03bb2_orbit_far_HighresScreenshot00028.png",
+      "json": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03_boombox_views.json",
+      "far_json": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03_far_capture.json"
+    },
+    "honest_notes": [
+      "WASD PS walkaround screenshots remain sky-only under RenderOffScreen \u2014 not accepted as walkaround proof alone",
+      "Visual proof = HighResShot after IPC player_pose at approach/stop/strafe/orbit around BlockAll BoomBox",
+      "No HitEvent IPC counter in this host build; capsule vs BlockAll inferred from mannequin-on-surface stills + BlockAll code path"
+    ]
+  },
+  "item2_asymmetric_object_visuals": {
+    "status": "PARTIAL\u2192GREEN_FOR_BOOMBOX",
+    "chosen_asset": "BoomBox",
+    "assetId": "84c32a396684d0b3",
+    "assetHash": "84c32a396684d0b329bbe60428f5cb89c5f447356ccf359b0374856653eca331",
+    "material": "BoomBox_Mat (Interchange); NOT BasicShapeMaterial",
+    "Material_MR_or_real_PBR": true,
+    "views": {
+      "front_attempt": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03bb2_front_far_HighresScreenshot00026.png",
+      "side_attempt": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03bb_side_HighresScreenshot00020.png",
+      "orbit_a": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03bb_orbit_a_HighresScreenshot00021.png",
+      "orbit_b": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03bb_orbit_b_HighresScreenshot00022.png",
+      "orbit_far": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03bb2_orbit_far_HighresScreenshot00028.png",
+      "strafe_close": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03f_strafe_HighresScreenshot00014.png"
+    },
+    "shader_log": {
+      "BoomBox_Mat_Missing_shader": false,
+      "Avocado_2256_Avocado_d_Missing_shader": true,
+      "Avocado_fallback": "Default Material (hash 03303C52B6749A75 absent from host ShaderArchive)",
+      "evidence": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03_boombox_views.json"
+    },
+    "honest_notes": [
+      "Avocado still Default Material \u2014 NOT used as PBR proof",
+      "BoomBox_Mat renders chrome/hazard-stripe/emissive PBR without Missing-shader in streamer log",
+      "Not helmet close-ups; objects spawned at Carina x\u224825m away from origin HardRef helmet clutter",
+      "Full-object framing still PARTIAL on some stills (ThirdPerson spring-arm fills frame); best proof = orbit_a / orbit_far / strafe surface"
+    ]
+  },
+  "item3_bind_18794": {
+    "status": "GREEN",
+    "netstat": "TCP 127.0.0.1:18794 0.0.0.0:0 LISTENING",
+    "config_HOST": "127.0.0.1 (world_runtime/config.py)",
+    "not_0_0_0_0": true,
+    "who_can_connect": "Only local processes on the Windows host (loopback). No LAN/VPN/public reachability from this bind.",
+    "HTTP_vs_WebRTC": "HTTP WorldRuntime \u2260 WebRTC PixelStreaming; PS signalling remains 127.0.0.1:8080/8888; Mac WebRTC still HARD_BLOCK (unchanged, out of scope)",
+    "sidecar_18793": "127.0.0.1:18793 LISTENING intact"
+  },
+  "item4_shaderMergeOk": {
+    "status": "CONTRACT_REQUIRED_HOST_COOK",
+    "shaderMergeOk": false,
+    "policy": "MERGE only \u2014 never full ShaderArchive replace (D3D12 residency fatal)",
+    "required_host_cook": true,
+    "fail_keeps_previous_scene": true,
+    "detail": [
+      "prepare() sets shaderMergeOk=False; side IoStore content inject without host ShaderArchive merge",
+      "New MI hashes (e.g. Avocado 2256_Avocado_d / 03303C52B6749A75) missing at runtime \u2192 Default Material",
+      "BoomBox_Mat happened to resolve without Missing-shader (likely shared/cached hashes already in host archive from prior cook)",
+      "Acceptable path: host Development cook+stage so new materials enter main CarinaPS ShaderArchive, OR implement hash MERGE into packaged library",
+      "Forbidden: Order=204 full ShaderArchive side replace"
+    ]
+  },
+  "item5_mac_sync": {
+    "status": "DONE_THIS_CLOSEOUT",
+    "targets": [
+      "docs/benchmarks/windows-rtx5070ti/validation/ue03_closeout.json",
+      "docs/benchmarks/windows-rtx5070ti/UE02_CONTRACT_SECTION.md (Proven vs blocked)",
+      "docs/benchmarks/windows-rtx5070ti/PROGRESS.md",
+      "docs/benchmarks/windows-rtx5070ti/P0_RUNTIME_STATUS.md",
+      "runtimes/unreal/ portable sources note (Content missing)"
+    ]
+  },
+  "win_paths": {
+    "closeout": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue03_closeout.json",
+    "world_runtime": "C:\\Users\\wuyw\\carina-rtx-validation\\world_runtime",
+    "streamer_log": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ue02_streamer_collision.log"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "health": {
+    "state": "connected",
+    "health": {
+      "service": "CARINA-RTX-20260910",
+      "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+      "vram_mib": 16303,
+      "driver": "616.56",
+      "backend": "ModernGL PBR+shadows+IBL (not Lumen) | ModernGL mesh baseline | Falcor path tracer (not Lumen)",
+      "ready": true,
+      "capabilities": {
+        "meshRender": true,
+        "lumenSW": false,
+        "lumenHW": false,
+        "dlssSuperResolution": false,
+        "dlssNeuralRendering": false,
+        "pbrRasterIBL": true,
+        "pathTraceDXR": false,
+        "falcorPathTrace": true
+      }
+    },
+    "roundTripMs": 53.771208000000115
+  },
+  "result": {
+    "state": "connected",
+    "job": {
+      "id": "4819b00a872f",
+      "mode": "hq_pbr",
+      "resolution": [
+        1280,
+        720
+      ],
+      "frames": 24,
+      "state": "queued",
+      "progress": 0,
+      "error": null,
+      "reason": null,
+      "created_at": "2026-09-10T23:37:43+08:00",
+      "started_at": null,
+      "finished_at": null,
+      "artifacts": []
+    }
+  },
+  "network_samples": [
+    {
+      "path": "/health",
+      "bytes": 479,
+      "total_ms": 57.06
+    },
+    {
+      "path": "/jobs",
+      "bytes": 251,
+      "total_ms": 12.618
+    }
+  ]
+}

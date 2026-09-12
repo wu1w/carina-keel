@@ -1,3 +1,5 @@
+import type { TurnEvent } from "../steward/turn-event.js";
+
 /**
  * zh: 是否为异步可迭代对象。
  * en: Whether a value is async-iterable.
@@ -7,17 +9,19 @@ function isAsyncIterable(value: object): value is AsyncIterable<unknown> {
 }
 
 /**
- * zh: 从管家一轮结果里取出文本块。
- * en: Pull text chunks out of a steward turn result.
+ * zh: 从管家一轮结果里取出文本、状态与静帧。
+ * en: Pull text, status, and stills out of a steward turn result.
  */
 export async function* normalizeTurnStream(
   result: unknown,
-): AsyncIterable<string> {
+): AsyncIterable<TurnEvent> {
   if (result === undefined || result === null) {
     return;
   }
   if (typeof result === "string") {
-    yield result;
+    if (result !== "") {
+      yield { type: "text", text: result };
+    }
     return;
   }
   if (typeof result !== "object") {
@@ -37,36 +41,45 @@ export async function* normalizeTurnStream(
     yield* normalizeTurnStream((result as { textStream: unknown }).textStream);
     return;
   }
-  if (
-    "text" in result &&
-    typeof (result as { text: unknown }).text === "string"
-  ) {
-    yield (result as { text: string }).text;
-  }
+  yield* normalizeChunk(result);
 }
 
 /**
- * zh: 把单个块收成字符串。
- * en: Collapse one chunk into a string.
+ * zh: 把单个块收成壳事件。
+ * en: Collapse one chunk into shell events.
  */
-async function* normalizeChunk(chunk: unknown): AsyncIterable<string> {
+async function* normalizeChunk(chunk: unknown): AsyncIterable<TurnEvent> {
   if (typeof chunk === "string") {
     if (chunk !== "") {
-      yield chunk;
+      yield { type: "text", text: chunk };
     }
     return;
   }
   if (chunk === undefined || chunk === null || typeof chunk !== "object") {
     return;
   }
-  if (
-    "text" in chunk &&
-    typeof (chunk as { text: unknown }).text === "string"
-  ) {
-    const text = (chunk as { text: string }).text;
-    if (text !== "") {
-      yield text;
+  const record = chunk as { type?: unknown; text?: unknown; tool?: unknown };
+  if (record.type === "clip") {
+    yield chunk as TurnEvent;
+    return;
+  }
+  if (record.type === "still") {
+    const still = chunk as TurnEvent;
+    yield still;
+    return;
+  }
+  if (record.type === "status" && typeof record.tool === "string") {
+    yield { type: "status", tool: record.tool };
+    return;
+  }
+  if (record.type === "text" && typeof record.text === "string") {
+    if (record.text !== "") {
+      yield { type: "text", text: record.text };
     }
+    return;
+  }
+  if (typeof record.text === "string" && record.text !== "") {
+    yield { type: "text", text: record.text };
   }
 }
 
@@ -76,7 +89,7 @@ async function* normalizeChunk(chunk: unknown): AsyncIterable<string> {
  */
 async function* readableStreamToText(
   stream: ReadableStream<unknown>,
-): AsyncIterable<string> {
+): AsyncIterable<TurnEvent> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   try {
@@ -87,20 +100,20 @@ async function* readableStreamToText(
       }
       if (typeof value === "string") {
         if (value !== "") {
-          yield value;
+          yield { type: "text", text: value };
         }
         continue;
       }
       if (value instanceof Uint8Array) {
         const text = decoder.decode(value, { stream: true });
         if (text !== "") {
-          yield text;
+          yield { type: "text", text: text };
         }
       }
     }
     const tail = decoder.decode();
     if (tail !== "") {
-      yield tail;
+      yield { type: "text", text: tail };
     }
   } finally {
     reader.releaseLock();
@@ -108,13 +121,13 @@ async function* readableStreamToText(
 }
 
 /**
- * zh: 一轮对话：输入一句，产出文本流。
- * en: One chat turn: a message in, a text stream out.
+ * zh: 一轮对话：输入一句，产出文本与画面事件。
+ * en: One chat turn: a message in, text and still events out.
  */
 export type RunTurnFn = (
   message: string,
 ) =>
-  | AsyncIterable<string>
-  | Promise<AsyncIterable<string> | unknown>
+  | AsyncIterable<TurnEvent | string>
+  | Promise<AsyncIterable<TurnEvent | string> | unknown>
   | unknown
   | Promise<unknown>;

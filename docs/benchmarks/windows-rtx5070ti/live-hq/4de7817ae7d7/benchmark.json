@@ -1,0 +1,48 @@
+{
+  "job_id": "4de7817ae7d7",
+  "mode": "hq_pbr",
+  "capability": "pbrRasterIBL",
+  "not_lumen": true,
+  "resolution": [
+    1280,
+    720
+  ],
+  "frames": 24,
+  "warmup_frames": 6,
+  "gpu": {
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "vram_mib": 16303,
+    "vram_used_mib": 798,
+    "driver": "616.56"
+  },
+  "backend": "ModernGL PBR+shadowMap+IBL (NOT Lumen) OpenGL 3.3.0 NVIDIA 616.56",
+  "gl_vendor": "NVIDIA Corporation",
+  "gl_renderer": "NVIDIA GeForce RTX 5070 Ti/PCIe/SSE2",
+  "lighting": "directional PBR + shadow maps + Polyhaven HDR IBL diffuse/spec approx \u2014 not Lumen",
+  "assets_label": "render-validation assets only (Polyhaven CC0); not world-model content",
+  "scene_glb": "C:\\Users\\wuyw\\carina-rtx-validation\\assets\\scenes\\DamagedHelmet\\DamagedHelmet.glb",
+  "used_bundled_scene": false,
+  "timings": {
+    "render_ms_p50": 0.193,
+    "render_ms_p95": 0.212,
+    "readback_encode_ms_p50": 1.944,
+    "readback_encode_ms_p95": 21.791,
+    "avg_render_ms": 0.189,
+    "avg_readback_encode_ms": 7.322,
+    "scene_load_ms": 0.128,
+    "queue_wait_ms": 35.342,
+    "wall_ms": 623.893,
+    "network_ms": null,
+    "network_ms_note": "measure at client only",
+    "honesty": "render_ms is glFinish-synced submit+GPU; not claimed as interactive game FPS"
+  },
+  "peak_vram_mib": 926,
+  "artifacts": {
+    "before": "before.png",
+    "after": "after.png",
+    "frame_strip": "frame_strip.png",
+    "frame_timings": "frame_timings.json",
+    "ibl_preview": "ibl_irradiance_preview.png"
+  },
+  "pbrRasterIBL_verified": true
+}

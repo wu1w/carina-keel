@@ -1,0 +1,45 @@
+{
+  "job_id": "cd1bd2303cb2",
+  "mode": "baseline",
+  "resolution": [
+    1280,
+    720
+  ],
+  "frames": 60,
+  "warmup_frames": 10,
+  "gpu": {
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "vram_mib": 16303,
+    "vram_used_mib": 800,
+    "driver": "616.56"
+  },
+  "backend": "ModernGL/GLFW OpenGL 3.3.0 NVIDIA 616.56",
+  "gl_vendor": "NVIDIA Corporation",
+  "gl_renderer": "NVIDIA GeForce RTX 5070 Ti/PCIe/SSE2",
+  "timings": {
+    "render_ms_p50": 0.126,
+    "render_ms_p95": 0.235,
+    "readback_encode_ms_p50": 1.768,
+    "readback_encode_ms_p95": 77.129,
+    "avg_render_ms": 0.136,
+    "avg_readback_encode_ms": 15.956,
+    "scene_load_ms": 90.688,
+    "queue_wait_ms": 126.678,
+    "wall_ms": 1601.898,
+    "network_ms": null,
+    "honesty": "render_ms is glFinish-synced; not game FPS"
+  },
+  "avg_cpu_ms": 0.136,
+  "avg_gpu_ms": 0.136,
+  "peak_vram_mib": 800,
+  "queue_wait_ms": 126.678,
+  "scene_load_ms": 90.688,
+  "total_render_ms": 1601.898,
+  "artifacts": {
+    "before": "before.png",
+    "after": "after.png",
+    "frame_strip": "frame_strip.png",
+    "frame_timings": "frame_timings.json"
+  },
+  "meshRender_verified": true
+}

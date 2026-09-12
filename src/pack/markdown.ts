@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { CarinaError } from "../errors.js";
 import type { PackHandle } from "./open.js";
+import { writeFileAtomic } from "./open.js";
 import { resolvePosix } from "./paths.js";
 import { isNodeErrno } from "./sandbox.js";
 
@@ -18,6 +19,27 @@ export async function readMarkdown(
   } catch (error) {
     if (isNodeErrno(error, "ENOENT")) {
       throw new CarinaError("NOT_FOUND", "error.notFound", error);
+    }
+    throw new CarinaError("PACK_INVALID", "error.packInvalid", error);
+  }
+}
+
+/**
+ * zh: 原子写入包内 Markdown。
+ * en: Atomically write pack Markdown.
+ */
+export async function writeMarkdown(
+  handle: PackHandle,
+  filename: string,
+  body: string,
+): Promise<void> {
+  const absPath = resolvePosix(handle.packDir, filename);
+  const lfText = body.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  try {
+    await writeFileAtomic(absPath, lfText);
+  } catch (error) {
+    if (error instanceof CarinaError) {
+      throw error;
     }
     throw new CarinaError("PACK_INVALID", "error.packInvalid", error);
   }

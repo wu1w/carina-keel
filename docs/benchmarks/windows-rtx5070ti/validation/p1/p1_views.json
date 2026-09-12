@@ -1,0 +1,229 @@
+{
+  "gate": "P1-2-P1-3",
+  "date": "2026-09-12T09:55:00+08:00",
+  "notWorldModel": true,
+  "claimsWorldModelGeneration": false,
+  "source": "asset-library",
+  "assetId": "629373db5bc61c4c",
+  "assetHash": "629373db5bc61c4c3beaaa0bf73e2f7baf93921e7a86e9675d2fca1ff4262673",
+  "hostMerge": {
+    "ok": true,
+    "alwaysCookAvocado": false,
+    "fullShaderArchiveReplace": false,
+    "globalUtocUnchanged": true,
+    "note": "prepare.shaderMergeOk stays false (pipeline flag); host MERGE staged Win64 skipbuild"
+  },
+  "activate": {
+    "ok": true,
+    "revision": "p1-7ba909cf40",
+    "error": null
+  },
+  "spawned": [
+    {
+      "objectId": "p1-Bar",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482376",
+      "error": null,
+      "meshName": "Bar"
+    },
+    {
+      "objectId": "p1-BarFootRest",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482375",
+      "error": null,
+      "meshName": "BarFootRest"
+    },
+    {
+      "objectId": "p1-Ceiling",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482374",
+      "error": null,
+      "meshName": "Ceiling"
+    },
+    {
+      "objectId": "p1-Cup",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482373",
+      "error": null,
+      "meshName": "Cup"
+    },
+    {
+      "objectId": "p1-Door",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482372",
+      "error": null,
+      "meshName": "Door"
+    },
+    {
+      "objectId": "p1-Fireplace",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482371",
+      "error": null,
+      "meshName": "Fireplace"
+    },
+    {
+      "objectId": "p1-Floor",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482370",
+      "error": null,
+      "meshName": "Floor"
+    },
+    {
+      "objectId": "p1-HearthMetal",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482369",
+      "error": null,
+      "meshName": "HearthMetal"
+    },
+    {
+      "objectId": "p1-WallEast",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482368",
+      "error": null,
+      "meshName": "WallEast"
+    },
+    {
+      "objectId": "p1-WallNorthL",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482367",
+      "error": null,
+      "meshName": "WallNorthL"
+    },
+    {
+      "objectId": "p1-WallNorthLintel",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482366",
+      "error": null,
+      "meshName": "WallNorthLintel"
+    },
+    {
+      "objectId": "p1-WallNorthR",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482365",
+      "error": null,
+      "meshName": "WallNorthR"
+    },
+    {
+      "objectId": "p1-WallSouth",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482364",
+      "error": null,
+      "meshName": "WallSouth"
+    },
+    {
+      "objectId": "p1-WallWest",
+      "ok": true,
+      "ueActorId": "StaticMeshActor_2147482363",
+      "error": null,
+      "meshName": "WallWest"
+    }
+  ],
+  "spawnOkCount": 14,
+  "door": {
+    "ok": true,
+    "moveFallback": true,
+    "error": null
+  },
+  "cup": {
+    "ok": true,
+    "moveFallback": true,
+    "error": null
+  },
+  "fly": {
+    "ok": true,
+    "mode": "Cheat Fly + slomo 0 for stills only"
+  },
+  "poses": {
+    "bar_near": {
+      "ok": true,
+      "error": null,
+      "ueLocationCm": {
+        "x": 420.0,
+        "y": 500.0,
+        "z": 155.0
+      }
+    },
+    "fireplace": {
+      "ok": true,
+      "error": null,
+      "ueLocationCm": {
+        "x": 780.0,
+        "y": 280.0,
+        "z": 155.0
+      }
+    },
+    "door_inside": {
+      "ok": true,
+      "error": null,
+      "ueLocationCm": {
+        "x": 600.0,
+        "y": 760.0,
+        "z": 155.0
+      }
+    },
+    "door_outside": {
+      "ok": true,
+      "error": null,
+      "ueLocationCm": {
+        "x": 600.0,
+        "y": 1120.0,
+        "z": 170.0
+      }
+    },
+    "cup": {
+      "ok": true,
+      "error": null,
+      "ueLocationCm": {
+        "x": 220.00000000000003,
+        "y": 459.99999999999994,
+        "z": 140.0
+      }
+    },
+    "bar_behind": {
+      "ok": true,
+      "error": null,
+      "ueLocationCm": {
+        "x": 200.0,
+        "y": 500.0,
+        "z": 150.0
+      }
+    }
+  },
+  "shots": {
+    "bar_near_unlit": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\bar_near_unlit.png",
+    "fireplace_unlit": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\fireplace_unlit.png",
+    "door_inside_unlit": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\door_inside_unlit.png",
+    "door_outside_unlit": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\door_outside_unlit.png",
+    "cup_unlit": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\cup_unlit.png",
+    "bar_behind_unlit": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\bar_behind_unlit.png",
+    "bar_near": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\bar_near.png",
+    "fireplace": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\fireplace.png",
+    "door_inside": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\door_inside.png",
+    "door_outside": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\door_outside.png",
+    "cup": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\cup.png",
+    "bar_behind": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\bar_behind.png"
+  },
+  "generationOffRoute": {
+    "macRuntimeTested": true,
+    "ueStreamerUp": true,
+    "shots": [
+      "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\genoff_route_0.png",
+      "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\genoff_route_1.png",
+      "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\genoff_route_2.png",
+      "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\p1_views\\genoff_route_3.png"
+    ],
+    "note": "generation.stop is not stream disconnect; route captured with LAN streamer live"
+  },
+  "noToggleDebugCamera": true,
+  "renderOffScreen": false,
+  "ng1Complete": false,
+  "p2GenerateFactory": false,
+  "visualFeelNeedsWilliam": true,
+  "roomMeters": {
+    "x": 12,
+    "y": 4,
+    "z": 10
+  },
+  "yawConvention": "UE: 0=+X, 90=+Y (Carina +z / north door), 180=-X (bar), -90=-Y",
+  "lumen": "project default; AutoExposure forced off for stills"
+}

@@ -23,6 +23,18 @@ test("MockRenderer media contains place id", () => {
 });
 
 /**
+ * zh: 有地点名时描述里要出现名字，不能只剩 id。
+ * en: A place name must appear in the description, not only the id.
+ */
+test("MockRenderer media contains the place name", () => {
+  const result = new MockRenderer().render({
+    ...tavernView,
+    placeName: "Tavern",
+  });
+  assert.match(result.media, /Tavern/);
+});
+
+/**
  * zh: render() 缺省走 MockRenderer。
  * en: render() defaults to MockRenderer.
  */
@@ -53,9 +65,13 @@ test("mock includes camera and style when set", () => {
     entities: [],
     camera: "doorway",
     style: "candlelight",
+    intent: "看向吧台",
+    fresh: true,
   });
   assert.match(result.media, /doorway/);
   assert.match(result.media, /candlelight/);
+  assert.match(result.media, /看向吧台/);
+  assert.match(result.media, /种子图/);
 });
 
 /**

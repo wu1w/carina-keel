@@ -1,0 +1,27 @@
+{
+    "FileVersion": 3,
+    "EngineAssociation": "5.8",
+    "Category": "",
+    "Description": "CARINA-RTX P0 Pixel Streaming 2 - ThirdPerson walkable + PS2",
+    "Plugins": [
+        {
+            "Name": "ModelingToolsEditorMode",
+            "Enabled": true,
+            "TargetAllowList": [
+                "Editor"
+            ]
+        },
+        {
+            "Name": "PixelStreaming",
+            "Enabled": false
+        },
+        {
+            "Name": "PixelStreaming2",
+            "Enabled": true
+        },
+        {
+            "Name": "PixelStreamingPlayer",
+            "Enabled": false
+        }
+    ]
+}

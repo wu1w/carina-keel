@@ -1,0 +1,30 @@
+{
+  "gate": "P0-3",
+  "date": "2026-09-12T09:08:00+08:00",
+  "windowed": true,
+  "renderOffScreen": false,
+  "unattendedRemoved": true,
+  "notToggleDebugCamera": true,
+  "notWorldModel": true,
+  "claimsWorldModelGeneration": false,
+  "spawn": {
+    "indoorOrigin": {
+      "ueLocationCm": [0, 0, 92],
+      "before": "wasd_origin_before.png",
+      "afterHoldW": "wasd_origin_after_w.png",
+      "note": "Pawn inside imported tavern/bar enclosure on floor. Held KeyW 1.2s via PS2 KeyDown; view stayed boxed (wall collision), not sky-fall."
+    },
+    "tpLedge": {
+      "ueLocationCm": [2400, 0, 110],
+      "before": "wasd_tpfloor_before.png",
+      "afterHoldW": "wasd_after_w_hr.png",
+      "note": "Thin ThirdPerson surface; hold W walked the pawn off the ledge into sky. Proves WASD reached the possessed pawn once Unattended was removed."
+    }
+  },
+  "failConditions": {
+    "standingOnBoomBox": false,
+    "defaultSpawnSkyLock": "still happens if pawn falls off geometry; not used as the floor proof",
+    "shaderMergeOk": false
+  },
+  "honesty": "P0-3 engineering: windowed + WASD reaches pawn + indoor wall box. Lighting/PBR of the 34KB scaffold is black (not P1). User feel still needs William's eyes."
+}

@@ -1,0 +1,122 @@
+{
+  "stage": "done",
+  "assetId": "8dd45448bbac70a0",
+  "assetHash": "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+  "notAvocado": true,
+  "notWorldModel": true,
+  "claimsWorldModelGeneration": false,
+  "prepare": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "worldId": "ue02-final",
+      "assetId": "8dd45448bbac70a0",
+      "assetHash": "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+      "commandId": "p0-prep-tavern-20260912",
+      "revision": "f2-prep-tavern",
+      "cookMs": 17256.910099997185,
+      "packageIds": [
+        "/Game/Imported/Dynamic/tavern/asset/StaticMeshes/\u5427\u53f0"
+      ],
+      "shaderMergeOk": false,
+      "softObjectPath": "/Game/Imported/Dynamic/tavern/asset/StaticMeshes/\u5427\u53f0",
+      "timingsMs": {
+        "importMs": 25339.66640001745,
+        "cookMs": 17256.910099997185,
+        "classicPakMs": 400.6241000024602,
+        "iostoreMs": 232.85550001310185
+      },
+      "cached": false,
+      "appliedRevision": "f2-prep-tavern"
+    }
+  },
+  "origPakShaUpdated": true,
+  "shaderMergeOk": false,
+  "p0EntryOnlyNotPbr": true,
+  "getWorld": {
+    "status": 200,
+    "appliedRevision": "f2-prep-tavern"
+  },
+  "install": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "worldId": "ue02-final",
+      "assetHash": "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+      "commandId": "p0-inst-tavern-20260912b",
+      "revision": "f2-inst-tavern",
+      "mountedPackages": [
+        "CarinaPS-Windows_tavern.pak",
+        "CarinaPS-Windows_tavern.utoc",
+        "CarinaPS-Windows_tavern.ucas"
+      ],
+      "mountOrder": "CarinaPS-Windows_tavern",
+      "installMs": 156.05829999549314,
+      "softObjectPath": "/Game/Imported/Dynamic/tavern/asset/StaticMeshes/\u5427\u53f0",
+      "appliedRevision": "f2-inst-tavern"
+    }
+  },
+  "streamerStarted": true,
+  "ueBridge": {
+    "ok": true,
+    "status": {
+      "service": "carina-world-runtime",
+      "baseUrl": "http://127.0.0.1:18794/v1/",
+      "live": true,
+      "cliBindAllowed": true,
+      "ueBridge": true,
+      "sidecar18793": "separate",
+      "contract": "review-1",
+      "rotationWire": "XYZ Euler radians",
+      "revisionModel": "opaque string + expectedRevision + commandId idempotency",
+      "prepareInput": "assetId + full assetHash (upload registry only)"
+    }
+  },
+  "activate": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "worldId": "ue02-final",
+      "assetHashes": [
+        "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697"
+      ],
+      "commandId": "p0-act-tavern-20260912",
+      "revision": "f2-act-tavern",
+      "activateMs": [
+        0.5568999913521111
+      ],
+      "appliedRevision": "f2-act-tavern"
+    }
+  },
+  "spawn": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "worldId": "ue02-final",
+      "objectId": "tavern-scaffold-p0",
+      "assetHash": "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+      "commandId": "p0-sp-tavern-20260912",
+      "revision": "f2-sp-tavern",
+      "ueActorId": "StaticMeshActor_2147482376",
+      "spawnMs": 0.16530000721104443,
+      "transform": {
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.05
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "appliedRevision": "f2-sp-tavern"
+    }
+  }
+}

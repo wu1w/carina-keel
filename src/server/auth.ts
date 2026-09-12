@@ -18,6 +18,18 @@ export function readRequestToken(c: Context): string | undefined {
 }
 
 /**
+ * zh: EventSource 无法设头，仅 SSE GET 可读查询串 token。
+ * en: EventSource cannot set headers; SSE GET may read a query token.
+ */
+export function readQueryToken(c: Context): string | undefined {
+  const token = c.req.query("token");
+  if (token === undefined || token === "") {
+    return undefined;
+  }
+  return token;
+}
+
+/**
  * zh: 常量时间比较令牌，避免短令牌被计时探测。
  * en: Compare tokens in constant time so short tokens are not timed.
  */

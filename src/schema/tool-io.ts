@@ -36,6 +36,7 @@ const nodeKindSchema = z.enum([
 export const toolInputSchema = {
   look: z.object({
     style: z.string().optional(),
+    fresh: z.boolean().optional(),
   }),
   go: z.object({
     placeId: z.string().min(1),

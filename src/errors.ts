@@ -14,7 +14,15 @@ export type CarinaErrorCode =
   | "UNAUTHORIZED"
   | "CONFIG"
   | "EXPORT_FAILED"
-  | "INTERNAL";
+  | "INTERNAL"
+  | "CONFLICT"
+  | "REVISION_CONFLICT"
+  | "EPOCH_STALE"
+  | "COMMAND_REJECTED"
+  | "RULES_INVALID"
+  | "VALIDATION_FAILED"
+  | "UNSUPPORTED"
+  | "WORLD_NOT_ACTIVE";
 
 /**
  * zh: 龙骨错误。code 为英语大写；展示用 messageKey。

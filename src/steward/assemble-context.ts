@@ -18,6 +18,7 @@ import {
   formatChatTurns,
   formatChronicle,
   formatPresence,
+  formatSection,
 } from "./format-context.js";
 import {
   parseSkillName,
@@ -46,6 +47,15 @@ export type AssembleContextOptions = AssembleSlicesOptions & {
    * en: Clock used to pick today and yesterday chronicle files.
    */
   now?: Date;
+  /**
+   * zh: 可选加载全局档案。不传则不注入，保持旧测试。
+   * en: Optional global-profile loader. Omitted keeps existing tests unchanged.
+   */
+  loadGlobalDocuments?: () => Promise<{
+    identity?: string;
+    agent?: string;
+    global?: string;
+  }>;
 };
 
 /**
@@ -79,7 +89,7 @@ export async function assembleContext(
   const events = formatChronicle(chronicleEvents);
   const chat = formatChatTurns(chronicleEvents, maxChatTurns);
 
-  return assembleSlices(
+  const assembled = assembleSlices(
     {
       steward,
       world,
@@ -92,6 +102,22 @@ export async function assembleContext(
     },
     opts,
   );
+  if (opts.loadGlobalDocuments === undefined) {
+    return assembled;
+  }
+  const global = await opts.loadGlobalDocuments();
+  const globalText = formatSection(
+    "Global profile / 全局档案",
+    [global.identity, global.agent, global.global]
+      .filter((block): block is string => typeof block === "string")
+      .map((block) => block.trim())
+      .filter((block) => block.length > 0)
+      .join("\n\n"),
+  );
+  if (globalText.length === 0) {
+    return assembled;
+  }
+  return `${globalText}\n\n${assembled}`;
 }
 
 /**

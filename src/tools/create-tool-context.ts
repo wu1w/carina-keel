@@ -1,12 +1,13 @@
 import type { CarinaLang } from "../config.js";
+import { loadConfig } from "../config.js";
 import { exportZip, openPack } from "../pack/index.js";
-import { MockRenderer } from "../render/index.js";
+import { createRenderer } from "../render/index.js";
 import { WorldStore } from "../world/index.js";
 import type { ToolContext } from "./context.js";
 
 /**
- * zh: 打开包并用 mock 渲染器组装八工具上下文。CLI / MCP / HTTP 共用。
- * en: Open a pack and build the eight-tool context with the mock renderer. Shared by CLI / MCP / HTTP.
+ * zh: 打开包并按配置组装八工具上下文。CLI / MCP / HTTP 共用。
+ * en: Open a pack and build the eight-tool context from config. Shared by CLI / MCP / HTTP.
  */
 export async function createToolContext(
   packPath: string,
@@ -16,7 +17,7 @@ export async function createToolContext(
   const store = new WorldStore(packHandle);
   return {
     store,
-    renderer: new MockRenderer(),
+    renderer: createRenderer(loadConfig()),
     exportZip,
     packHandle,
     lang,

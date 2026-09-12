@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { unzipSync, zipSync } from "fflate";
 import { CarinaError } from "../errors.js";
-import { createPack, exportZip, importZip, openPack, readMarkdown } from "./index.js";
+import { createPack, exportZip, importZip, openPack, readMarkdown, zipPackBytes } from "./index.js";
 import { packDirFromZipPath } from "./unzip.js";
 
 /**
@@ -74,6 +74,20 @@ test("exportZip round-trips through unzip and openPack", async (t) => {
   assert.match(worldMd, /世界/);
   const token = await readFile(path.join(reopenDir, "assets", "token.bin"));
   assert.deepEqual([...token], [0, 1, 2, 255]);
+});
+
+test("zipPackBytes returns a zip without writing a dest file", async (t) => {
+  const scratchDir = await mkdtemp(path.join(os.tmpdir(), "carina-zip-bytes-"));
+  t.after(async () => {
+    await rm(scratchDir, { recursive: true, force: true });
+  });
+  const packDir = path.join(scratchDir, "lake.carina");
+  await createPack(packDir, "zh");
+  const bytes = await zipPackBytes(packDir);
+  assert.equal(bytes[0], 0x50);
+  assert.equal(bytes[1], 0x4b);
+  const unzipped = unzipSync(bytes);
+  assert.ok(Object.keys(unzipped).includes("WORLD.md"));
 });
 
 test("importZip and openPack accept a .carina.zip", async (t) => {

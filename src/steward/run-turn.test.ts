@@ -33,6 +33,7 @@ test("runTurn throws CONFIG when the API key is missing", async (t) => {
       port: 18790,
       pack: packDir,
       lang: "zh",
+      dataDir: packDir,
     },
   });
 
@@ -79,6 +80,7 @@ test("runTurn writes the user utterance before the model fails", async (t) => {
       port: 18790,
       pack: packDir,
       lang: "en",
+      dataDir: packDir,
     },
   });
 
@@ -156,7 +158,7 @@ test("runTurn streams mock model text and persists the assistant utterance", asy
   const mockFetch: typeof fetch = async () => chatCompletionStream(reply);
 
   const chunks: string[] = [];
-  for await (const delta of runTurn("Where am I?", {
+  for await (const event of runTurn("Where am I?", {
     store,
     pack,
     fetch: mockFetch,
@@ -168,9 +170,12 @@ test("runTurn streams mock model text and persists the assistant utterance", asy
       port: 18790,
       pack: packDir,
       lang: "en",
+      dataDir: packDir,
     },
   })) {
-    chunks.push(delta);
+    if (event.type === "text") {
+      chunks.push(event.text);
+    }
   }
 
   assert.equal(chunks.join(""), reply);

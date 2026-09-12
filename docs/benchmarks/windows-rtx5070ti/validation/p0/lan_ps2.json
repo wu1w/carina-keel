@@ -1,0 +1,43 @@
+{
+  "gate": "P0-1",
+  "date": "2026-09-12T08:54:00+08:00",
+  "claim": "Mac LAN PixelStreaming2 ICE connected with rising framesDecoded. HTTP 200 is not sufficient; this record includes ICE + inbound-rtp.",
+  "notWorldModel": true,
+  "notP0Complete": true,
+  "playerUrl": "http://192.168.5.16:8080/player.html",
+  "http": {
+    "playerHtml": 200,
+    "bytes": 1409
+  },
+  "listen": {
+    "8080": "0.0.0.0:8080 LISTENING (player HTTP/WS; Private LocalSubnet firewall)",
+    "8888": "127.0.0.1:8888 LISTENING (streamer WS stays loopback)",
+    "18793": "127.0.0.1:18793 LISTENING",
+    "18794": "127.0.0.1:18794 LISTENING"
+  },
+  "launch": {
+    "sws": "scheduled task CarinaPS2-SWS-LAN (survives SSH hangup)",
+    "streamer": "scheduled task CarinaPS2-Streamer-LAN; CarinaPS.exe session 1 windowed; no RenderOffScreen",
+    "advertisedIp": "192.168.5.16",
+    "webServerPatch": "WebServer.js http listen 0.0.0.0 (loopback.bak kept); streamer WS still 127.0.0.1"
+  },
+  "webrtc": {
+    "iceConnectionState": "connected",
+    "connectionState": "connected",
+    "iceGatheringState": "complete",
+    "nominatedPairState": "succeeded",
+    "video": {"width": 2560, "height": 1440, "paused": false},
+    "framesDecodedSampleA": 6605,
+    "framesDecodedSampleB": 6897,
+    "deltaFrames": 292,
+    "deltaMs": 2002,
+    "reconnect": {
+      "beforeIce": "connected",
+      "afterIce": "connected",
+      "framesDecodedAfterReconnect": 12
+    }
+  },
+  "screenshot": "lan_ps2_live.png",
+  "screenshotNote": "Green signalling icon; current pawn view is sky/blue (WASD floor is P0-3, not claimed here).",
+  "honesty": "SSH tunnel HTTP is not this evidence. This is Mac browser to 192.168.5.16:8080 WebRTC."
+}

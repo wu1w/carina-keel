@@ -13,14 +13,31 @@ export async function exportZip(
   handle: PackHandle,
   destPath: string,
 ): Promise<void> {
-  const packRoot = path.resolve(handle.packDir);
   const resolvedDest = path.resolve(destPath);
-  let files: Zippable;
   try {
-    files = await collectPackFiles(packRoot, resolvedDest);
-    const zipped = zipSync(files);
+    const zipped = await zipPackBytes(handle.packDir, resolvedDest);
     await mkdir(path.dirname(resolvedDest), { recursive: true });
     await writeFileAtomic(resolvedDest, zipped);
+  } catch (error) {
+    if (error instanceof CarinaError) {
+      throw error;
+    }
+    throw new CarinaError("EXPORT_FAILED", "error.exportFailed", error);
+  }
+}
+
+/**
+ * zh: 把世界包打成 zip 字节，不写盘。给 HTTP 下载。
+ * en: Zip a world pack to bytes without writing a file. For HTTP download.
+ */
+export async function zipPackBytes(
+  packDir: string,
+  skipAbsPath = "",
+): Promise<Uint8Array> {
+  const packRoot = path.resolve(packDir);
+  try {
+    const files = await collectPackFiles(packRoot, skipAbsPath);
+    return zipSync(files);
   } catch (error) {
     if (error instanceof CarinaError) {
       throw error;

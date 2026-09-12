@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: self-contained GLB validation rejects malformed containers and remote resources
+ok 1 - self-contained GLB validation rejects malformed containers and remote resources
+  ---
+  duration_ms: 1.333708
+  type: 'test'
+  ...
+# Subtest: asset upload forwards multipart with server credential and checks exact content identity
+ok 2 - asset upload forwards multipart with server credential and checks exact content identity
+  ---
+  duration_ms: 10.716458
+  type: 'test'
+  ...
+# Subtest: invalid uploads never reach upstream; busy uploads are never retried
+ok 3 - invalid uploads never reach upstream; busy uploads are never retried
+  ---
+  duration_ms: 0.511791
+  type: 'test'
+  ...
+# Subtest: PBR accepts one assetId or legacy relative path, never ambiguous references
+ok 4 - PBR accepts one assetId or legacy relative path, never ambiguous references
+  ---
+  duration_ms: 0.658083
+  type: 'test'
+  ...
+# Subtest: HTTP upload route parses multipart, bounds body and strips remote metadata
+ok 5 - HTTP upload route parses multipart, bounds body and strips remote metadata
+  ---
+  duration_ms: 5.629917
+  type: 'test'
+  ...
+# Subtest: HTTP upload admits only one concurrent request and releases its slot
+ok 6 - HTTP upload admits only one concurrent request and releases its slot
+  ---
+  duration_ms: 2.263333
+  type: 'test'
+  ...
+# Subtest: asset routes remain behind the real application authentication boundary
+ok 7 - asset routes remain behind the real application authentication boundary
+  ---
+  duration_ms: 1.773875
+  type: 'test'
+  ...
+# Subtest: graphics credentials stay server-side and missing neural capability remains false
+ok 8 - graphics credentials stay server-side and missing neural capability remains false
+  ---
+  duration_ms: 10.23475
+  type: 'test'
+  ...
+# Subtest: graphics integration distinguishes unconfigured, unauthorized and invalid capability evidence
+ok 9 - graphics integration distinguishes unconfigured, unauthorized and invalid capability evidence
+  ---
+  duration_ms: 0.879042
+  type: 'test'
+  ...
+# Subtest: bad endpoint configuration never throws or sends a request
+ok 10 - bad endpoint configuration never throws or sends a request
+  ---
+  duration_ms: 0.113625
+  type: 'test'
+  ...
+# Subtest: graphics job forwards bounded request and preserves blocked status
+ok 11 - graphics job forwards bounded request and preserves blocked status
+  ---
+  duration_ms: 1.730833
+  type: 'test'
+  ...
+# Subtest: graphics service backpressure is not retried into duplicate GPU jobs
+ok 12 - graphics service backpressure is not retried into duplicate GPU jobs
+  ---
+  duration_ms: 0.214625
+  type: 'test'
+  ...
+# Subtest: artifact proxy limits paths and bytes and never forwards upstream cookies
+ok 13 - artifact proxy limits paths and bytes and never forwards upstream cookies
+  ---
+  duration_ms: 2.405958
+  type: 'test'
+  ...
+# Subtest: PBR scene options reject traversal, ignored mode options and invalid camera bases
+ok 14 - PBR scene options reject traversal, ignored mode options and invalid camera bases
+  ---
+  duration_ms: 0.907625
+  type: 'test'
+  ...
+# Subtest: PBR and Falcor capability flags remain separate from neural rendering
+ok 15 - PBR and Falcor capability flags remain separate from neural rendering
+  ---
+  duration_ms: 0.224709
+  type: 'test'
+  ...
+# Subtest: camera keyframes are sampled continuously instead of jumping then freezing
+ok 16 - camera keyframes are sampled continuously instead of jumping then freezing
+  ---
+  duration_ms: 0.381917
+  type: 'test'
+  ...
+# Subtest: single-frame camera requests remain valid across route and client validation
+ok 17 - single-frame camera requests remain valid across route and client validation
+  ---
+  duration_ms: 0.313625
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 291.713542

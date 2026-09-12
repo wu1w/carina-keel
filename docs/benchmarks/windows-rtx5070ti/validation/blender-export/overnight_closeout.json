@@ -1,0 +1,80 @@
+{
+  "at": "2026-09-11T15:12:00Z",
+  "timezone": "Asia/Shanghai",
+  "operator": "cursor-overnight",
+  "claimsWorldModelGeneration": false,
+  "sceneSpecSource": "heuristic-plan",
+  "blender": {
+    "installed": true,
+    "path": "C:\\Program Files\\Blender Foundation\\Blender 4.5\\blender.exe",
+    "version": "4.5.13 LTS",
+    "installer": "msi",
+    "sha256": "3d5cb2e769215d8d31a4b417ed56c20f25c5139f441faaa85daaef34839af56e",
+    "msiexecExit": 0
+  },
+  "exportLoop": {
+    "prompt": "新建一个湖边酒馆，旧木吧台 → 把吧台往左移一米 → 在门外生成花园 → freeze → exportGlb",
+    "calibrateDeltaM": -1,
+    "glbBytes": 34120,
+    "glbSha256": "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+    "blenderMeshCount": 22,
+    "blenderSelectableIncludes": [
+      "门",
+      "杯子",
+      "椅子1",
+      "椅子2",
+      "椅子3",
+      "吧台",
+      "吧台正面",
+      "招牌",
+      "园门"
+    ],
+    "blenderImages": 0,
+    "geometry": "primitive scaffold + mock tavern boxes; vertex colors; no packed textures"
+  },
+  "sidecar": {
+    "uploadHttp": 201,
+    "assetId": "8dd45448bbac70a0",
+    "relativePath": "assets/uploaded/8dd45448bbac70a0/asset.glb",
+    "prepareNotCalled": true
+  },
+  "worldRuntime": {
+    "worldId": "ue02-final",
+    "appliedRevision": "f2-sp-bb2",
+    "liveObjects": ["avocado", "boombox"],
+    "note": "Live UE world is still the PBR test objects. Exported tavern GLB is in the sidecar upload registry, not cooked into CarinaPS."
+  },
+  "windowsListen": {
+    "22": ":::22",
+    "8080": "127.0.0.1:8080",
+    "8888": "127.0.0.1:8888",
+    "18793": "127.0.0.1:18793",
+    "18794": "127.0.0.1:18794"
+  },
+  "tests": {
+    "unit": "261/261 pass",
+    "typecheck": "pass"
+  },
+  "codeTonight": [
+    "AssetPlan compiler: generate stays blocked without CARINA_MESH_PROVIDER_URL",
+    "Export merges SceneSpec scaffolds (bar-front/sign/garden-gate) into GLB without injecting them into the 8x6 walkable mock (that blocked the door)",
+    "Heuristic courtyard now includes garden-gate in the plan"
+  ],
+  "ng1Checklist": {
+    "nlCreateSmallSpace": "pass-plan-only (heuristic SceneSpec + mock tavern)",
+    "realWorldModelCandidates": "BLOCKED — CARINA_MESH_PROVIDER_URL unset",
+    "geometricValidation": "pass-playable-scaffold",
+    "sameSessionExplore": "PARTIAL — mock walk; UE-06 floor walkaround not accepted",
+    "nlEditOneObject": "pass-plan (bar-front SceneSpec -1m); playable mock bar is not the same mesh",
+    "freezeReopen": "pass-session",
+    "exportGlbBlenderSelectable": "pass-scaffold-nodes (door/cup/chairs/bar/sign/gate); no textures",
+    "generateAdjacentUnderConstraints": "pass-plan courtyard; mock garden is not world-model"
+  },
+  "blocked": [
+    "No live native-mesh / world-model HTTP backend",
+    "UE PixelStreaming2 player.html is loopback-only (127.0.0.1:8080 GREEN; LAN 192.168.5.16:8080 timeout)",
+    "WorldRuntime live scene is still Avocado+BoomBox, not the exported tavern",
+    "Did not run Interchange/cook prepare (would lock UE project overnight)",
+    "P0 walkaround / P1 quality / P2 generated feature asset still not claimed"
+  ]
+}

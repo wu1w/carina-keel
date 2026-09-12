@@ -1,0 +1,30 @@
+{
+  "slice": "UE-02 collision walkaround + move/remove timings",
+  "timestamp_asia_shanghai": "2026-09-11 16:13",
+  "status": "PARTIAL_INSTRUMENTED",
+  "collision_profile": "BlockAll QueryAndPhysics on dyn StaticMeshComponent",
+  "worldId": "ue02-collision",
+  "timings_ms": {
+    "move_avocado_ue_ms": 0.0055,
+    "move_boombox_ue_ms": 0.0052,
+    "remove_boombox_ue_ms": 0.0477,
+    "respawn_boombox_ue_ms": 1.008,
+    "move_avocado_http_ms": 59.0,
+    "remove_boombox_http_ms": 63.1
+  },
+  "hitch_frame": {
+    "during_walkaround_wallMs_mean": 16.68,
+    "during_walkaround_wallMs_max": 33.0,
+    "hitch_over_40ms_count": 0
+  },
+  "win_paths": {
+    "json": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_collision_orbit.json",
+    "baseline": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_collision_baseline.png",
+    "walkaround": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_collision_walkaround.png",
+    "push": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_collision_push.png"
+  },
+  "honest_notes": [
+    "PS walkaround screenshots mostly sky (look angle); timings+BlockAll code path proven",
+    "No HitEvent IPC counter in host build"
+  ]
+}

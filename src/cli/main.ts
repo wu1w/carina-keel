@@ -15,6 +15,7 @@ import { relateCommand } from "./commands/relate.js";
 import { rememberCommand } from "./commands/remember.js";
 import { sayCommand } from "./commands/say.js";
 import { serveCommand } from "./commands/serve.js";
+import { sessionsCommand } from "./commands/sessions.js";
 import { spawnCommand } from "./commands/spawn.js";
 
 const lang = loadConfig().lang;
@@ -32,6 +33,7 @@ export const main = defineCommand({
   subCommands: {
     new: newCommand,
     serve: serveCommand,
+    sessions: sessionsCommand,
     chat: chatCommand,
     query: queryCommand,
     spawn: spawnCommand,

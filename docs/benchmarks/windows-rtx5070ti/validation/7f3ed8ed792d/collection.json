@@ -1,0 +1,183 @@
+{
+  "job": {
+    "id": "7f3ed8ed792d",
+    "mode": "baseline",
+    "resolution": [
+      1280,
+      720
+    ],
+    "frames": 48,
+    "state": "completed",
+    "progress": 1,
+    "error": null,
+    "reason": null,
+    "created_at": "2026-09-10T23:17:36+08:00",
+    "started_at": "2026-09-10T23:17:36+08:00",
+    "finished_at": "2026-09-10T23:17:38+08:00",
+    "artifacts": [
+      "after.png",
+      "before.png",
+      "benchmark.json",
+      "frame_0000.png",
+      "frame_0006.png",
+      "frame_0012.png",
+      "frame_0018.png",
+      "frame_0024.png",
+      "frame_0030.png",
+      "frame_0036.png",
+      "frame_0042.png",
+      "frame_0047.png",
+      "frame_strip.png",
+      "frame_timings.json"
+    ]
+  },
+  "visual_acceptance": "basic_visibility_only",
+  "timing_scope": "Individual HTTP samples including transfer; not displayed-frame or input latency.",
+  "network_samples": [
+    {
+      "path": "/jobs/7f3ed8ed792d",
+      "bytes": 535,
+      "total_ms": 118.004
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/after.png",
+      "bytes": 979577,
+      "total_ms": 59.865
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/before.png",
+      "bytes": 863742,
+      "total_ms": 55.467
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/benchmark.json",
+      "bytes": 1191,
+      "total_ms": 37.283
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0000.png",
+      "bytes": 863742,
+      "total_ms": 38.989
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0006.png",
+      "bytes": 855728,
+      "total_ms": 66.483
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0012.png",
+      "bytes": 914629,
+      "total_ms": 83.899
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0018.png",
+      "bytes": 1049183,
+      "total_ms": 51.404
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0024.png",
+      "bytes": 1085535,
+      "total_ms": 124.192
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0030.png",
+      "bytes": 1067330,
+      "total_ms": 79.425
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0036.png",
+      "bytes": 1028605,
+      "total_ms": 83.845
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0042.png",
+      "bytes": 958467,
+      "total_ms": 50.778
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_0047.png",
+      "bytes": 979577,
+      "total_ms": 65.989
+    },
+    {
+      "path": "/artifacts/7f3ed8ed792d/frame_timings.json",
+      "bytes": 9045,
+      "total_ms": 37.884
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "after.png",
+      "bytes": 979577,
+      "sha256": "a875ce6048f060d1fa51f67bd5b11739d77c95c3338d9b33c5c911736f61cfb5"
+    },
+    {
+      "file": "before.png",
+      "bytes": 863742,
+      "sha256": "d4f89a0d7aae6ea41cfa51fcb1f54915f055f9fe9b3db48482c2ab445868ba3a"
+    },
+    {
+      "file": "benchmark.json",
+      "bytes": 1191,
+      "sha256": "8a433cf4bfd731810c551bbde201456759464dccfe805d5b31b26b1c1df33f10"
+    },
+    {
+      "file": "frame_0000.png",
+      "bytes": 863742,
+      "sha256": "d4f89a0d7aae6ea41cfa51fcb1f54915f055f9fe9b3db48482c2ab445868ba3a"
+    },
+    {
+      "file": "frame_0006.png",
+      "bytes": 855728,
+      "sha256": "88aa02753590a3b4d9cc2302371e396f6527ede3d6957fa118d42c371b4c56bb"
+    },
+    {
+      "file": "frame_0012.png",
+      "bytes": 914629,
+      "sha256": "5c8cb27b4d4d446c21c650625ffd88f8780d0e0fd47e557cb0f76396805d3864"
+    },
+    {
+      "file": "frame_0018.png",
+      "bytes": 1049183,
+      "sha256": "b2444f6057bf608164658197385382a623038146f761bc8206a8aed8c2d5d47b"
+    },
+    {
+      "file": "frame_0024.png",
+      "bytes": 1085535,
+      "sha256": "236c692db7c5256552175c4cd47b20ad520b71b0ec49817b0e44553bccadf9d8"
+    },
+    {
+      "file": "frame_0030.png",
+      "bytes": 1067330,
+      "sha256": "a21072197eeb5bb685b8646e7886fcb2711950bfda696c15e8da59cd078e99f8"
+    },
+    {
+      "file": "frame_0036.png",
+      "bytes": 1028605,
+      "sha256": "c3df9e69d575bee8de27549b7d93c59b2cd927d9e913cd46a7949b812d22089c"
+    },
+    {
+      "file": "frame_0042.png",
+      "bytes": 958467,
+      "sha256": "9ab244faf2d31cffd713e15d07d3e94b83b3cb4a723bfe837342b81dc6dd8931"
+    },
+    {
+      "file": "frame_0047.png",
+      "bytes": 979577,
+      "sha256": "a875ce6048f060d1fa51f67bd5b11739d77c95c3338d9b33c5c911736f61cfb5"
+    },
+    {
+      "file": "frame_timings.json",
+      "bytes": 9045,
+      "sha256": "546eaf9922451651019e9c44d695782c899724cf3d2bd6206e077e389df1c3d1"
+    }
+  ],
+  "manual_inspection": {
+    "frames": [
+      "before.png",
+      "frame_0024.png",
+      "after.png"
+    ],
+    "result": "Room planes and perspective visible; earlier flat wall/black-frame defect resolved at sampled poses. Still a crude room, not high-quality PBR/DXR or interactive-game acceptance."
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "asset": "tavern_pbr.glb",
+  "source": "asset-library",
+  "claimsWorldModelGeneration": false,
+  "notWorldModel": true,
+  "label": "sourced-cc0-pbr-tavern",
+  "dimensionsMeters": { "x": 12, "y": 4, "z": 10 },
+  "objects": [
+    "Floor",
+    "Ceiling",
+    "WallWest",
+    "WallEast",
+    "WallSouth",
+    "WallNorthL",
+    "WallNorthR",
+    "WallNorthLintel",
+    "Bar",
+    "BarFootRest",
+    "Door",
+    "Cup",
+    "Fireplace",
+    "HearthMetal"
+  ],
+  "textures": [
+    {
+      "role": "floor-wood",
+      "license": "CC0",
+      "provider": "ambientCG",
+      "id": "WoodFloor051",
+      "url": "https://ambientcg.com/get?file=WoodFloor051_1K-JPG.zip"
+    },
+    {
+      "role": "bar-wood",
+      "license": "CC0",
+      "provider": "ambientCG",
+      "id": "Wood062",
+      "url": "https://ambientcg.com/get?file=Wood062_1K-JPG.zip"
+    },
+    {
+      "role": "metal-trim",
+      "license": "CC0",
+      "provider": "ambientCG",
+      "id": "Metal032",
+      "url": "https://ambientcg.com/get?file=Metal032_1K-JPG.zip"
+    },
+    {
+      "role": "fireplace-brick",
+      "license": "CC0",
+      "provider": "ambientCG",
+      "id": "Bricks075A",
+      "url": "https://ambientcg.com/get?file=Bricks075A_1K-JPG.zip"
+    },
+    {
+      "role": "cup-glass",
+      "license": "procedural",
+      "provider": "blender-principled-bsdf",
+      "note": "Transmission glass; no Meshy/Tripo URL"
+    }
+  ],
+  "quixelFab": "checked-on-windows-before-cc0-fallback",
+  "boomBox": "not included; Khronos BoomBox remains a fixture if spawned separately"
+}

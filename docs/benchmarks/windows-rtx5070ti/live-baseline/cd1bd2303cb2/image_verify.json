@@ -1,0 +1,30 @@
+{
+  "before": {
+    "path": "C:\\Users\\wuyw\\carina-rtx-validation\\artifacts\\cd1bd2303cb2\\before.png",
+    "size": [
+      1280,
+      720
+    ],
+    "mean_rgb": [
+      72.69,
+      61.58,
+      53.86
+    ],
+    "std": 21.58,
+    "looks_like_interior": true
+  },
+  "after": {
+    "path": "C:\\Users\\wuyw\\carina-rtx-validation\\artifacts\\cd1bd2303cb2\\after.png",
+    "size": [
+      1280,
+      720
+    ],
+    "mean_rgb": [
+      93.02,
+      82.61,
+      75.6
+    ],
+    "std": 26.73,
+    "looks_like_interior": true
+  }
+}

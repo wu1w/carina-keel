@@ -6,19 +6,22 @@ import { CarinaError } from "../errors.js";
 import { formatUserError } from "../i18n/user-error.js";
 import { t } from "../i18n/index.js";
 import { normalizeTurnStream, type RunTurnFn } from "./normalize-turn.js";
+import type { ViewCache } from "./view-cache.js";
+import { writeViewEvent } from "./world-sse.js";
 
 const chatBodySchema = z.object({
   message: z.string().min(1),
 });
 
 /**
- * zh: 处理 POST /v1/chat，按 SSE 写出管家文本。
- * en: Handle POST /v1/chat and write steward text as SSE.
+ * zh: 处理 POST /v1/chat，按 SSE 写出管家文本与 look 画面。
+ * en: Handle POST /v1/chat and write steward text and look views as SSE.
  */
 export function handleChatSse(
   c: Context,
   runTurn: RunTurnFn,
   lang: CarinaLang,
+  view: ViewCache,
 ): Response | Promise<Response> {
   return (async () => {
     let json: unknown;
@@ -47,11 +50,22 @@ export function handleChatSse(
     return streamSSE(c, async (stream) => {
       try {
         const result = await runTurn(message);
-        for await (const chunk of normalizeTurnStream(result)) {
-          await stream.writeSSE({
-            event: "text",
-            data: JSON.stringify(chunk),
-          });
+        for await (const event of normalizeTurnStream(result)) {
+          if (event.type === "text") {
+            await stream.writeSSE({
+              event: "text",
+              data: JSON.stringify(event.text),
+            });
+            continue;
+          }
+          if (event.type === "status") {
+            await stream.writeSSE({
+              event: "status",
+              data: JSON.stringify({ tool: event.tool }),
+            });
+            continue;
+          }
+          await writeViewEvent(stream, view, event);
         }
         await stream.writeSSE({ event: "done", data: "{}" });
       } catch (err) {

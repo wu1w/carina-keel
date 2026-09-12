@@ -13,4 +13,9 @@ export type ToolContext = {
   exportZip: typeof import("../pack/index.js").exportZip;
   packHandle: PackHandle;
   lang: CarinaLang;
+  /**
+   * zh: 这一轮玩家原话。look 拿去生成种子图，可空。
+   * en: The player's line this turn. look uses it to bake a seed; may be unset.
+   */
+  userIntent?: string;
 };

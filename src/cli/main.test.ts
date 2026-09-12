@@ -29,6 +29,7 @@ test("main registers look go say remember attach alongside pack commands", () =>
       "remember",
       "say",
       "serve",
+      "sessions",
       "spawn",
     ].sort(),
   );

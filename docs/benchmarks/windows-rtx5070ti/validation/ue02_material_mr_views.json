@@ -1,0 +1,26 @@
+{
+  "slice": "UE-02 Material_MR FRONT+SIDE+orbit follow-up AFTER LIVE",
+  "timestamp_asia_shanghai": "2026-09-11 16:23",
+  "status": "PARTIAL",
+  "Material_MR_in_use": true,
+  "shader_log": "no Missing shader / no Default Material on Lvl_HelmetVis streamer logs",
+  "not_BasicShape": true,
+  "full_object_framing": "PARTIAL \u2014 HardRef scale=100 (~80m) surface-fills at lit distances; ~200m underexposes",
+  "win_paths": {
+    "views_json": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_material_mr_views.json",
+    "front": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_material_mr_front.png",
+    "side": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_material_mr_side.png",
+    "orbit_a": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_material_mr_orbit_a.png",
+    "orbit_b": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_material_mr_orbit_b.png",
+    "orbit_c": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_material_mr_orbit_c.png",
+    "orbit_gif": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_material_mr_orbit_clip.gif",
+    "orbit_mp4": "C:/Users/wuyw/carina-rtx-validation/logs/ue02_material_mr_orbit_clip.mp4",
+    "p0_close_ref": "C:/Users/wuyw/carina-rtx-validation/logs/p0_pbr_material_mr_close_proven.png"
+  },
+  "texture_channel_notes": {
+    "BaseColor": "weathered albedo rust/dirt",
+    "Normal": "panel seams / crater relief",
+    "Metallic": "gold accents + specular",
+    "Roughness": "scratched visor vs matte panels"
+  }
+}

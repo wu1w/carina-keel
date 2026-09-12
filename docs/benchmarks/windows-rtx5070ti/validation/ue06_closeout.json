@@ -1,0 +1,128 @@
+{
+  "slice": "UE-06 STOP for Cursor \u2014 ground walkaround + Win\u2192VPS -R keepalive",
+  "agent": "Grok Bot / ling (Windows UE)",
+  "timestamp_utc": "2026-09-11T13:07:24Z",
+  "timestamp_asia_shanghai": "2026-09-11 21:07",
+  "p0_p1_claim": "NOT claimed \u2014 stop for Cursor",
+  "proven": [
+    "BoomBox respawned live in ue05-avocado at Carina (25,0.35,0) scale 4; ueBridge true",
+    "player_pose ground-height loop around BoomBox UE~(2500,0,35): start\u2192strafe\u2192around with recorded pose deltas",
+    "HighResShot stills on Mac validation/ue06/: ue06_start_contact.png, ue06_after_strafe.png, ue06_after_around.png",
+    "after_strafe + after_around show mannequin in contact with BoomBox metallic surface (object contact, not sky-only)",
+    "Windows\u2192VPS -R keepalive loops running: ue06_tunnel_keepalive.py 18793 (loop pid 8992, ssh 16488) and 18794 (loop pid 9168, ssh 9376)",
+    "BatchMode + ExitOnForwardFailure + ServerAliveInterval=30 + ServerAliveCountMax=3 + ProxyJump via Host vps",
+    "Services untouched: 127.0.0.1:18793 LISTENING pid 2108; 127.0.0.1:18794 LISTENING pid 18932",
+    "PID files: logs/tunnel_win_to_vps.pid=16488; logs/tunnel_win_to_vps_18794.pid=9376"
+  ],
+  "item1_ground_walkaround": {
+    "status": "PARTIAL",
+    "worldId": "ue05-avocado",
+    "method": "IPC player_pose + HighResShot (no ToggleDebugCamera; no Avocado recook; no WASD continuous walk proven this slice)",
+    "boombox": {
+      "position": {
+        "x": 25.0,
+        "y": 0.35,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": -0.8,
+        "z": 0.2
+      },
+      "scale": {
+        "x": 4.0,
+        "y": 4.0,
+        "z": 4.0
+      }
+    },
+    "pose_before": [
+      2500,
+      -280,
+      110
+    ],
+    "pose_after": [
+      2500,
+      400,
+      140
+    ],
+    "pose_deltas_cm": {
+      "start_to_strafe_cm": {
+        "dx": 200,
+        "dy": 400,
+        "dz": 0
+      },
+      "strafe_to_around_cm": {
+        "dx": -200,
+        "dy": 400,
+        "dz": 20
+      },
+      "start_to_around_cm": {
+        "dx": 0,
+        "dy": 800,
+        "dz": 20
+      }
+    },
+    "stills": [
+      "ue06_start_contact.png",
+      "ue06_after_strafe.png",
+      "ue06_after_around.png"
+    ],
+    "visual_review": {
+      "start_contact": "WEAK \u2014 mannequin + mostly sky; tiny ground/object corner only",
+      "after_strafe": "OBJECT CONTACT \u2014 pawn on BoomBox metallic surface",
+      "after_around": "OBJECT CONTACT \u2014 pawn on BoomBox metallic ridge"
+    },
+    "note": "Not GREEN continuous floor walkaround. Scale-4 BoomBox acts as walkable collider; 2/3 stills show object contact; start frame still sky-heavy. RenderOffScreen used after BugItGo residue (BugItGo abandoned)."
+  },
+  "item2_tunnels": {
+    "status": "GREEN",
+    "18793": {
+      "keepalive_loop_pid": 8992,
+      "ssh_child_pid": 16488,
+      "pid_file": "C:/Users/wuyw/carina-rtx-validation/logs/tunnel_win_to_vps.pid",
+      "forward": "-R 127.0.0.1:18793:127.0.0.1:18793 vps",
+      "service_listening": "TCP 127.0.0.1:18793 LISTENING pid 2108"
+    },
+    "18794": {
+      "keepalive_loop_pid": 9168,
+      "ssh_child_pid": 9376,
+      "pid_file": "C:/Users/wuyw/carina-rtx-validation/logs/tunnel_win_to_vps_18794.pid",
+      "forward": "-R 127.0.0.1:18794:127.0.0.1:18794 vps",
+      "service_listening": "TCP 127.0.0.1:18794 LISTENING pid 18932"
+    },
+    "auto_reconnect": true,
+    "options": [
+      "BatchMode=yes",
+      "ExitOnForwardFailure=yes",
+      "ServerAliveInterval=30",
+      "ServerAliveCountMax=3",
+      "ProxyJump via Host vps"
+    ],
+    "services_untouched": true,
+    "note": "Separate tunnels; do not steal ports. Cursor owns Mac -L. HTTP\u2260WebRTC."
+  },
+  "constraints_ok": {
+    "no_ToggleDebugCamera": true,
+    "no_avocado_recook": true,
+    "no_full_ShaderArchive_replace": true,
+    "no_helmet_maps": true,
+    "no_tavern_art": true,
+    "no_mac_src": true,
+    "no_vpn_sshd_reboot_aiga": true,
+    "no_p0_p1_claim": true
+  },
+  "blocked": [
+    "Walkaround still PARTIAL \u2014 start_contact still sky-heavy; continuous WASD ground loop not visually proven under PS",
+    "BugItGo briefly used then abandoned (clipped under geometry); clean relaunch used RenderOffScreen for HighResShot path",
+    "P0/P1 not claimed complete"
+  ],
+  "win_paths": {
+    "closeout": "C:/Users/wuyw/carina-rtx-validation/logs/ue06_closeout.json",
+    "walkaround": "C:/Users/wuyw/carina-rtx-validation/logs/ue06_walkaround.json",
+    "stills_staged": "C:/Users/wuyw/carina-rtx-validation/logs/ue06_for_mac/"
+  },
+  "mac_paths": {
+    "closeout": "/Users/william/world/docs/benchmarks/windows-rtx5070ti/validation/ue06_closeout.json",
+    "pngs": "/Users/william/world/docs/benchmarks/windows-rtx5070ti/validation/ue06/"
+  }
+}

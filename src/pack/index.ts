@@ -13,13 +13,35 @@ export { createPack } from "./create.js";
  * zh: 打开世界包并校验 graph.json。已打开的世界包：可变 graph/session，save 原子写回。
  * en: Open a world pack and validate graph.json. Opened pack: mutable graph/session, save writes atomically.
  */
-export { openPack, type PackHandle } from "./open.js";
+export { openPack, writeFileAtomic, type PackHandle } from "./open.js";
+
+/**
+ * zh: SHA-256 十六进制内容哈希。
+ * en: SHA-256 hex content hash.
+ */
+export { sha256Hex } from "./hash.js";
+
+/**
+ * zh: v1 HEAD、快照、提交队列与内容寻址资产。
+ * en: v1 HEAD, snapshots, commit queue, and content-addressed assets.
+ */
+export {
+  commitRevision,
+  ensureV1,
+  readHead,
+  readSnapshot,
+  readWorldDocuments,
+  restoreCheckpoint,
+  readAsset,
+  stageAsset,
+  updateWorldDocument,
+} from "./revision.js";
 
 /**
  * zh: 用 fflate 把世界包打成 zip，条目路径为 POSIX。
  * en: Zip a world pack with fflate using POSIX entry paths.
  */
-export { exportZip } from "./zip.js";
+export { exportZip, zipPackBytes } from "./zip.js";
 
 /**
  * zh: 把 zip 解到目录。供 serve / openPack 打开 `*.carina.zip`。
@@ -43,4 +65,4 @@ export { listSkills } from "./skills.js";
  * zh: 读取包内 Markdown（如 WORLD.md），路径经沙箱解析。
  * en: Read pack Markdown (e.g. WORLD.md) after sandbox path resolution.
  */
-export { readMarkdown } from "./markdown.js";
+export { readMarkdown, writeMarkdown } from "./markdown.js";

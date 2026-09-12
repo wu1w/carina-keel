@@ -19,17 +19,22 @@ export async function runLook(
   ctx: ToolContext,
 ): Promise<ToolResult> {
   const placeId = requirePresence(ctx.packHandle);
-  requirePlace(ctx.store, placeId);
+  const place = requirePlace(ctx.store, placeId);
+  const placeName = readNodeName(place);
   const neighborhood = ctx.store.hopNeighborhood(placeId, DEFAULT_HOP_COUNT);
   const entities = neighborhood.nodes
     .filter(
       (node) => node.type === NodeType.Entity || node.type === NodeType.Object,
     )
     .map((node) => toRenderEntity(node));
+  const intent = ctx.userIntent;
   const view: RenderView = {
     placeId,
     entities,
+    ...(placeName !== undefined ? { placeName } : {}),
     ...(input.style !== undefined ? { style: input.style } : {}),
+    ...(intent !== undefined && intent.length > 0 ? { intent } : {}),
+    ...(input.fresh === true ? { fresh: true } : {}),
   };
   // zh: 渲染结果不是地点的权威几何。 en: Render output is not authoritative place geometry.
   const result = await ctx.renderer.render(view);
@@ -38,8 +43,11 @@ export async function runLook(
     summary: t("tool.look.ok", ctx.lang),
     data: {
       placeId,
+      ...(placeName !== undefined ? { placeName } : {}),
       media: result.media,
       ...(result.warnings !== undefined ? { warnings: result.warnings } : {}),
+      ...(result.still !== undefined ? { still: result.still } : {}),
+      ...(result.clip !== undefined ? { clip: result.clip } : {}),
     },
   };
 }

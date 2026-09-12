@@ -1,0 +1,256 @@
+{
+  "glb": "C:\\Users\\wuyw\\carina-rtx-validation\\blender-verify\\tavern.glb",
+  "objectCount": 22,
+  "meshCount": 22,
+  "selectableMeshNames": [
+    "\u5427\u53f0",
+    "\u5427\u53f0\u6b63\u9762",
+    "\u56ed\u95e8",
+    "\u5730\u677f",
+    "\u5899\u4e1c",
+    "\u5899\u5317\u53f3",
+    "\u5899\u5317\u5de6",
+    "\u5899\u5317\u6963",
+    "\u5899\u5357",
+    "\u5899\u897f",
+    "\u62db\u724c",
+    "\u676f\u5b50",
+    "\u684c\u5b50",
+    "\u6905\u5b501",
+    "\u6905\u5b502",
+    "\u6905\u5b503",
+    "\u8001\u677f",
+    "\u82b1\u56ed\u5730\u677f",
+    "\u82b1\u56ed\u5899\u4e1c",
+    "\u82b1\u56ed\u5899\u5317",
+    "\u82b1\u56ed\u5899\u897f",
+    "\u95e8"
+  ],
+  "objects": [
+    {
+      "name": "\u5427\u53f0",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5427\u53f0"
+      ]
+    },
+    {
+      "name": "\u5427\u53f0\u6b63\u9762",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5427\u53f0\u6b63\u9762"
+      ]
+    },
+    {
+      "name": "\u56ed\u95e8",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u56ed\u95e8"
+      ]
+    },
+    {
+      "name": "\u5730\u677f",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5730\u677f"
+      ]
+    },
+    {
+      "name": "\u5899\u4e1c",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5899\u4e1c"
+      ]
+    },
+    {
+      "name": "\u5899\u5317\u53f3",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5899\u5317\u53f3"
+      ]
+    },
+    {
+      "name": "\u5899\u5317\u5de6",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5899\u5317\u5de6"
+      ]
+    },
+    {
+      "name": "\u5899\u5317\u6963",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5899\u5317\u6963"
+      ]
+    },
+    {
+      "name": "\u5899\u5357",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5899\u5357"
+      ]
+    },
+    {
+      "name": "\u5899\u897f",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5899\u897f"
+      ]
+    },
+    {
+      "name": "\u62db\u724c",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u62db\u724c"
+      ]
+    },
+    {
+      "name": "\u676f\u5b50",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 161,
+      "materials": [
+        "\u676f\u5b50"
+      ]
+    },
+    {
+      "name": "\u684c\u5b50",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u684c\u5b50"
+      ]
+    },
+    {
+      "name": "\u6905\u5b501",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u6905\u5b501"
+      ]
+    },
+    {
+      "name": "\u6905\u5b502",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u6905\u5b502"
+      ]
+    },
+    {
+      "name": "\u6905\u5b503",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u6905\u5b503"
+      ]
+    },
+    {
+      "name": "\u8001\u677f",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u8001\u677f"
+      ]
+    },
+    {
+      "name": "\u82b1\u56ed\u5730\u677f",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u82b1\u56ed\u5730\u677f"
+      ]
+    },
+    {
+      "name": "\u82b1\u56ed\u5899\u4e1c",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u82b1\u56ed\u5899\u4e1c"
+      ]
+    },
+    {
+      "name": "\u82b1\u56ed\u5899\u5317",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u82b1\u56ed\u5899\u5317"
+      ]
+    },
+    {
+      "name": "\u82b1\u56ed\u5899\u897f",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u82b1\u56ed\u5899\u897f"
+      ]
+    },
+    {
+      "name": "\u95e8",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u95e8"
+      ]
+    }
+  ],
+  "materials": [
+    "\u5427\u53f0",
+    "\u5427\u53f0\u6b63\u9762",
+    "\u56ed\u95e8",
+    "\u5730\u677f",
+    "\u5899\u4e1c",
+    "\u5899\u5317\u53f3",
+    "\u5899\u5317\u5de6",
+    "\u5899\u5317\u6963",
+    "\u5899\u5357",
+    "\u5899\u897f",
+    "\u62db\u724c",
+    "\u676f\u5b50",
+    "\u684c\u5b50",
+    "\u6905\u5b501",
+    "\u6905\u5b502",
+    "\u6905\u5b503",
+    "\u8001\u677f",
+    "\u82b1\u56ed\u5730\u677f",
+    "\u82b1\u56ed\u5899\u4e1c",
+    "\u82b1\u56ed\u5899\u5317",
+    "\u82b1\u56ed\u5899\u897f",
+    "\u95e8"
+  ],
+  "images": [],
+  "claimsWorldModelGeneration": false,
+  "note": "Blender import of Carina export; object names come from GLB nodes."
+}

@@ -3,5 +3,6 @@
  * en: Public HTTP daemon exports.
  */
 export { createHttpApp, type HttpAppOptions } from "./create-http-app.js";
+export type { Application } from "./bind-application.js";
 export { startHttpServer } from "./start-http-server.js";
 export type { RunTurnFn } from "./normalize-turn.js";

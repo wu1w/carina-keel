@@ -16,13 +16,17 @@ export class MockRenderer implements Renderer {
 }
 
 /**
- * zh: 把视图格式化为双语纯文本。
- * en: Format the view as bilingual plain text.
+ * zh: 把视图格式化为双语纯文本。像素不是真相。
+ * en: Format the view as bilingual plain text. Pixels are not source of truth.
  */
-function describeView(view: RenderView): string {
+export function describeView(view: RenderView): string {
+  const named =
+    view.placeName !== undefined && view.placeName.length > 0
+      ? `${view.placeName} (${view.placeId})`
+      : view.placeId;
   const lines: string[] = [
-    `zh: 地点 ${view.placeId}。画面不是图谱真相。`,
-    `en: Place ${view.placeId}. Pixels are not the source of truth.`,
+    `zh: 地点 ${named}。画面不是图谱真相。`,
+    `en: Place ${named}. Pixels are not the source of truth.`,
   ];
 
   if (view.entities.length === 0) {
@@ -39,6 +43,12 @@ function describeView(view: RenderView): string {
   }
   if (view.style !== undefined) {
     lines.push(`zh: 风格 ${view.style}。 en: Style ${view.style}.`);
+  }
+  if (view.intent !== undefined) {
+    lines.push(`zh: 玩家意图 ${view.intent}。 en: Player intent ${view.intent}.`);
+  }
+  if (view.fresh === true) {
+    lines.push("zh: 重做种子图。 en: Bake a new seed.");
   }
 
   return lines.join("\n");

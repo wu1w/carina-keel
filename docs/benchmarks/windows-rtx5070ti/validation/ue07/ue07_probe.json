@@ -1,0 +1,19 @@
+{
+  "hostname": "DESKTOP-RLADDRR",
+  "whoami": "wuyw",
+  "ip_raw": "[{\"InterfaceAlias\":\"\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd* 2\",\"IPAddress\":\"169.254.142.223\",\"PrefixLength\":16},{\"InterfaceAlias\":\"\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\",\"IPAddress\":\"169.254.235.198\",\"PrefixLength\":16},{\"InterfaceAlias\":\"\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd* 1\",\"IPAddress\":\"169.254.17.219\",\"PrefixLength\":16},{\"InterfaceAlias\":\"\ufffd\ufffd\u032b\ufffd\ufffd\",\"IPAddress\":\"169.254.3.128\",\"PrefixLength\":16},{\"InterfaceAlias\":\"WLAN\",\"IPAddress\":\"192.168.5.16\",\"PrefixLength\":24},{\"InterfaceAlias\":\"singbox_tun\",\"IPAddress\":\"172.18.0.1\",\"PrefixLength\":30}]",
+  "nic_profiles": "[{\"Name\":\"singbox_tun\",\"InterfaceAlias\":\"singbox_tun\",\"NetworkCategory\":0},{\"Name\":\"LaoWu 2\",\"InterfaceAlias\":\"WLAN\",\"NetworkCategory\":1}]",
+  "lanIPv4": "192.168.5.16",
+  "netstat_18793": [
+    "  TCP    127.0.0.1:18793        0.0.0.0:0              LISTENING       2108"
+  ],
+  "netstat_18794": [
+    "  TCP    127.0.0.1:18794        0.0.0.0:0              LISTENING       18932"
+  ],
+  "netstat_:22": [],
+  "blenderPath": null,
+  "unrealEditorPath": "G:\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor.exe",
+  "carinaPsPath": "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Binaries\\Win64\\CarinaPS.exe",
+  "sshd_service": null,
+  "desktop_shot_script": "C:\\Users\\wuyw\\carina-rtx-validation\\scripts\\desktop_shot.ps1"
+}

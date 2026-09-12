@@ -1,0 +1,31 @@
+{
+  "slice": "UE-07",
+  "acceptedAs": "lan-openssh",
+  "p0": false,
+  "p1": false,
+  "verifiedAt": "2026-09-11T14:51:00Z",
+  "verifier": "cursor-mac",
+  "ssh": {
+    "host": "192.168.5.16",
+    "user": "wuyw",
+    "banner": "SSH-2.0-OpenSSH_for_Windows_9.5",
+    "listen": "0.0.0.0:22",
+    "auth": "ed25519-pubkey",
+    "hostnameCmd": "DESKTOP-RLADDRR",
+    "whoami": "desktop-rladdrr\\wuyw"
+  },
+  "keepLoopback": {
+    "18793": "127.0.0.1 LISTENING",
+    "18794": "127.0.0.1 LISTENING http /docs 200"
+  },
+  "paths": {
+    "unrealEditor": "G:\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor.exe",
+    "carinaPs": "G:\\carina-ue\\CarinaPS\\Packaged\\Windows\\CarinaPS\\Binaries\\Win64\\CarinaPS.exe",
+    "blender": null
+  },
+  "notes": [
+    "William approved OpenSSH Server while Mac was on 192.168.5.0/24.",
+    "Admin Match uses administrators_authorized_keys.",
+    "LAN SSH is not P0 / WebRTC / world-model generation."
+  ]
+}

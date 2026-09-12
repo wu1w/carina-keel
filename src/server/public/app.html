@@ -1,0 +1,3322 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="ui.product"></title>
+    <link rel="icon" href="/brand/carina-mark.png" type="image/png" />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --paper: #ffffff;
+        --ink: #0a0a0a;
+        --muted: #737373;
+        --accent: #0a0a0a;
+        --line: #ececec;
+        --hover: #f4f4f4;
+        --focus: #0a0a0a;
+        --well: #f6f6f6;
+        --chip: #f4f4f4;
+        --danger: #c62828;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        min-height: 100vh;
+        font-family:
+          "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
+          "Noto Sans SC", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .app {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        height: 100vh;
+        background: var(--paper);
+        position: relative;
+        overflow: hidden;
+      }
+      header.top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.55rem 1.15rem;
+        border-bottom: 1px solid var(--line);
+        min-width: 0;
+        overflow: visible;
+        min-height: 3.5rem;
+        position: relative;
+        z-index: 8;
+        background: var(--paper);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        min-width: 0;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        height: 42px;
+        text-decoration: none;
+        overflow: hidden;
+      }
+      .logo img {
+        display: block;
+        height: 42px;
+        width: auto;
+        max-width: 240px;
+        max-height: 42px;
+        object-fit: contain;
+        object-position: left center;
+      }
+      h1.visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      #run-status {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.78rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      #run-status::before {
+        content: "";
+        width: 0.4rem;
+        height: 0.4rem;
+        border-radius: 50%;
+        background: #d0d0d0;
+      }
+      #run-status[data-state="running"]::before {
+        background: var(--ink);
+      }
+      #run-status[data-state="generating"]::before {
+        background: var(--ink);
+        box-shadow: 0 0 0 3px #0001;
+      }
+      .toolbar,
+      nav.lang {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        align-items: center;
+      }
+      button {
+        appearance: none;
+        font: inherit;
+        cursor: pointer;
+      }
+      .toolbar button,
+      nav.lang button,
+      #new-world,
+      #save-rules,
+      .tab {
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--ink);
+        padding: 0.38rem 0.72rem;
+        border-radius: 999px;
+      }
+      .toolbar button:hover,
+      nav.lang button:hover,
+      .tab:hover,
+      #new-world:hover {
+        background: var(--hover);
+      }
+      .toolbar button[aria-pressed="true"],
+      nav.lang button[aria-pressed="true"],
+      .tab[aria-selected="true"] {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .world-item {
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        padding: 0.55rem 0.7rem;
+        border-radius: 0.85rem;
+      }
+      #export-glb,
+      #export-pack,
+      #save-rules,
+      #new-world {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      #export-glb:hover,
+      #export-pack:hover,
+      #save-rules:hover,
+      #new-world:hover {
+        background: #222;
+      }
+      #export-pack {
+        background: #fff;
+        color: var(--ink);
+        border: 1px solid var(--ink);
+      }
+      #export-pack:hover {
+        background: var(--hover);
+      }
+      #send {
+        width: 2.1rem;
+        height: 2.1rem;
+        border: 0;
+        border-radius: 50%;
+        background: var(--ink);
+        color: #fff;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        font-size: 0.78rem;
+        letter-spacing: 0;
+      }
+      #send:hover {
+        background: #222;
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      button:focus-visible,
+      textarea:focus-visible,
+      canvas:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+      }
+      .shell {
+        position: relative;
+        min-height: 0;
+        min-width: 0;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: 15.5rem minmax(0, 1fr) 24rem;
+        min-height: 0;
+        height: 100%;
+      }
+      .app.chat-closed .workspace {
+        grid-template-columns: 15.5rem minmax(0, 1fr);
+      }
+      aside,
+      section.viewport {
+        min-width: 0;
+        min-height: 0;
+      }
+      #worlds {
+        border-right: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        padding: 1rem 0.85rem 1.1rem;
+        background: var(--paper);
+      }
+      #worlds h2,
+      #chat h2,
+      #rules-drawer h2,
+      #export-drawer h2 {
+        margin: 0 0 0.7rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      #world-list {
+        list-style: none;
+        margin: 0.75rem 0 0;
+        padding: 0;
+        overflow: auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .world-item {
+        width: 100%;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 0.12rem;
+      }
+      .world-item:hover {
+        background: var(--hover);
+      }
+      .world-item[aria-current="true"] {
+        background: var(--ink);
+        color: #fff;
+      }
+      .world-item .meta {
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .world-item[aria-current="true"] .meta {
+        color: #bdbdbd;
+      }
+      #empty-worlds {
+        margin: 0.9rem 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      section.viewport {
+        display: grid;
+        grid-template-rows: 1fr auto;
+        background: #111;
+      }
+      #stage {
+        position: relative;
+        min-height: 0;
+        background: #111;
+        cursor: grab;
+        outline: none;
+        user-select: none;
+      }
+      #stage.looking {
+        cursor: grabbing;
+      }
+      #viewport {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+      }
+      #observation {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #111;
+        display: none;
+        pointer-events: none;
+        z-index: 2;
+      }
+      #observation.visible {
+        display: block;
+        z-index: 7;
+        pointer-events: none;
+      }
+      #stage[data-mode="play"] #observation.visible {
+        inset: auto;
+        top: 12px;
+        right: 12px;
+        width: min(280px, 38vw);
+        height: auto;
+        max-height: 28vh;
+        object-fit: contain;
+        background: #111a;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px #0008;
+      }
+      #observation-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 8;
+        display: none;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #16191caa;
+        color: #fff;
+        font-size: 12px;
+      }
+      #observation-badge.visible {
+        display: flex;
+      }
+      #observation-badge button {
+        border: 1px solid #ffffff40;
+        background: transparent;
+        color: #fff;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+      #ps2-stream {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #111;
+        z-index: 3;
+      }
+      #ps2-stream.hidden {
+        display: none;
+      }
+      #stream-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 6;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
+        color: #fff;
+        background: #111c;
+        pointer-events: none;
+      }
+      #stream-overlay.banner {
+        display: flex;
+        inset: auto 0 auto 0;
+        top: 0;
+        padding: 8px 16px;
+        background: #16191caa;
+      }
+      #stream-overlay.blocker {
+        display: flex;
+        pointer-events: auto;
+      }
+      #stream-overlay button {
+        pointer-events: auto;
+      }
+      #stream-note {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        z-index: 6;
+        display: none;
+        color: #fff;
+        background: #16191caa;
+        padding: 6px 10px;
+      }
+      #stream-note.visible {
+        display: block;
+      }
+
+      #exit-explore {display:none;position:absolute;top:16px;left:16px;z-index:5;background:#16191caa;color:white;border:1px solid #ffffff30;}
+      #stage.exploring #exit-explore {display:block;}
+      #explore-tools { position:absolute; top:16px; right:16px; display:flex; gap:8px; z-index:4; }
+      #explore-tools button { background:rgba(18,22,25,.72); color:#eee; border:1px solid #ffffff30; backdrop-filter:blur(12px); font-size:12px; }
+      #warmup-panel {position:absolute;z-index:4;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,85%);padding:16px;background:rgba(17,21,24,.94);color:#fff;border:1px solid #ffffff30;border-radius:12px;box-shadow:0 16px 50px #0005;}
+      #stage.preparing #atlas-status {display:none;}
+      #warmup-panel[hidden] {display:none;}
+      #warmup-panel h2 {margin:0 0 8px;font-size:18px;}
+      #warmup-panel p {font-size:12px;line-height:1.4;margin:8px 0;color:#d6dde0;}
+      #warmup-panel progress {width:100%;height:10px;accent-color:#acc9b4;}
+      #atlas-status {position:absolute;top:54px;right:16px;z-index:3;color:#fff;background:#151a20b0;padding:5px 8px;border-radius:4px;font-size:11px;pointer-events:none;}
+      #view-pose {position:absolute;bottom:12px;right:16px;z-index:3;color:#ffffff99;font:11px monospace;pointer-events:none;}
+      #crosshair { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff9; pointer-events:none; z-index:3; font:20px monospace; }
+      #stage.exploring { position:fixed; inset:0; width:100vw; height:100vh; z-index:100; background:#111; }
+      #stage.exploring #crosshair { display:block; }
+      #stage.exploring #explore-tools { opacity:0; pointer-events:none; }
+      #stage-status {
+        position: absolute;
+        left: 0.85rem;
+        bottom: 0.75rem;
+        margin: 0;
+        padding: 0.28rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--ink);
+        font-size: 0.75rem;
+        pointer-events: none;
+        z-index: 9;
+      }
+      #stage-status[hidden] {
+        display: none;
+      }
+      #selected {
+        margin: 0;
+        padding: 0.45rem 0.95rem;
+        font-size: 0.75rem;
+        color: var(--muted);
+        background: var(--paper);
+        border-top: 1px solid var(--line);
+      }
+      #chat {
+        border-left: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        background: var(--paper);
+      }
+      #chat[hidden] {
+        display: none;
+      }
+      .panel-head,
+      .drawer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+      #chat .panel-head {
+        padding: 1rem 0.75rem 0.2rem 1.05rem;
+      }
+      .panel-head h2,
+      .drawer-head h2 {
+        margin: 0;
+      }
+      .icon-close {
+        border: 0;
+        background: transparent;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        color: var(--ink);
+        font-size: 1.15rem;
+        line-height: 1;
+        padding: 0;
+      }
+      .icon-close:hover {
+        background: var(--hover);
+      }
+      #log {
+        flex: 1;
+        margin: 0;
+        padding: 1rem 1.05rem 0.5rem;
+        overflow: auto;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-height: 0;
+      }
+      .msg .who {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--muted);
+        margin-bottom: 0.28rem;
+      }
+      .msg .body {
+        white-space: pre-wrap;
+        line-height: 1.55;
+      }
+      .msg.user {
+        align-self: flex-end;
+        max-width: 92%;
+      }
+      .msg.user .body {
+        background: var(--chip);
+        border-radius: 1.1rem 1.1rem 0.35rem 1.1rem;
+        padding: 0.65rem 0.85rem;
+      }
+      .msg.steward {
+        align-self: flex-start;
+        max-width: 94%;
+      }
+      #error {
+        margin: 0 1rem 0.35rem;
+        color: var(--danger);
+      }
+      #composer {
+        display: grid;
+        gap: 0.4rem;
+        padding: 0.65rem 0.9rem 1.05rem;
+        background: var(--paper);
+      }
+      .composer-box {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.55rem;
+        padding: 0.55rem 0.55rem 0.55rem 0.85rem;
+        border: 1px solid var(--line);
+        border-radius: 1.35rem;
+        background: #fff;
+        box-shadow: 0 8px 24px #0000000a;
+      }
+      label {
+        font-size: 0.75rem;
+        color: var(--muted);
+        padding: 0 0.2rem;
+      }
+      textarea {
+        width: 100%;
+        min-height: 2.6rem;
+        max-height: 9rem;
+        resize: none;
+        font: inherit;
+        padding: 0.35rem 0;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+      }
+      textarea:focus {
+        outline: none;
+      }
+      .composer-box:focus-within {
+        border-color: var(--ink);
+      }
+      #drawer-backdrop {
+        position: absolute;
+        inset: 0;
+        background: #00000033;
+        z-index: 5;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+      }
+      #drawer-backdrop[hidden] {
+        display: none;
+      }
+      #rules-drawer,
+      #export-drawer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(28rem, 100%);
+        height: auto;
+        background: var(--paper);
+        border-left: 1px solid var(--line);
+        z-index: 6;
+        display: none;
+        grid-template-rows: auto auto auto 1fr auto;
+        padding: 1rem 1.1rem 1.15rem;
+      }
+      #rules-drawer.open,
+      #export-drawer.open {
+        display: grid;
+      }
+      #export-drawer {
+        grid-template-rows: auto auto auto auto 1fr auto;
+      }
+      #export-note,
+      #export-revision {
+        margin: 0.55rem 0 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.5;
+      }
+      #export-objects-label {
+        margin: 1rem 0 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      #export-objects {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        min-height: 0;
+      }
+      #export-objects li {
+        padding: 0.4rem 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.85rem;
+      }
+      #export-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        margin-top: 0.85rem;
+      }
+      #export-actions button {
+        width: 100%;
+        padding: 0.55rem 0.85rem;
+        border-radius: 999px;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.2rem;
+        margin: 0.35rem 0 0.75rem;
+      }
+      #rules-body {
+        min-height: 12rem;
+        height: 100%;
+        border: 1px solid var(--line);
+        border-radius: 0.9rem;
+        padding: 0.85rem 0.95rem;
+        background: var(--well);
+      }
+      #rules-note {
+        margin: 0.45rem 0 0;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+      @media (max-width: 900px) {
+        .workspace {
+          grid-template-columns: 1fr;
+          grid-template-rows: 11rem minmax(14rem, 1fr) 16rem;
+        }
+        .app.chat-closed .workspace {
+          grid-template-columns: 1fr;
+          grid-template-rows: 11rem minmax(14rem, 1fr);
+        }
+        #worlds,
+        #chat {
+          border: 0;
+          border-bottom: 1px solid var(--line);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--CARINA_BOOT-->
+    <!--
+      EventSource cannot set Authorization. GET /v1/sessions/:worldId/events
+      accepts the same token as ?token= on loopback only.
+    -->
+    <div class="app">
+      <header class="top">
+        <div class="brand">
+          <a class="logo" href="/" aria-label="Carina">
+            <img
+              src="/brand/carina-wordmark.png"
+              alt="Carina"
+              width="200"
+              height="42"
+            />
+          </a>
+          <h1 class="visually-hidden" data-i18n="ui.product"></h1>
+          <p id="run-status" data-i18n="ui.paused"></p>
+        </div>
+        <div class="toolbar">
+          <button type="button" id="pause" data-i18n="ui.pause"></button>
+          <button type="button" id="run" data-i18n="ui.run"></button>
+          <button type="button" id="step" data-i18n="ui.step"></button>
+          <button type="button" id="freeze" data-i18n="ui.freeze"></button>
+          <button
+            type="button"
+            id="toggle-chat"
+            data-i18n="ui.agent"
+            aria-expanded="true"
+            aria-controls="chat"
+            aria-pressed="true"
+          ></button>
+          <button
+            type="button"
+            id="toggle-export"
+            data-i18n="ui.export"
+            aria-expanded="false"
+            aria-controls="export-drawer"
+            aria-pressed="false"
+          ></button>
+          <button
+            type="button"
+            id="toggle-rules"
+            data-i18n="ui.rules"
+            aria-expanded="false"
+            aria-controls="rules-drawer"
+            aria-pressed="false"
+          ></button>
+          <nav class="lang" data-i18n-aria="chat.language">
+            <button type="button" data-lang="zh">中文</button>
+            <button type="button" data-lang="en">English</button>
+          </nav>
+        </div>
+      </header>
+      <div class="shell">
+      <div class="workspace">
+        <aside id="worlds">
+          <h2 data-i18n="ui.worlds"></h2>
+          <button type="button" id="new-world" data-i18n="ui.newWorld"></button>
+          <p id="empty-worlds" data-i18n="ui.emptyWorlds"></p>
+          <ul id="world-list"></ul>
+        </aside>
+        <section class="viewport">
+          <div id="stage" tabindex="0">
+            <canvas
+              id="viewport"
+              tabindex="0"
+              data-i18n-aria="ui.viewport"
+            ></canvas>
+            <iframe
+              id="ps2-stream"
+              title="Pixel Streaming"
+              allow="autoplay; fullscreen"
+            ></iframe>
+            <div id="stream-overlay" hidden>
+              <p id="stream-overlay-text"></p>
+              <button type="button" id="stream-retry" data-i18n="ui.streamReconnecting"></button>
+            </div>
+            <p id="stream-note"></p>
+            <img id="observation" alt="" />
+            <p id="observation-badge">
+              <span data-i18n="ui.worldModelView"></span>
+              <button type="button" id="hide-observation" data-i18n="ui.hideCandidateView"></button>
+            </p>
+            <button id="exit-explore" type="button" data-i18n="ui.exitExplore"></button>
+            <div id="explore-tools">
+              <button id="enter-explore" type="button" data-i18n="ui.enterExplore"></button>
+              <button id="toggle-pregen" type="button" aria-pressed="true" data-i18n="ui.pregenOn"></button>
+              <button id="reset-view" type="button" data-i18n="ui.resetView"></button>
+              <button id="toggle-proxies" type="button" aria-pressed="false" data-i18n="ui.sceneExport"></button>
+            </div>
+            <output id="atlas-status" aria-live="polite"></output>
+            <output id="view-pose" aria-live="off"></output>
+            <span id="crosshair" aria-hidden="true">+</span>
+            <section id="warmup-panel" hidden aria-live="polite">
+              <h2 id="warmup-title" data-i18n="ui.warmupTitle"></h2>
+              <p id="warmup-description" data-i18n="ui.warmupDescription"></p>
+              <progress id="warmup-progress" value="0" max="24"></progress>
+              <p id="warmup-detail"></p>
+            </section>
+            <p id="stage-status" hidden></p>
+          </div>
+          <p id="selected" data-i18n="ui.selected"></p>
+        </section>
+        <aside id="chat">
+          <div class="panel-head">
+            <h2 data-i18n="ui.agent"></h2>
+            <button
+              type="button"
+              id="close-chat"
+              class="icon-close"
+              data-i18n-aria="ui.closeChat"
+            >
+              ×
+            </button>
+          </div>
+          <ol id="log" aria-live="polite"></ol>
+          <p id="error" hidden role="alert"></p>
+          <form id="composer">
+            <label for="message" data-i18n="ui.chatPlaceholder"></label>
+            <div class="composer-box">
+              <textarea
+                id="message"
+                name="message"
+                rows="3"
+                data-i18n-placeholder="ui.chatPlaceholder"
+              ></textarea>
+              <button type="submit" id="send" data-i18n-aria="ui.send">
+                ↑
+              </button>
+            </div>
+          </form>
+        </aside>
+      </div>
+      <button type="button" id="drawer-backdrop" hidden data-i18n-aria="ui.close"></button>
+      <aside id="rules-drawer" hidden>
+        <div class="drawer-head">
+          <h2 data-i18n="ui.rules"></h2>
+          <button
+            type="button"
+            id="close-rules"
+            class="icon-close"
+            data-i18n-aria="ui.close"
+          >
+            ×
+          </button>
+        </div>
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab" role="tab" data-doc="WORLD.md" data-scope="world" data-i18n="ui.worldDoc"></button>
+          <button type="button" class="tab" role="tab" data-doc="PLAYER.md" data-scope="world" data-i18n="ui.playerDoc"></button>
+          <button type="button" class="tab" role="tab" data-doc="STEWARD.md" data-scope="world" data-i18n="ui.stewardDoc"></button>
+          <button type="button" class="tab" role="tab" data-doc="MEMORY.md" data-scope="world" data-i18n="ui.memoryDoc"></button>
+          <button type="button" class="tab" role="tab" data-doc="IDENTITY.md" data-scope="global" data-i18n="ui.identity"></button>
+          <button type="button" class="tab" role="tab" data-doc="AGENT.md" data-scope="global" data-i18n="ui.agent"></button>
+          <button type="button" class="tab" role="tab" data-doc="GLOBAL.md" data-scope="global" data-i18n="ui.globalDoc"></button>
+        </div>
+        <label for="rules-body" data-i18n="ui.rules"></label>
+        <textarea id="rules-body" spellcheck="false"></textarea>
+        <div>
+          <button type="button" id="save-rules" data-i18n="ui.saveRules"></button>
+          <p id="rules-note"></p>
+        </div>
+      </aside>
+      <aside id="export-drawer" hidden>
+        <div class="drawer-head">
+          <h2 data-i18n="ui.exportTitle"></h2>
+          <button
+            type="button"
+            id="close-export"
+            class="icon-close"
+            data-i18n-aria="ui.close"
+          >
+            ×
+          </button>
+        </div>
+        <p id="export-note" data-i18n="ui.sceneExportNote"></p>
+        <p id="export-revision"></p>
+        <p id="export-objects-label" data-i18n="ui.exportObjects"></p>
+        <ul id="export-objects"></ul>
+        <div id="export-actions">
+          <button type="button" id="export-glb" data-i18n="ui.exportGlb"></button>
+          <button type="button" id="export-pack" data-i18n="ui.sceneArchive"></button>
+        </div>
+      </aside>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const bootEl = document.getElementById("carina-boot");
+        const boot = JSON.parse(bootEl ? bootEl.textContent : "{}");
+        const catalogs = boot.catalogs || { zh: {}, en: {} };
+        let lang = boot.lang === "en" ? "en" : "zh";
+        const token = typeof boot.token === "string" ? boot.token : "";
+        const pixelStreamingUrl = (
+          typeof boot.pixelStreamingUrl === "string" && boot.pixelStreamingUrl
+            ? boot.pixelStreamingUrl
+            : "http://192.168.5.16:8080"
+        ).replace(/\/$/, "");
+
+        const worldListEl = document.getElementById("world-list");
+        const emptyWorldsEl = document.getElementById("empty-worlds");
+        const logEl = document.getElementById("log");
+        const errorEl = document.getElementById("error");
+        const form = document.getElementById("composer");
+        const input = document.getElementById("message");
+        const canvas = document.getElementById("viewport");
+        const stageEl = document.getElementById("stage");
+        const observationEl = document.getElementById("observation");
+        const observationBadge = document.getElementById("observation-badge");
+        const hideObservationBtn = document.getElementById("hide-observation");
+        const ps2Frame = document.getElementById("ps2-stream");
+        const streamOverlay = document.getElementById("stream-overlay");
+        const streamOverlayText = document.getElementById("stream-overlay-text");
+        const streamRetry = document.getElementById("stream-retry");
+        const streamNote = document.getElementById("stream-note");
+        const stageStatusEl = document.getElementById("stage-status");
+        const gl = canvas.getContext("webgl", { antialias: true, alpha: false });
+        const ctx2d = gl ? null : canvas.getContext("2d");
+        const selectedEl = document.getElementById("selected");
+        const runStatusEl = document.getElementById("run-status");
+        const rulesDrawer = document.getElementById("rules-drawer");
+        const exportDrawer = document.getElementById("export-drawer");
+        const drawerBackdrop = document.getElementById("drawer-backdrop");
+        const chatEl = document.getElementById("chat");
+        const rulesBody = document.getElementById("rules-body");
+        const rulesNote = document.getElementById("rules-note");
+        const toggleRules = document.getElementById("toggle-rules");
+        const toggleExport = document.getElementById("toggle-export");
+        const toggleChat = document.getElementById("toggle-chat");
+        const exportObjectsEl = document.getElementById("export-objects");
+        const exportRevisionEl = document.getElementById("export-revision");
+        const appEl = document.querySelector(".app");
+
+        let worlds = [];
+        let activeWorldId = null;
+        let selectedId = null;
+        let runtime = null;
+        let eventSource = null;
+        let pollTimer = 0;
+        let docHash = "";
+        let currentDoc = { id: "WORLD.md", scope: "world" };
+        let generating = false;
+        let generationStopped = false;
+        let streamPhase = "disconnected";
+        let streamTimer = 0;
+        let turnBusy = false;
+        let playToken = 0;
+        const allowedMime = {
+          "image/jpeg": true,
+          "image/jpg": true,
+          "image/png": true,
+          "image/webp": true,
+        };
+
+        const cam = { x: 4, y: 1.6, z: 2, yaw: 0, pitch: 0 };
+        const keys = Object.create(null);
+        let mapView = null;
+        let glProg = null;
+        let glTex = null;
+        let surface = null;
+        let surfaceGl = null;
+        let surfaceTexture = null;
+        let surfaceLoading = false;
+        let surfaceEpoch = 0;
+        let atlasRoot = null;
+        let atlasTimer = 0;
+        let atlasRows = [];
+        let pregenEnabled = true;
+        let worldPrepared = false;
+        let sceneMode = true, sceneState = null, sceneTimer = 0, sceneEpoch = 0;
+        let sceneUniforms = null;
+        let scenePolling = false;
+        let sceneSpawned = false, sceneUploading = [], sceneLoads = new Set(), sceneChunks = new Map();
+        let frameSamples = [], frameReport = 0, sceneUploadMs = 0, sceneDraws = 0;
+
+        let lastHeartbeat = 0;
+        const viewCache = new Map();
+        const viewLoads = new Set();
+        const demandTimes = new Map();
+        let inspectGeometry = false;
+        let velocity = { x: 0, z: 0 };
+        let boundary = false;
+        let moveInFlight = false;
+        let objectGls = [];
+        let stillReady = false;
+        let moveTimer = 0;
+        let pendingMove = null;
+        let dragging = false;
+        let looking = false;
+        let dragMoved = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function table() {
+          return catalogs[lang] || catalogs.zh || {};
+        }
+        function t(key) {
+          const value = table()[key];
+          return typeof value === "string" ? value : key;
+        }
+
+        function applyI18n() {
+          document.documentElement.lang = lang;
+          document.querySelectorAll("[data-i18n]").forEach(function (el) {
+            el.textContent = t(el.getAttribute("data-i18n"));
+          });
+          document
+            .querySelectorAll("[data-i18n-placeholder]")
+            .forEach(function (el) {
+              el.setAttribute(
+                "placeholder",
+                t(el.getAttribute("data-i18n-placeholder")),
+              );
+            });
+          document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
+            el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria")));
+          });
+          document.title = t("ui.product");
+          document.querySelectorAll("nav [data-lang]").forEach(function (btn) {
+            btn.setAttribute(
+              "aria-pressed",
+              btn.getAttribute("data-lang") === lang ? "true" : "false",
+            );
+          });
+          renderWorldList();
+          updateStatus();
+          updateSelected();
+        }
+
+        function showError(text) {
+          errorEl.hidden = !text;
+          errorEl.textContent = text || "";
+        }
+
+        function authHeaders(extra) {
+          const headers = { authorization: "Bearer " + token };
+          if (extra) {
+            Object.keys(extra).forEach(function (k) {
+              headers[k] = extra[k];
+            });
+          }
+          return headers;
+        }
+
+        async function api(path, opts) {
+          const options = opts || {};
+          const init = {
+            method: options.method || "GET",
+            headers: authHeaders(options.headers),
+            body: options.body,
+          };
+          if (options.signal) {
+            init.signal = options.signal;
+          }
+          const res = await fetch(path, init);
+          return res;
+        }
+
+        function nextStreamPhase(phase, event) {
+          if (event === "start") return "connecting";
+          if (event === "iceConnected") return "live";
+          if (event === "signallingUp") return phase === "live" ? "live" : "connecting";
+          if (event === "retry") return "reconnecting";
+          if (event === "giveUp" || event === "disconnect") return "disconnected";
+          return phase;
+        }
+        function streamHqFallback(phase) {
+          return "none";
+        }
+        function streamOverlayKey(phase, generationStopped, runtimeDown) {
+          if (runtimeDown) return "ui.runtimeDisconnected";
+          if (phase === "connecting") return "ui.streamConnecting";
+          if (phase === "reconnecting") return "ui.streamReconnecting";
+          if (phase === "disconnected") return "ui.streamDisconnected";
+          if (generationStopped) return "ui.generationStoppedPlayable";
+          return "";
+        }
+
+        async function readError(res) {
+          try {
+            const payload = await res.json();
+            if (payload && typeof payload.message === "string") {
+              return payload.message;
+            }
+          } catch (e) {}
+          return t("chat.error");
+        }
+
+        function updateStatus() {
+          if (generating) {
+            runStatusEl.dataset.state = "generating";
+            runStatusEl.textContent = t("ui.generating");
+            return;
+          }
+          const state =
+            runtime && runtime.runState === "running" ? "running" : "paused";
+          runStatusEl.dataset.state = state;
+          runStatusEl.textContent = t(
+            state === "running" ? "ui.running" : "ui.paused",
+          );
+        }
+
+        function updateSelected() {
+          const heldId =
+            runtime && runtime.player && runtime.player.holdingObjectIds
+              ? runtime.player.holdingObjectIds[0]
+              : null;
+          if (heldId) {
+            const held =
+              mapView && mapView.objects
+                ? mapView.objects.find(function (obj) {
+                    return obj.sceneObjectId === heldId;
+                  })
+                : null;
+            const name = held && held.name ? held.name : heldId;
+            selectedEl.textContent = t("ui.holding").replace("{name}", name);
+            return;
+          }
+          if (selectedId) {
+            selectedEl.textContent = t("ui.selected") + " · " + selectedId;
+            return;
+          }
+          selectedEl.textContent = t(sceneMode ? "ui.sceneNote" : "ui.mapHint");
+        }
+
+        function renderWorldList() {
+          worldListEl.textContent = "";
+          emptyWorldsEl.hidden = worlds.length > 0;
+          worlds.forEach(function (world) {
+            const li = document.createElement("li");
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "world-item";
+            btn.setAttribute(
+              "aria-current",
+              world.worldId === activeWorldId ? "true" : "false",
+            );
+            const name = document.createElement("span");
+            name.textContent = world.name;
+            const meta = document.createElement("span");
+            meta.className = "meta";
+            const stateKey =
+              world.runState === "running" ? "ui.running" : "ui.paused";
+            const updated = world.updatedAt
+              ? String(world.updatedAt).replace("T", " ").slice(0, 19)
+              : "";
+            meta.textContent = t(stateKey) + (updated ? " · " + updated : "");
+            btn.appendChild(name);
+            btn.appendChild(meta);
+            btn.addEventListener("click", function () {
+              void openWorld(world.worldId);
+            });
+            li.appendChild(btn);
+            worldListEl.appendChild(li);
+          });
+        }
+
+        async function refreshWorlds() {
+          const res = await api("/v1/sessions");
+          if (res.status === 401) {
+            showError(t("error.unauthorized"));
+            return;
+          }
+          if (!res.ok) {
+            showError(await readError(res));
+            return;
+          }
+          const body = await res.json();
+          worlds = Array.isArray(body.worlds) ? body.worlds : [];
+          if (!activeWorldId && body.activeWorldId) {
+            activeWorldId = body.activeWorldId;
+          }
+          renderWorldList();
+        }
+
+        async function openWorld(worldId) {
+          showError("");
+          const res = await api("/v1/sessions/" + encodeURIComponent(worldId) + "/open", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: "{}",
+          });
+          if (!res.ok) {
+            showError(await readError(res));
+            return;
+          }
+          stopScene();
+          stopAtlas();
+          clearViewCache();
+          atlasRoot = null;
+          worldPrepared = false;
+          stageEl.classList.remove("preparing");
+          document.getElementById("warmup-panel").hidden = true;
+          document.getElementById("enter-explore").disabled = false;
+          document.getElementById("atlas-status").textContent = "";
+          ++surfaceEpoch;
+          clearMoveKeys();
+          if (document.pointerLockElement) document.exitPointerLock();
+          if (moveTimer) clearTimeout(moveTimer);
+          moveTimer = 0;
+          pendingMove = null;
+          disposeMesh(surfaceGl);
+          surfaceGl = null;
+          if (gl && surfaceTexture) gl.deleteTexture(surfaceTexture);
+          surfaceTexture = null;
+          surface = null;
+          surfaceLoading = false;
+          inspectGeometry = false;
+          cam.pitch = 0;
+          activeWorldId = worldId;
+          try { pregenEnabled = localStorage.getItem("carina-pregen-"+worldId) !== "off"; } catch (error) { pregenEnabled = true; }
+          syncPregenButton();
+          selectedId = null;
+          generating = false;
+          stillReady = false;
+          mapView = null;
+          disposeScene();
+          shotCaption = "";
+          hideObservation();
+          renderWorldList();
+          connectEvents(worldId);
+          startPoll();
+          await fetchRuntime();
+          await loadMap();
+          void loadObservation();
+          void loadSurface();
+          syncLiveView();
+          if (!rulesDrawer.hidden) {
+            await loadCurrentDocument();
+          }
+        }
+
+        function connectEvents(worldId) {
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          const url =
+            "/v1/sessions/" +
+            encodeURIComponent(worldId) +
+            "/events?token=" +
+            encodeURIComponent(token);
+          eventSource = new EventSource(url);
+          const types = [
+            "command.accepted",
+            "command.rejected",
+            "world.paused",
+            "world.running",
+            "world.stepped",
+            "job.progress",
+            "job.failed",
+            "candidate.ready",
+            "world.committed",
+            "export.ready",
+            "rules.updated",
+            "chat.text",
+            "observation.ready",
+            "runtime.snapshot",
+          ];
+          types.forEach(function (type) {
+            eventSource.addEventListener(type, function (ev) {
+              handleEvent(type, ev.data);
+            });
+          });
+          eventSource.onmessage = function (ev) {
+            handleEvent("message", ev.data);
+          };
+        }
+
+        function handleEvent(type, data) {
+          let payload = {};
+          try {
+            payload = JSON.parse(data);
+          } catch (e) {
+            payload = {};
+          }
+          if (type === "chat.text") {
+            if (turnBusy) return;
+            const text =
+              payload.payload && typeof payload.payload.text === "string"
+                ? payload.payload.text
+                : typeof payload.text === "string"
+                  ? payload.text
+                  : "";
+            if (isSpokenText(text)) appendMessage("steward", text);
+          }
+          if (type === "world.paused" || type === "world.running") {
+            if (runtime) {
+              runtime.runState = type === "world.running" ? "running" : "paused";
+            }
+            generating = false;
+            updateStatus();
+            syncLiveView();
+            void refreshWorlds();
+          }
+          if (type === "job.progress") {
+            const idle =
+              payload.payload && payload.payload.idle === true;
+            if (!idle) {
+              generating = true;
+              updateStatus();
+            }
+          }
+          if (type === "job.failed") {
+            generating = false;
+            updateStatus();
+          }
+          if (type === "world.committed") {
+            generating = false;
+            updateStatus();
+            void loadMap();
+          }
+          if (type === "observation.ready") {
+            const idle =
+              payload.payload && payload.payload.idle === true;
+            if (!idle) {
+              generating = false;
+              updateStatus();
+              void loadObservation({ play: true });
+              void loadSurface();
+            }
+          }
+          if (type === "runtime.snapshot" && payload.payload) {
+            runtime = payload.payload;
+            draw();
+            updateStatus();
+          }
+          if (type === "rules.updated") {
+            rulesNote.textContent = t("ui.rulesSaved");
+          }
+        }
+
+        function startPoll() {
+          stopPoll();
+          const pollingWorld=activeWorldId;
+          async function tick() {
+            if (document.hidden || !pollingWorld || pollingWorld!==activeWorldId) return;
+            try { await fetchRuntime(); } catch (error) { /* Recover after daemon restarts. */ }
+            if (!document.hidden && pollingWorld===activeWorldId) pollTimer=window.setTimeout(tick,250);
+          }
+          void tick();
+        }
+
+        function stopPoll() {
+          if (pollTimer) {
+            window.clearTimeout(pollTimer);
+            pollTimer = 0;
+          }
+        }
+
+        async function fetchRuntime() {
+          if (!activeWorldId) return;
+          const requestedWorld = activeWorldId;
+          const res = await api(
+            "/v1/sessions/" + encodeURIComponent(requestedWorld) + "/runtime",
+          );
+          if (!res.ok || requestedWorld !== activeWorldId) return;
+          runtime = await res.json();
+          syncCamFromRuntime();
+          if (!sceneMode) draw();
+          updateStatus();
+          updateSelected();
+        }
+
+        function resizeCanvas() {
+          const rect = canvas.getBoundingClientRect();
+          const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+          canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+          canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+          if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+          draw();
+        }
+
+        function toView(p) {
+          const dx = p.x - cam.x;
+          const dy = p.y - cam.y;
+          const dz = p.z - cam.z;
+          const cy = Math.cos(cam.yaw);
+          const sy = Math.sin(cam.yaw);
+          const cp = Math.cos(cam.pitch);
+          const sp = Math.sin(cam.pitch);
+          const x = dx * cy - dz * sy;
+          const forward = dx * sy + dz * cy;
+          const z = forward * cp + dy * sp;
+          const y = dy * cp - forward * sp;
+          return { x: x, y: y, z: z };
+        }
+
+        function project(p) {
+          const v = toView(p);
+          if (v.z <= 0.12) return null;
+          const w = canvas.width;
+          const h = canvas.height;
+          const fov = 1 / Math.tan(viewFov() / 2);
+          return {
+            x: w * 0.5 + (v.x / v.z) * fov * h * 0.5,
+            y: h * 0.5 - (v.y / v.z) * fov * h * 0.5,
+            depth: v.z,
+          };
+        }
+
+        function compileShader(type, src) {
+          const sh = gl.createShader(type);
+          gl.shaderSource(sh, src);
+          gl.compileShader(sh);
+          return sh;
+        }
+
+        function ensureGl() {
+          if (!gl || glProg) return glProg;
+          const vs = compileShader(
+            gl.VERTEX_SHADER,
+            "attribute vec3 a_pos;attribute vec3 a_norm;attribute vec2 a_uv;" +
+              "uniform mat4 u_mvp;uniform mat4 u_model;" +
+              "varying vec3 v_norm;varying vec2 v_uv;varying vec3 v_world;" +
+              "void main(){vec4 w=u_model*vec4(a_pos,1.0);gl_Position=u_mvp*w;" +
+              "v_norm=mat3(u_model)*a_norm;v_uv=a_uv;v_world=w.xyz;}",
+          );
+          const fs = compileShader(
+            gl.FRAGMENT_SHADER,
+            "precision mediump float;varying vec3 v_norm;varying vec2 v_uv;varying vec3 v_world;uniform float u_scene;uniform vec3 u_eye;" +
+              "uniform vec3 u_color;uniform vec3 u_light;uniform sampler2D u_tex;uniform float u_texOn;" +
+              "void main(){vec3 n=normalize(v_norm);float ndl=max(0.28,dot(n,normalize(u_light)));" +
+              "vec3 base=u_color;if(u_texOn>0.5&&v_uv.x>=0.0&&v_uv.x<=1.0&&v_uv.y>=0.0&&v_uv.y<=1.0)" +
+              "{base=texture2D(u_tex,v_uv).rgb;}if(u_scene>0.5){" +
+              "float grain=sin(v_world.x*6.0+sin(v_world.z*1.7)*2.0)*sin(v_world.z*5.0+v_world.y*7.0);" +
+              "base*=0.96+grain*0.035;float sky=0.45+0.18*n.y;vec3 light=vec3(sky)*vec3(0.78,0.88,1.0)+vec3(1.0,0.76,0.49)*max(0.0,dot(n,normalize(u_light)))*0.7;" +
+              "base=sqrt(max(vec3(0.0),base*light));float fog=smoothstep(34.0,73.0,length(v_world-u_eye));base=mix(base,vec3(0.55,0.65,0.69),fog);gl_FragColor=vec4(base,1.0);" +
+              "}else gl_FragColor=vec4(base*(u_texOn>1.5?1.0:ndl),1.0);}",
+          );
+          glProg = gl.createProgram();
+          gl.attachShader(glProg, vs);
+          gl.attachShader(glProg, fs);
+          gl.bindAttribLocation(glProg, 0, "a_pos");
+          gl.bindAttribLocation(glProg, 1, "a_norm");
+          gl.bindAttribLocation(glProg, 2, "a_uv");
+          gl.linkProgram(glProg);
+          gl.enable(gl.DEPTH_TEST);
+          if (!glTex) {
+            glTex = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, glTex);
+            gl.texImage2D(
+              gl.TEXTURE_2D,
+              0,
+              gl.RGBA,
+              1,
+              1,
+              0,
+              gl.RGBA,
+              gl.UNSIGNED_BYTE,
+              new Uint8Array([255, 255, 255, 255]),
+            );
+          }
+          return glProg;
+        }
+
+        function mat4identity() {
+          return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+        }
+
+        function mat4mul(a, b) {
+          const o = [];
+          for (let c = 0; c < 4; c++) {
+            for (let r = 0; r < 4; r++) {
+              o[c * 4 + r] =
+                a[r] * b[c * 4] +
+                a[4 + r] * b[c * 4 + 1] +
+                a[8 + r] * b[c * 4 + 2] +
+                a[12 + r] * b[c * 4 + 3];
+            }
+          }
+          return o;
+        }
+
+        function mat4perspective(fovy, aspect, near, far) {
+          const f = 1 / Math.tan(fovy / 2);
+          const nf = 1 / (near - far);
+          const m = mat4identity();
+          m[0] = f / aspect;
+          m[5] = f;
+          m[10] = (far + near) * nf;
+          m[11] = -1;
+          m[14] = 2 * far * near * nf;
+          m[15] = 0;
+          return m;
+        }
+
+        function mat4look() {
+          // +Z forward and +X right, shared by input, picking and image rays.
+          const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+          const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+          return [cy, -sy*sp, -sy*cp, 0,
+            0, cp, -sp, 0, -sy, -cy*sp, -cy*cp, 0,
+            -cy*cam.x+sy*cam.z,
+            sy*sp*cam.x-cp*cam.y+cy*sp*cam.z,
+            sy*cp*cam.x+sp*cam.y+cy*cp*cam.z, 1];
+        }
+
+        function mat4model(pos, rotY) {
+          const c = Math.cos(rotY);
+          const s = Math.sin(rotY);
+          const m = mat4identity();
+          m[0] = c;
+          m[2] = s;
+          m[8] = -s;
+          m[10] = c;
+          m[12] = pos.x;
+          m[13] = pos.y;
+          m[14] = pos.z;
+          return m;
+        }
+
+        function uploadMesh(mesh) {
+          const pos = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, pos);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.positions), gl.STATIC_DRAW);
+          const norm = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, norm);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.normals), gl.STATIC_DRAW);
+          const uv = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, uv);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.uvs), gl.STATIC_DRAW);
+          const idx = gl.createBuffer();
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idx);
+          gl.bufferData(
+            gl.ELEMENT_ARRAY_BUFFER,
+            new Uint16Array(mesh.indices),
+            gl.STATIC_DRAW,
+          );
+          return {
+            pos: pos,
+            norm: norm,
+            uv: uv,
+            idx: idx,
+            count: mesh.indices.length,
+            albedo: mesh.albedo,
+            textureHash: mesh.textureHash,
+          };
+        }
+
+        function hideObservation() {
+          observationEl.classList.remove("visible");
+          observationEl.removeAttribute("src");
+          stillReady = false;
+          if (observationBadge) observationBadge.classList.remove("visible");
+        }
+
+        function viewportMode() {
+          if (sceneMode) return sceneSpawned ? "play" : "preview";
+          return surface || (mapView && mapView.offlinePlayable === true) ? "play" : "preview";
+        }
+
+        function syncViewportMode() {
+          stageEl.dataset.mode = viewportMode();
+        }
+
+        function disposeMesh(row) {
+          if (!gl || !row) return;
+          gl.deleteBuffer(row.pos);
+          gl.deleteBuffer(row.norm);
+          gl.deleteBuffer(row.uv);
+          gl.deleteBuffer(row.idx);
+        }
+
+        function disposeScene() {
+          objectGls.forEach(function (item) {
+            disposeMesh(item.gl);
+          });
+          objectGls = [];
+        }
+
+        function rebuildScene() {
+          disposeScene();
+          if (!gl || viewportMode() !== "play" || !mapView || !mapView.objects) {
+            return;
+          }
+          ensureGl();
+          mapView.objects.forEach(function (obj) {
+            if (!obj || !obj.mesh || obj.heldBy === "player") return;
+            const transform = obj.transform || { position: { x: 0, y: 0, z: 0 }, rotation: { y: 0 } };
+            const pos = transform.position || { x: 0, y: 0, z: 0 };
+            const rotY =
+              transform.rotation && typeof transform.rotation.y === "number"
+                ? transform.rotation.y
+                : 0;
+            objectGls.push({
+              id: obj.sceneObjectId,
+              gl: uploadMesh(obj.mesh),
+              position: pos,
+              rotY: rotY,
+              albedo: obj.mesh.albedo || [0.52, 0.38, 0.26],
+            });
+          });
+        }
+
+        function refreshStageStatus() {
+          if (generating) {
+            stageStatusEl.hidden = false;
+            stageStatusEl.textContent = t("ui.generating");
+            return;
+          }
+          if (stillReady) {
+            stageStatusEl.hidden = false;
+            stageStatusEl.textContent = shotCaption || t("ui.worldModelView");
+            return;
+          }
+          if (sceneMode) {
+            stageStatusEl.hidden = false;
+            stageStatusEl.textContent = sceneSpawned ? t("ui.sceneControls") : t("ui.scenePreparing");
+            return;
+          }
+          if (surface && !worldPrepared && !inspectGeometry) {
+            stageStatusEl.hidden=false;
+            stageStatusEl.textContent=t("ui.warmupTitle");
+            return;
+          }
+          if (surface && !inspectGeometry) {
+            stageStatusEl.hidden = false;
+            stageStatusEl.textContent = t(boundary ? (pregenEnabled ? "ui.exploreGrowing" : "ui.exploreBoundary") : "ui.exploreHint");
+            return;
+          }
+          if (surfaceLoading) {
+            stageStatusEl.hidden = false;
+            stageStatusEl.textContent = t("ui.reconstructing");
+            return;
+          }
+          stageStatusEl.hidden = false;
+          if (viewportMode() === "play") {
+            const n =
+              mapView && mapView.frozenRegionCount
+                ? mapView.frozenRegionCount
+                : mapView && mapView.regionCount
+                  ? mapView.regionCount
+                  : 0;
+            stageStatusEl.textContent =
+              t("ui.playHint") +
+              " · " +
+              t("ui.mapReady").replace("{count}", String(n));
+            return;
+          }
+          stageStatusEl.textContent = t("ui.previewHint");
+        }
+
+        async function loadMap() {
+          if (!activeWorldId) return;
+          const requestedWorld = activeWorldId;
+          const res = await api(
+            "/v1/sessions/" + encodeURIComponent(requestedWorld) + "/map",
+          );
+          if (!res.ok || requestedWorld !== activeWorldId) return;
+          mapView = await res.json();
+          syncViewportMode();
+          if (!sceneMode && !surface && runtime && runtime.player && !movingKeys() && !looking) {
+            cam.x = runtime.player.position.x;
+            cam.z = runtime.player.position.z;
+            cam.y = (mapView && mapView.eyeHeight) || 1.6;
+            if (typeof runtime.player.yaw === "number") cam.yaw = runtime.player.yaw;
+          }
+          if (viewportMode() === "play") {
+            if (surface || inspectGeometry) hideObservation();
+            rebuildScene();
+          }
+          refreshStageStatus();
+          updateSelected();
+          draw();
+        }
+
+        function drawGl() {
+          if (sceneMode) { drawScene(); return; }
+          const prog = ensureGl();
+          if (!prog) return;
+          gl.useProgram(prog);
+          gl.clearColor(0.07, 0.07, 0.08, 1);
+          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+          if (surface && !inspectGeometry) {
+            drawSurface(prog);
+            return;
+          }
+          if (viewportMode() !== "play") return;
+          if (objectGls.length === 0) rebuildScene();
+          const aspect = canvas.width / Math.max(1, canvas.height);
+          const mvp = mat4mul(
+            mat4perspective(viewFov(), aspect, 0.08, 80),
+            mat4look(),
+          );
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "u_mvp"), false, mvp);
+          gl.uniform3f(gl.getUniformLocation(prog, "u_light"), 0.35, 0.85, 0.4);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, glTex);
+          gl.uniform1i(gl.getUniformLocation(prog, "u_tex"), 0);
+          gl.uniform1f(gl.getUniformLocation(prog, "u_texOn"), 0);
+          objectGls.forEach(function (item) {
+            const color = item.albedo;
+            gl.uniformMatrix4fv(
+              gl.getUniformLocation(prog, "u_model"),
+              false,
+              mat4model(item.position, item.rotY),
+            );
+            gl.uniform3f(
+              gl.getUniformLocation(prog, "u_color"),
+              color[0],
+              color[1],
+              color[2],
+            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, item.gl.pos);
+            gl.enableVertexAttribArray(0);
+            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, item.gl.norm);
+            gl.enableVertexAttribArray(1);
+            gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, item.gl.uv);
+            gl.enableVertexAttribArray(2);
+            gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, item.gl.idx);
+            gl.drawElements(gl.TRIANGLES, item.gl.count, gl.UNSIGNED_SHORT, 0);
+          });
+        }
+
+        function clearViewCache() {
+          viewCache.forEach(function (entry) {
+            disposeMesh(entry.mesh);
+            if (gl) gl.deleteTexture(entry.texture);
+          });
+          viewCache.clear();
+          viewLoads.clear();
+          surfaceGl = null; surfaceTexture = null;
+          atlasRows = [];
+          demandTimes.clear();
+        }
+
+        function stopAtlas() {
+          if (atlasTimer) clearTimeout(atlasTimer);
+          atlasTimer = 0;
+          if (surface && atlasRoot) void prefetchViews(null, false);
+        }
+
+        function startAtlas() {
+          if (sceneMode) { void startScene(); return; }
+          if (atlasTimer) clearTimeout(atlasTimer);
+          if (!surface || !atlasRoot) return;
+          void prefetchViews(null, pregenEnabled);
+          void pollAtlas();
+        }
+
+        async function prefetchViews(direction, enabled) {
+          if (!surface || !atlasRoot || !activeWorldId) return;
+          try {
+            await api("/v1/sessions/" + encodeURIComponent(activeWorldId) + "/exploration/prefetch", {
+              method:"POST", headers:{"content-type":"application/json"},
+              body:JSON.stringify({root:atlasRoot,source:surface.id,enabled:enabled,phase:worldPrepared?"exploring":"warmup",
+                ...(direction ? {direction:direction} : {})}),
+            });
+          } catch (error) { /* Preserve local exploration during service outages. */ }
+        }
+
+        function requestDirection(direction) {
+          if (!pregenEnabled || !surface || inspectGeometry) return;
+          const key = surface.id+":"+direction;
+          const now = performance.now();
+          if (now - (demandTimes.get(key) || -10000) < 5000) return;
+          demandTimes.set(key, now);
+          void prefetchViews(direction, true);
+        }
+
+        function viewScore(camera) {
+          const angle = Math.abs(Math.atan2(Math.sin(cam.yaw-camera.yaw),Math.cos(cam.yaw-camera.yaw)));
+          const distance = Math.hypot(cam.x-camera.position.x,cam.z-camera.position.z);
+          return distance/.55 + angle/.32;
+        }
+
+        function chooseView() {
+          if (!surface || inspectGeometry) return;
+          let best = viewCache.get(surface.id);
+          let score = viewScore(surface.captureCamera);
+          viewCache.forEach(function (entry) {
+            const c=entry.data.captureCamera;
+            const angle=Math.abs(Math.atan2(Math.sin(cam.yaw-c.yaw),Math.cos(cam.yaw-c.yaw)));
+            const distance=Math.hypot(cam.x-c.position.x,cam.z-c.position.z);
+            const next=viewScore(c);
+            if (distance<.65 && angle<.24 && next+0.06<score) { best=entry;score=next; }
+          });
+          if (best && best.data.id !== surface.id) {
+            surface=best.data;surfaceGl=best.mesh;surfaceTexture=best.texture;
+            boundary=false;
+            // Preserve absolute camera pose. Changing coverage is not teleporting the player.
+            if (pregenEnabled) void prefetchViews(null,true);
+          }
+        }
+
+        async function cacheView(row, worldId, root, epoch) {
+          if (viewCache.has(row.id) || viewLoads.has(row.id) || viewLoads.size>=4) return;
+          viewLoads.add(row.id);
+          try {
+            const response=await api("/v1/sessions/"+encodeURIComponent(worldId)+"/exploration/nodes/"+row.id+"?root="+root);
+            if (!response.ok) return;
+            const data=await response.json();
+            const img=new Image();
+            img.src="data:"+data.image.mime+";base64,"+data.image.base64;
+            await img.decode();
+            if (worldId!==activeWorldId || root!==atlasRoot || epoch!==surfaceEpoch) return;
+            const texture=gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D,texture);
+            gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+            gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
+            viewCache.set(data.id,{data:data,mesh:uploadMesh(makeSurfaceMesh(data)),texture:texture});
+            if (viewCache.size>32) {
+              const origin=viewCache.get(atlasRoot);
+              const candidates=[...viewCache.values()].filter(e=>e.data.id!==surface.id && e.data.id!==atlasRoot &&
+                (!origin || Math.hypot(e.data.captureCamera.position.x-origin.data.captureCamera.position.x,e.data.captureCamera.position.z-origin.data.captureCamera.position.z)>.12));
+              candidates.sort((a,b)=>viewScore(b.data.captureCamera)-viewScore(a.data.captureCamera));
+              const old=candidates[0];
+              if (old) {disposeMesh(old.mesh);gl.deleteTexture(old.texture);viewCache.delete(old.data.id);}
+            }
+            chooseView();
+            draw();
+          } catch (error) { /* Poll can retry a missing neighborhood. */ }
+          finally { viewLoads.delete(row.id); }
+        }
+
+        async function pollAtlas() {
+          const worldId=activeWorldId, root=atlasRoot, epoch=surfaceEpoch;
+          if (!worldId || !root || document.hidden) return;
+          try {
+            if (pregenEnabled && performance.now()-lastHeartbeat>10000) {
+              lastHeartbeat=performance.now();
+              void prefetchViews(null,true);
+            }
+            const response=await api("/v1/sessions/"+encodeURIComponent(worldId)+"/exploration/atlas?root="+root);
+            if (!response.ok) return;
+            const data=await response.json();
+            if (worldId!==activeWorldId || root!==atlasRoot || epoch!==surfaceEpoch) return;
+            atlasRows=data.nodes || [];
+            const warmup=data.warmup || {target:24,completed:atlasRows.length,coverage:0,ready:false};
+            const originRow=atlasRows.find(row=>row.id===root);
+            const ring=originRow ? atlasRows.filter(row=>Math.hypot(row.captureCamera.position.x-originRow.captureCamera.position.x,row.captureCamera.position.z-originRow.captureCamera.position.z)<.12) : [];
+            worldPrepared=warmup.ready===true && ring.every(row=>viewCache.has(row.id));
+            stageEl.classList.toggle("preparing",!worldPrepared);
+            document.getElementById("warmup-panel").hidden=worldPrepared || inspectGeometry;
+            document.getElementById("enter-explore").disabled=!worldPrepared;
+            document.getElementById("warmup-progress").max=warmup.target;
+            document.getElementById("warmup-progress").value=Math.min(warmup.completed,warmup.target)*warmup.coverage;
+            document.getElementById("warmup-detail").textContent=t("ui.warmupDetail")
+              .replace("{count}",String(warmup.completed)).replace("{target}",String(warmup.target))
+              .replace("{coverage}",String(Math.round(warmup.coverage*100))) +
+              (pregenEnabled?"":" · "+t("ui.pregenPaused"));
+            const jobs=data.jobs || [];
+            const active=jobs.some(j=>j.state==="generating"||j.state==="queued");
+            const failed=jobs.some(j=>j.state==="failed");
+            if (failed && !active && !worldPrepared) document.getElementById("warmup-detail").textContent += " · " + t("ui.pregenFailed");
+            if (failed && !active && pregenEnabled && surface) {
+              const retryKey=surface.id+":warm";
+              const now=performance.now();
+              if (now-(demandTimes.get(retryKey)||-60000)>60000) {
+                demandTimes.set(retryKey,now);
+                void prefetchViews(null,true);
+              }
+            }
+            document.getElementById("atlas-status").textContent =
+              t("ui.exploredViews").replace("{count}",String(atlasRows.length)) + " · " +
+              t(!pregenEnabled?"ui.pregenPaused":active?"ui.pregenWorking":atlasRows.length>=data.budget?"ui.pregenBudget":failed?"ui.pregenFailed":"ui.pregenReady");
+            const nearest=atlasRows.slice().sort((a,b)=>viewScore(a.captureCamera)-viewScore(b.captureCamera)).slice(0,10);
+            const needed=[...new Map(ring.concat(nearest).map(row=>[row.id,row])).values()];
+            for (let index=0;index<needed.length;index+=4) {
+              if(worldId!==activeWorldId || root!==atlasRoot || epoch!==surfaceEpoch) break;
+              await Promise.all(needed.slice(index,index+4).map(row=>cacheView(row,worldId,root,epoch)));
+            }
+            if(worldId===activeWorldId && root===atlasRoot && epoch===surfaceEpoch) {
+              worldPrepared=warmup.ready===true && ring.every(row=>viewCache.has(row.id));
+              stageEl.classList.toggle("preparing",!worldPrepared);
+              document.getElementById("warmup-panel").hidden=worldPrepared || inspectGeometry;
+              document.getElementById("enter-explore").disabled=!worldPrepared;
+              refreshStageStatus();
+            }
+          } catch (error) { document.getElementById("atlas-status").textContent=t("ui.pregenFailed"); }
+          finally {
+            if (worldId===activeWorldId && root===atlasRoot && epoch===surfaceEpoch && !document.hidden) atlasTimer=setTimeout(pollAtlas,2000);
+          }
+        }
+
+        function syncPregenButton() {
+          const button=document.getElementById("toggle-pregen");
+          const key=pregenEnabled?"ui.pregenOn":"ui.pregenOff";
+          button.setAttribute("aria-pressed",String(pregenEnabled));
+          button.setAttribute("data-i18n",key);
+          button.textContent=t(key);
+        }
+        document.getElementById("toggle-pregen").addEventListener("click", function () {
+          pregenEnabled=!pregenEnabled;
+          generationStopped=!pregenEnabled;
+          try { localStorage.setItem("carina-pregen-"+activeWorldId,pregenEnabled?"on":"off"); } catch (error) {}
+          syncPregenButton();
+          if (!sceneMode) void prefetchViews(null,pregenEnabled);
+          refreshStageStatus();
+          applyStreamChrome();
+        });
+
+        function viewFov() {
+          // Reserve image margins for head movement instead of stretching a still over the screen.
+          if (!surface || inspectGeometry) return 1.05;
+          const aspect = canvas.width / Math.max(1, canvas.height);
+          return Math.min(0.70, 2*Math.atan(Math.tan(0.70/2)*surface.aspect/aspect));
+        }
+
+        function makeSurfaceMesh(data) {
+          const positions = [], normals = [], uvs = [], indices = [];
+          const c = data.captureCamera;
+          const tan = Math.tan(c.fovY / 2);
+          const cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
+          const cp = Math.cos(c.pitch), sp = Math.sin(c.pitch);
+          for (let y = 0; y < data.height; y++) {
+            for (let x = 0; x < data.width; x++) {
+              const u = x / (data.width - 1), v = y / (data.height - 1);
+              const z = data.depth[y * data.width + x];
+              const rx = (u * 2 - 1) * tan * data.aspect * z;
+              const ry = (1 - v * 2) * tan * z;
+              const forward = z * cp - ry * sp;
+              positions.push(c.position.x + cy * rx + sy * forward,
+                c.position.y + ry * cp + z * sp, c.position.z - sy * rx + cy * forward);
+              normals.push(0, 0, -1);
+              uvs.push(u, v);
+              if (x && y) {
+                const i = y * data.width + x;
+                indices.push(i-data.width-1, i-1, i, i-data.width-1, i, i-data.width);
+              }
+            }
+          }
+          return { positions: positions, normals: normals, uvs: uvs, indices: indices, albedo: [1,1,1] };
+        }
+
+        function stopScene() {
+          ++sceneEpoch;
+          if (sceneTimer) clearTimeout(sceneTimer);
+          sceneTimer=0;scenePolling=false;sceneUploadMs=0;sceneDraws=0;frameSamples=[];
+          sceneChunks.forEach(c=>c.meshes.forEach(m=>disposeMesh(m.gl)));
+          sceneUploading.forEach(c=>c.meshes.forEach(m=>{if(m.gl)disposeMesh(m.gl);}));
+          sceneChunks.clear();sceneLoads.clear();sceneUploading=[];sceneState=null;sceneSpawned=false;
+        }
+
+        async function startScene() {
+          if (!activeWorldId || sceneTimer || scenePolling || sceneState && sceneState.phase === "requesting") return;
+          const world=activeWorldId,epoch=sceneEpoch;
+          if (!sceneState || sceneState.phase === "failed") {
+            sceneState={phase:"requesting"};
+            stageEl.classList.add("preparing");
+            document.getElementById("warmup-panel").hidden=false;
+            document.getElementById("warmup-title").textContent=t("ui.scenePrepare");
+            document.getElementById("warmup-description").textContent=t("ui.sceneDescription");
+            document.getElementById("warmup-progress").removeAttribute("value");
+            document.getElementById("warmup-detail").textContent=t("ui.scenePipeline");
+            document.getElementById("enter-explore").disabled=true;
+            try {
+              const res=await api("/v1/sessions/"+encodeURIComponent(world)+"/scene/prepare",{method:"POST"});
+              if (!res.ok) throw Error(await readError(res));
+              const data=await res.json();if(epoch!==sceneEpoch)return;sceneState=data;
+            } catch(error) {
+              if(epoch!==sceneEpoch)return;sceneState={phase:"failed",error:String(error)};
+              document.getElementById("warmup-detail").textContent="准备失败："+String(error)+"。点击进入游览重试。";
+              document.getElementById("enter-explore").disabled=false;return;
+            }
+          }
+          if(epoch===sceneEpoch)void pollScene(epoch,world);
+        }
+
+        async function pollScene(epoch,world) {
+          sceneTimer=0;scenePolling=true;
+          try {
+            const url="/v1/sessions/"+encodeURIComponent(world)+"/scene";
+            const res=await api(url+(sceneSpawned?"/stream":""),sceneSpawned?{
+              method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({x:cam.x,z:cam.z,yaw:cam.yaw,enabled:pregenEnabled})
+            }:undefined);
+            if(!res.ok) {
+              if(sceneSpawned)void api(url+"/prepare",{method:"POST"}).catch(()=>{});
+              throw Error(await readError(res));
+            }
+            const data=await res.json();if(epoch!==sceneEpoch)return;sceneState=data;
+            if(data.phase==="failed") {
+              document.getElementById("warmup-detail").textContent="准备失败："+data.error+"。点击进入游览重试。";
+              document.getElementById("enter-explore").disabled=false;scenePolling=false;return;
+            }
+            const x=sceneSpawned?cam.x:12,z=sceneSpawned?cam.z:12;
+            const candidates=(data.chunks||[]).slice().sort((a,b)=>Math.hypot(a.x*24+12-x,a.z*24+12-z)-Math.hypot(b.x*24+12-x,b.z*24+12-z));
+            // Two binary downloads in flight; GPU uploads are budgeted separately on animation frames.
+            for(const row of candidates) {
+              if(sceneLoads.size>=2)break;
+              if(sceneChunks.has(row.id)||sceneLoads.has(row.id)||sceneUploading.some(c=>c.id===row.id))continue;
+              if(Math.max(Math.abs(row.x-Math.floor(x/24)),Math.abs(row.z-Math.floor(z/24)))>2)continue;
+              sceneLoads.add(row.id);void loadSceneChunk(row,epoch,world);
+            }
+            for(const [id,chunk] of sceneChunks) {
+              if(Math.max(Math.abs(chunk.x-Math.floor(x/24)),Math.abs(chunk.z-Math.floor(z/24)))>3) {
+                chunk.meshes.forEach(m=>disposeMesh(m.gl));sceneChunks.delete(id);
+              }
+            }
+            reportScene();
+          } catch(error) {if(epoch===sceneEpoch)document.getElementById("atlas-status").textContent="连接中断，已加载三维区块仍可游玩";}
+          if(epoch===sceneEpoch)scenePolling=false;
+          if(epoch===sceneEpoch&&!document.hidden)sceneTimer=setTimeout(()=>pollScene(epoch,world),500);
+        }
+
+        async function loadSceneChunk(row,epoch,world) {
+          try {
+            const root="/v1/sessions/"+encodeURIComponent(world)+"/scene/";
+            const results=await Promise.all([api(root+"chunks/"+row.id+"?compiler=2"),api(root+"colliders/"+row.id)]);
+            if(results.some(r=>!r.ok))throw Error("Chunk unavailable");
+            const [bytes,colliders]=await Promise.all([results[0].arrayBuffer(),results[1].json()]);
+            if(epoch!==sceneEpoch)return;
+            sceneUploading.push({...row,colliders:colliders,meshes:decodeSceneGlb(bytes),next:0,epoch:epoch});
+          } catch(error) { /* Retried by the bounded poll, without interrupting the local renderer. */ }
+          finally {if(epoch===sceneEpoch)sceneLoads.delete(row.id);}
+        }
+
+        function decodeSceneGlb(bytes) {
+          const header=new DataView(bytes),jsonLength=header.getUint32(12,true);
+          const doc=JSON.parse(new TextDecoder().decode(new Uint8Array(bytes,20,jsonLength)));
+          const binary=20+jsonLength+8;
+          function accessor(index) {
+            const a=doc.accessors[index],v=doc.bufferViews[a.bufferView],offset=binary+(v.byteOffset||0)+(a.byteOffset||0);
+            const count=a.count*(a.type==="VEC3"?3:1);
+            return a.componentType===5126?new Float32Array(bytes,offset,count):new Uint16Array(bytes,offset,count);
+          }
+          return doc.nodes.map(node=>{
+            const p=doc.meshes[node.mesh].primitives[0],positions=accessor(p.attributes.POSITION);
+            return {position:{x:node.translation[0],y:node.translation[1],z:node.translation[2]},
+              positions:positions,normals:accessor(p.attributes.NORMAL),indices:accessor(p.indices),uvs:new Float32Array(positions.length/3*2),
+              albedo:doc.materials[p.material].pbrMetallicRoughness.baseColorFactor.slice(0,3)};
+          });
+        }
+
+        function pumpSceneUploads() {
+          if(!gl||!sceneUploading.length)return;
+          ensureGl();const start=performance.now();
+          while(sceneUploading.length && performance.now()-start<2) {
+            const row=sceneUploading[0],mesh=row.meshes[row.next++];
+            mesh.gl=uploadMesh(mesh);delete mesh.positions;delete mesh.normals;delete mesh.indices;delete mesh.uvs;
+            if(row.next===row.meshes.length) {
+              sceneChunks.set(row.id,row);sceneUploading.shift();
+              if(!sceneSpawned&&row.id==="0,0") {
+                Object.assign(cam,sceneState.spawn,{pitch:0});sceneSpawned=true;worldPrepared=true;
+                stageEl.classList.remove("preparing");document.getElementById("warmup-panel").hidden=true;
+                document.getElementById("enter-explore").disabled=false;hideObservation();syncViewportMode();refreshStageStatus();
+              }
+            }
+          }
+          sceneUploadMs=Math.max(sceneUploadMs,performance.now()-start);
+        }
+
+        function reportScene() {
+          if(!sceneState)return;
+          const sorted=frameSamples.slice().sort((a,b)=>a-b),p95=sorted[Math.floor(sorted.length*.95)]||0;
+          const total=sceneState.totalChunks||(sceneState.chunks||[]).length;
+          document.getElementById("atlas-status").textContent="3D · "+sceneChunks.size+" / "+total+" 区块 · "+sceneDraws+" draws · 帧 P95 "+p95.toFixed(1)+" ms · 上传峰值 "+sceneUploadMs.toFixed(1)+" ms";
+        }
+
+        function drawScene() {
+          const prog=ensureGl();if(!prog)return;
+          if(!sceneUniforms) {sceneUniforms={};["u_scene","u_eye","u_mvp","u_light","u_texOn","u_model","u_color"].forEach(name=>{sceneUniforms[name]=gl.getUniformLocation(prog,name);});}
+          gl.useProgram(prog);gl.clearColor(.55,.65,.69,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+          if(!sceneSpawned)return;
+          gl.uniform1f(sceneUniforms["u_scene"],1);
+          gl.uniform3f(sceneUniforms["u_eye"],cam.x,cam.y,cam.z);
+          gl.uniformMatrix4fv(sceneUniforms["u_mvp"],false,mat4mul(mat4perspective(1.1,canvas.width/Math.max(1,canvas.height),.06,85),mat4look()));
+          gl.uniform3f(sceneUniforms["u_light"],-.5,.8,-.4);
+          gl.uniform1f(sceneUniforms["u_texOn"],0);sceneDraws=0;
+          for(const row of sceneChunks.values()) {
+            const dx=row.x*24+12-cam.x,dz=row.z*24+12-cam.z;
+            const forward=dx*Math.sin(cam.yaw)+dz*Math.cos(cam.yaw),right=dx*Math.cos(cam.yaw)-dz*Math.sin(cam.yaw);
+            const tanX=Math.tan(.55)*canvas.width/Math.max(1,canvas.height);
+            if(Math.hypot(dx,dz)>76||forward < -18||Math.abs(right)>Math.max(0,forward)*tanX+18*(1+tanX))continue;
+            for(const mesh of row.meshes) {
+              const m=mesh.gl;
+              gl.uniformMatrix4fv(sceneUniforms["u_model"],false,mat4model(mesh.position,0));
+              gl.uniform3fv(sceneUniforms["u_color"],mesh.albedo);
+              [m.pos,m.norm,m.uv].forEach((buffer,i)=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(i);gl.vertexAttribPointer(i,i===2?2:3,gl.FLOAT,false,0,0);});
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,m.idx);gl.drawElements(gl.TRIANGLES,m.count,gl.UNSIGNED_SHORT,0);sceneDraws++;
+            }
+          }
+        }
+
+        async function downloadScene(archive) {
+          try {
+            const res=await api("/v1/sessions/"+encodeURIComponent(activeWorldId)+(archive?"/scene/archive":"/scene/export"));
+            if(!res.ok)throw Error(await readError(res));
+            const url=URL.createObjectURL(await res.blob()),a=document.createElement("a");a.href=url;a.download=archive?"world-scene.zip":"world-scene.glb";a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
+          }catch(error){showError(error);}
+        }
+
+        async function loadSurface() {
+          if (sceneMode) { await startScene(); return; }
+          if (!activeWorldId || !gl) return;
+          const worldId = activeWorldId, epoch = ++surfaceEpoch;
+          surfaceLoading = true;
+          refreshStageStatus();
+          try {
+            const res = await api("/v1/sessions/" + encodeURIComponent(worldId) + "/exploration");
+            if (!res.ok) return;
+            const data = await res.json();
+            if (worldId !== activeWorldId || epoch !== surfaceEpoch) return;
+            if (surface && atlasRoot === data.root) { startAtlas(); return; }
+            if (surface && atlasRoot !== data.root) stopAtlas();
+            const img = new Image();
+            img.src = "data:" + data.image.mime + ";base64," + data.image.base64;
+            await img.decode();
+            if (worldId !== activeWorldId || epoch !== surfaceEpoch) return;
+            ensureGl();
+            const texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+            if (viewCache.size) clearViewCache();
+            else {
+              disposeMesh(surfaceGl);
+              if (surfaceTexture) gl.deleteTexture(surfaceTexture);
+            }
+            surfaceTexture = texture;
+            surfaceGl = uploadMesh(makeSurfaceMesh(data));
+            surface = data;
+            worldPrepared = false;
+            stageEl.classList.add("preparing");
+            atlasRoot = data.root;
+            document.getElementById("warmup-panel").hidden=false;
+            document.getElementById("enter-explore").disabled=true;
+            viewCache.set(data.id, { data: data, mesh: surfaceGl, texture: surfaceTexture });
+            resetSurfaceView();
+            startAtlas();
+            hideObservation();
+            syncViewportMode();
+            draw();
+          } catch (error) {
+            // Keep the last stable scene on a failed background reconstruction.
+          } finally {
+            if (epoch === surfaceEpoch) {
+              surfaceLoading = false;
+              refreshStageStatus();
+            }
+          }
+        }
+
+        function resetSurfaceView() {
+          if (sceneMode) { if (sceneState && sceneState.spawn) Object.assign(cam,sceneState.spawn,{pitch:0}); clearMoveKeys(); return; }
+          if (!surface) return;
+          const origin=viewCache.get(atlasRoot);
+          if (origin) {surface=origin.data;surfaceGl=origin.mesh;surfaceTexture=origin.texture;}
+          const c = surface.captureCamera;
+          Object.assign(cam, c.position, { yaw: c.yaw, pitch: c.pitch });
+          velocity.x = 0; velocity.z = 0;
+          boundary = false;
+          refreshStageStatus();
+          draw();
+        }
+
+        function constrainSurface() {
+          if (!surface || inspectGeometry) return;
+          chooseView();
+          const c = surface.captureCamera;
+          const dx = cam.x - c.position.x, dz = cam.z - c.position.z;
+          // Single-view depth does not contain hidden surfaces. Bound the local viewing volume.
+          const radius = 0.65;
+          const length = Math.hypot(dx, dz);
+          let yaw = Math.atan2(Math.sin(cam.yaw-c.yaw), Math.cos(cam.yaw-c.yaw));
+          const pitch = cam.pitch - c.pitch;
+          const horizontalMargin = Math.max(0.02,
+            Math.atan(Math.tan(c.fovY/2)*surface.aspect) -
+            Math.atan(Math.tan(viewFov()/2)*canvas.width/Math.max(1,canvas.height)) - 0.05);
+          const yawLimit = Math.min(0.24, horizontalMargin);
+          boundary = length > radius || Math.abs(yaw) > yawLimit || Math.abs(pitch) > 0.10;
+          if (Math.abs(yaw) > 0.07) requestDirection(yaw > 0 ? "right" : "left");
+          if (length > 0.16) {
+            const forward = Math.sin(c.yaw)*dx + Math.cos(c.yaw)*dz;
+            const right = Math.cos(c.yaw)*dx - Math.sin(c.yaw)*dz;
+            requestDirection(Math.abs(forward)>Math.abs(right) ? (forward>0?"forward":"back") : (right>0?"strafeRight":"strafeLeft"));
+          }
+          if (length > radius) {
+            cam.x = c.position.x + dx*radius/length;
+            cam.z = c.position.z + dz*radius/length;
+          }
+          cam.yaw = c.yaw + Math.max(-yawLimit, Math.min(yawLimit, yaw));
+          cam.pitch = c.pitch + Math.max(-0.10, Math.min(0.10, pitch));
+          refreshStageStatus();
+        }
+
+        function lookBy(dx, dy) {
+          if (surface && !worldPrepared && !inspectGeometry) return;
+          cam.yaw += dx * 0.0022;
+          cam.pitch = Math.max(-1.35, Math.min(1.35, cam.pitch - dy * 0.0022));
+          constrainSurface();
+        }
+
+        function drawSurface(prog) {
+          if (!surfaceGl || !surfaceTexture) return;
+          const mesh = surfaceGl;
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "u_mvp"), false,
+            mat4mul(mat4perspective(viewFov(), canvas.width/Math.max(1,canvas.height), 0.08, 80), mat4look()));
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "u_model"), false, mat4identity());
+          gl.uniform3f(gl.getUniformLocation(prog, "u_color"), 1, 1, 1);
+          gl.uniform3f(gl.getUniformLocation(prog, "u_light"), 0, 1, 0);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, surfaceTexture);
+          gl.uniform1i(gl.getUniformLocation(prog, "u_tex"), 0);
+          gl.uniform1f(gl.getUniformLocation(prog, "u_texOn"), 2);
+          [mesh.pos, mesh.norm, mesh.uv].forEach(function (buffer, i) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.enableVertexAttribArray(i);
+            gl.vertexAttribPointer(i, i === 2 ? 2 : 3, gl.FLOAT, false, 0, 0);
+          });
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.idx);
+          gl.drawElements(gl.TRIANGLES, mesh.count, gl.UNSIGNED_SHORT, 0);
+        }
+
+        document.getElementById("enter-explore").addEventListener("click", function () {
+          if (viewportMode() !== "play") { void loadSurface(); return; }
+          if (surface && !worldPrepared && !inspectGeometry) return;
+          stageEl.classList.add("exploring");
+          resizeCanvas();
+          canvas.focus();
+          const result = canvas.requestPointerLock && canvas.requestPointerLock();
+          if (result && result.catch) result.catch(function () { /* Right-drag remains available. */ });
+        });
+        document.getElementById("exit-explore").addEventListener("click", exitExploration);
+        function exitExploration() {
+          if (document.pointerLockElement) document.exitPointerLock();
+          stageEl.classList.remove("exploring");
+          clearMoveKeys();
+          resizeCanvas();
+        }
+        document.getElementById("reset-view").addEventListener("click", resetSurfaceView);
+        document.getElementById("toggle-proxies").addEventListener("click", function () {
+          if (sceneMode) { void downloadScene(); return; }
+          inspectGeometry = !inspectGeometry;
+          document.getElementById("warmup-panel").hidden=worldPrepared || inspectGeometry;
+          this.setAttribute("aria-pressed", String(inspectGeometry));
+          clearMoveKeys();
+          if (!inspectGeometry) resetSurfaceView();
+          else if (runtime && runtime.player) Object.assign(cam, runtime.player.position, { y: 1.6, yaw: runtime.player.yaw || 0, pitch: 0 });
+          rebuildScene();
+          refreshStageStatus();
+          draw();
+        });
+        document.addEventListener("pointerlockchange", function () {
+          clearMoveKeys();
+          stageEl.classList.toggle("exploring", document.pointerLockElement === canvas);
+          resizeCanvas();
+        });
+        document.addEventListener("mousemove", function (ev) {
+          if (document.pointerLockElement !== canvas) return;
+          lookBy(ev.movementX, ev.movementY);
+          queueMove();
+        });
+
+        function draw2d() {
+          const w = canvas.width;
+          const h = canvas.height;
+          ctx2d.fillStyle = "#f6f6f6";
+          ctx2d.fillRect(0, 0, w, h);
+          if (!runtime) return;
+          ctx2d.fillStyle = "#0a0a0a";
+          if (runtime.player) {
+            const p = project({
+              x: runtime.player.position.x,
+              y: 0.8,
+              z: runtime.player.position.z,
+            });
+            if (p) {
+              ctx2d.fillRect(p.x - 4, p.y - 4, 8, 8);
+            }
+          }
+        }
+
+        function draw() {
+          const poseLabel = cam.x.toFixed(2) + " / " + cam.z.toFixed(2) + " · " + (cam.yaw*180/Math.PI).toFixed(1) + "°";
+          const poseOutput = document.getElementById("view-pose");
+          if (poseOutput.textContent !== poseLabel) poseOutput.textContent = poseLabel;
+          if (gl) {
+            drawGl();
+            return;
+          }
+          if (ctx2d) draw2d();
+        }
+
+        function pick(clientX, clientY) {
+          if (!runtime) return null;
+          const rect = canvas.getBoundingClientRect();
+          const x =
+            ((clientX - rect.left) / rect.width) * canvas.width;
+          const y =
+            ((clientY - rect.top) / rect.height) * canvas.height;
+          const candidates = [];
+          function consider(id, position) {
+            const p = project(position);
+            if (!p) return;
+            const dx = p.x - x;
+            const dy = p.y - y;
+            const dist = dx * dx + dy * dy;
+            const radius = pickRadius(id);
+            if (dist < radius * radius * (window.devicePixelRatio || 1)) {
+              candidates.push({ id: id, dist: dist });
+            }
+          }
+          (runtime.objects || []).forEach(function (obj) {
+            consider(obj.sceneObjectId, obj.position);
+          });
+          (runtime.npcs || []).forEach(function (npc) {
+            consider(npc.sceneObjectId, npc.position);
+          });
+          candidates.sort(function (a, b) { return a.dist - b.dist; });
+          return candidates[0] ? candidates[0].id : null;
+        }
+
+        function pickRadius(id) {
+          const obj =
+            mapView && mapView.objects
+              ? mapView.objects.find(function (item) {
+                  return item.sceneObjectId === id;
+                })
+              : null;
+          return obj && obj.interactionProfile === "pickup" ? 56 : 35;
+        }
+
+        function holdingId() {
+          return runtime && runtime.player && runtime.player.holdingObjectIds
+            ? runtime.player.holdingObjectIds[0]
+            : null;
+        }
+
+        async function interact(targetId) {
+          if (!activeWorldId) return;
+          const res = await api(
+            "/v1/sessions/" + encodeURIComponent(activeWorldId) + "/commands",
+            {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                intentKind: "player.act",
+                arguments: { action: "use", targetId: targetId },
+              }),
+            },
+          );
+          if (!res.ok) {
+            showError(await readError(res));
+            return;
+          }
+          const body = await res.json().catch(function () {
+            return {};
+          });
+          const spoken = resultText(body);
+          if (isSpokenText(spoken) && spoken !== t("ui.ackDone")) {
+            appendMessage("steward", spoken);
+          }
+          await fetchRuntime();
+          await loadMap();
+          updateSelected();
+        }
+
+        async function dropHeld() {
+          if (!activeWorldId || !holdingId()) return;
+          const res = await api(
+            "/v1/sessions/" + encodeURIComponent(activeWorldId) + "/commands",
+            {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                intentKind: "player.act",
+                arguments: { action: "drop" },
+              }),
+            },
+          );
+          if (!res.ok) {
+            showError(await readError(res));
+            return;
+          }
+          const body = await res.json().catch(function () {
+            return {};
+          });
+          const spoken = resultText(body);
+          if (isSpokenText(spoken) && spoken !== t("ui.ackDone")) {
+            appendMessage("steward", spoken);
+          }
+          await fetchRuntime();
+          await loadMap();
+          updateSelected();
+        }
+
+        function movingKeys() {
+          return (
+            keys["KeyW"] ||
+            keys["KeyA"] ||
+            keys["KeyS"] ||
+            keys["KeyD"] ||
+            keys["ArrowUp"] ||
+            keys["ArrowDown"] ||
+            keys["ArrowLeft"] ||
+            keys["ArrowRight"]
+          );
+        }
+
+        function mapColliders() {
+          if (!mapView || !Array.isArray(mapView.objects)) return [];
+          return mapView.objects
+            .filter(function (obj) {
+              if (!obj || obj.collider !== true || obj.heldBy === "player" || !obj.bounds) {
+                return false;
+              }
+              if (obj.name && String(obj.name).indexOf("地板") !== -1) return false;
+              const h = obj.bounds.max.y - obj.bounds.min.y;
+              return h >= 0.35;
+            })
+            .map(function (obj) {
+              return obj.bounds;
+            });
+        }
+
+        function overlaps(a, b) {
+          return (
+            a.min.x < b.max.x &&
+            a.max.x > b.min.x &&
+            a.min.y < b.max.y &&
+            a.max.y > b.min.y &&
+            a.min.z < b.max.z &&
+            a.max.z > b.min.z
+          );
+        }
+
+        function blocked(x, z) {
+          if (sceneMode) {
+            for (const dx of [-0.28,0.28]) for (const dz of [-0.28,0.28]) {
+              if (!sceneChunks.has(Math.floor((x+dx)/24)+","+Math.floor((z+dz)/24))) return true;
+            }
+            const cx=Math.floor(x/24), cz=Math.floor(z/24);
+            for (let dx=-1;dx<=1;dx++) for (let dz=-1;dz<=1;dz++) {
+              const chunk=sceneChunks.get((cx+dx)+","+(cz+dz));
+              if (chunk && chunk.colliders.some(b=>x+.28>b.min.x&&x-.28<b.max.x&&z+.28>b.min.z&&z-.28<b.max.z&&b.max.y>.15&&b.min.y<1.7)) return true;
+            }
+            return false;
+          }
+          const body = {
+            min: { x: x - 0.4, y: 0, z: z - 0.4 },
+            max: { x: x + 0.4, y: 1.7, z: z + 0.4 },
+          };
+          return mapColliders().some(function (box) {
+            return overlaps(body, box);
+          });
+        }
+
+        function stepPlayer(dt) {
+          let forward = Number(!!(keys.KeyW || keys.ArrowUp)) - Number(!!(keys.KeyS || keys.ArrowDown));
+          let right = Number(!!(keys.KeyD || keys.ArrowRight)) - Number(!!(keys.KeyA || keys.ArrowLeft));
+          const length = Math.hypot(forward, right) || 1;
+          forward /= length; right /= length;
+          const speed = surface && !inspectGeometry ? 0.85 : (keys.ShiftLeft || keys.ShiftRight ? 4.8 : 2.6);
+          const targetX = (Math.sin(cam.yaw)*forward + Math.cos(cam.yaw)*right)*speed;
+          const targetZ = (Math.cos(cam.yaw)*forward - Math.sin(cam.yaw)*right)*speed;
+          const blend = 1 - Math.exp(-18 * dt);
+          velocity.x += (targetX - velocity.x)*blend;
+          velocity.z += (targetZ - velocity.z)*blend;
+          const x = cam.x + velocity.x*dt, z = cam.z + velocity.z*dt;
+          if (surface && !inspectGeometry) {
+            // Image reconstruction is not collision authority. Keep navigation in its coverage.
+            cam.x = x; cam.z = z;
+            constrainSurface();
+          } else {
+            if (!blocked(x, cam.z)) cam.x = x;
+            else velocity.x = 0;
+            if (!blocked(cam.x, z)) cam.z = z;
+            else velocity.z = 0;
+            queueMove();
+          }
+        }
+
+        function queueMove() {
+          if (sceneMode) return;
+          // Estimated photographic camera motion must not move the authoritative game actor.
+          if (viewportMode() !== "play" || (surface && !inspectGeometry)) return;
+          pendingMove = { worldId: activeWorldId, x: cam.x, z: cam.z, yaw: cam.yaw };
+          if (moveTimer || moveInFlight) return;
+          moveTimer = window.setTimeout(flushMove, 80);
+        }
+
+        async function flushMove() {
+          moveTimer = 0;
+          if (!pendingMove || moveInFlight) return;
+          const pose = pendingMove;
+          pendingMove = null;
+          if (pose.worldId !== activeWorldId) return;
+          moveInFlight = true;
+          try {
+            const res = await api("/v1/sessions/" + encodeURIComponent(pose.worldId) + "/commands", {
+              method: "POST", headers: { "content-type": "application/json" },
+              body: JSON.stringify({ intentKind: "player.act", arguments: {
+                action: "move", position: { x: pose.x, y: 0, z: pose.z }, yaw: pose.yaw,
+              } }),
+            });
+            if (!res.ok && activeWorldId === pose.worldId) showError(await readError(res));
+          } catch (error) { /* Local camera keeps responding while transport recovers. */ }
+          finally {
+            moveInFlight = false;
+            if (pendingMove) moveTimer = window.setTimeout(flushMove, 80);
+          }
+        }
+
+        function syncCamFromRuntime() {
+          if (sceneMode) return;
+          if (surface || moveInFlight || pendingMove) return;
+          if (!runtime || !runtime.player || movingKeys() || looking || dragging) return;
+          const px = runtime.player.position.x;
+          const pz = runtime.player.position.z;
+          if (Math.hypot(px - cam.x, pz - cam.z) > 2.5) {
+            cam.x = px;
+            cam.z = pz;
+          }
+          cam.y = (mapView && mapView.eyeHeight) || 1.6;
+        }
+
+        let lastTs = 0;
+        function loop(ts) {
+          if (sceneMode) {
+            if (lastTs && !document.hidden) frameSamples.push(ts-lastTs);
+            if (frameSamples.length>120) frameSamples.shift();
+            pumpSceneUploads();
+            if (ts-frameReport>1000) { frameReport=ts; reportScene(); }
+          }
+          const dt = lastTs ? Math.min(0.05, (ts - lastTs) / 1000) : 0.016;
+          lastTs = ts;
+          const moving = movingKeys();
+          if (viewportMode() === "play" && (!surface || worldPrepared || inspectGeometry) && (moving || Math.hypot(velocity.x, velocity.z) > 0.001)) stepPlayer(dt);
+          else if (!moving) syncCamFromRuntime();
+          if (moving || looking || dragging || viewportMode() === "play") {
+            draw();
+          }
+          window.requestAnimationFrame(loop);
+        }
+
+        function appendMessage(role, text) {
+          const li = document.createElement("li");
+          li.className = "msg " + role;
+          const who = document.createElement("span");
+          who.className = "who";
+          who.textContent = role === "user" ? t("cli.you") : t("cli.steward");
+          const body = document.createElement("div");
+          body.className = "body";
+          body.textContent = text;
+          li.appendChild(who);
+          li.appendChild(body);
+          logEl.appendChild(li);
+          li.scrollIntoView({ block: "end" });
+          return li;
+        }
+
+        function setMessageBody(li, text) {
+          if (!li) return;
+          const body = li.querySelector(".body");
+          if (body) body.textContent = text;
+          li.scrollIntoView({ block: "end" });
+        }
+
+        function resultText(result) {
+          if (!result) return t("ui.replyFailed");
+          if (result.payload && isSpokenText(result.payload.text)) {
+            return result.payload.text;
+          }
+          if (typeof result.messageKey === "string") {
+            return t(result.messageKey);
+          }
+          return result.accepted === false
+            ? t("error.commandRejected")
+            : t("ui.ackDone");
+        }
+
+        function isSpokenText(text) {
+          return (
+            typeof text === "string" &&
+            text.trim().length > 0 &&
+            text.trim() !== "view"
+          );
+        }
+
+        let shotCaption = "";
+        let lastClip = null;
+
+        function syncLiveView() {
+          ++playToken;
+        }
+
+        function looksLikeView(message) {
+          if (
+            /^(暂停世界|暂停时间|继续运行|继续|恢复运行|世界规则|全局记住|固化|落盘|拿起|放下|门外生成|扩展花园|走进花园|走到|导出|恢复检查点|退回刚才)/.test(
+              message,
+            )
+          ) {
+            return false;
+          }
+          return /看一眼|看一看|看一下|看看|生成|做一间|做个|出一张|帮我看|look|看向|望向|转向|往左|往右|靠近|拉近|拉远|镜头|视角|换成|改成|下雨|黄昏|夕阳|酒馆|场景|turn |zoom|camera/i.test(
+            message,
+          );
+        }
+
+        function setGenerating(on) {
+          generating = on;
+          const sendBtn = document.getElementById("send");
+          if (sendBtn) sendBtn.disabled = on;
+          refreshStageStatus();
+          updateStatus();
+        }
+
+        function showFrame(mime, base64) {
+          if (surface || inspectGeometry) return;
+          const safe = allowedMime[mime] ? mime : "image/jpeg";
+          observationEl.src = "data:" + safe + ";base64," + base64;
+          observationEl.classList.add("visible");
+          stillReady = true;
+          if (observationBadge) observationBadge.classList.add("visible");
+          const caption = shotCaption || t("ui.previewHint");
+          observationEl.alt = caption;
+          refreshStageStatus();
+        }
+
+        function prefersReducedMotion() {
+          return (
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          );
+        }
+
+        function playClip(clip, playMotion) {
+          if (!clip) return;
+          lastClip = clip;
+          ++playToken;
+          const token = playToken;
+          const mime = allowedMime[clip.mime] ? clip.mime : "image/jpeg";
+          const frames = Array.isArray(clip.frames) ? clip.frames : [];
+          if (frames.length === 0) {
+            if (typeof clip.base64 === "string" && clip.base64.length > 0) {
+              showFrame(clip.mime, clip.base64);
+            }
+            return;
+          }
+          if (playMotion === false || prefersReducedMotion()) {
+            showFrame(mime, frames[frames.length - 1]);
+            return;
+          }
+          let index = 0;
+          const delay = 1000 / Math.max(1, Number(clip.fps) || 8);
+          function tick() {
+            if (token !== playToken) return;
+            showFrame(mime, frames[index]);
+            index += 1;
+            if (index < frames.length) window.setTimeout(tick, delay);
+          }
+          tick();
+        }
+
+        function applyObservation(payload, playMotion) {
+          if (!payload) return;
+          if (typeof payload.prompt === "string" && payload.prompt.trim()) {
+            shotCaption = payload.prompt.trim();
+          } else if (payload.shotKind === "camera") {
+            shotCaption = t("ui.worldModelViewCamera");
+          } else if (payload.shotKind === "scene") {
+            shotCaption = t("ui.worldModelViewScene");
+          }
+          if (payload.clip && Array.isArray(payload.clip.frames)) {
+            playClip(payload.clip, playMotion === true);
+            return;
+          }
+          if (payload.still && typeof payload.still.base64 === "string") {
+            ++playToken;
+            showFrame(payload.still.mime, payload.still.base64);
+          }
+        }
+
+        async function loadObservation(opts) {
+          if (!activeWorldId) return;
+          const worldId = activeWorldId;
+          const res = await api(
+            "/v1/sessions/" +
+              encodeURIComponent(worldId) +
+              "/observation",
+          );
+          if (!res.ok) return;
+          const payload = await res.json();
+          if (worldId === activeWorldId) applyObservation(payload, opts && opts.play === true);
+        }
+
+        async function send() {
+          const message = input.value.trim();
+          if (!message || !activeWorldId || turnBusy) return;
+          showError("");
+          appendMessage("user", message);
+          input.value = "";
+          turnBusy = true;
+          const watching = looksLikeView(message);
+          if (watching) setGenerating(true);
+          const sendBtn = document.getElementById("send");
+          if (sendBtn) sendBtn.disabled = true;
+          const pending = appendMessage(
+            "steward",
+            watching ? t("ui.observing") : t("ui.thinking"),
+          );
+          let first = null;
+          try {
+            const res = await api(
+              "/v1/sessions/" + encodeURIComponent(activeWorldId) + "/commands",
+              {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ text: message }),
+                signal: AbortSignal.timeout(620000),
+              },
+            );
+            if (!res.ok) {
+              const err = await readError(res);
+              setMessageBody(pending, err);
+              showError(err);
+              return;
+            }
+            const result = await res.json();
+            first = Array.isArray(result) ? result[0] : result;
+            setMessageBody(pending, resultText(first));
+            if (first && first.intentKind === "generation.stop") {
+              generationStopped = true;
+              applyStreamChrome();
+            }
+            const observing =
+              first && first.payload && first.payload.observing === true;
+            if (first && first.payload) applyObservation(first.payload, watching);
+            if (watching && !observing) {
+              const hasView =
+                first &&
+                first.payload &&
+                (first.payload.still || first.payload.clip);
+              if (!hasView) await loadObservation({ play: true });
+              void loadSurface();
+            }
+          } finally {
+            turnBusy = false;
+            if (sendBtn) sendBtn.disabled = false;
+            if (!(first && first.payload && first.payload.observing === true)) {
+              setGenerating(false);
+            }
+          }
+        }
+
+        async function control(action) {
+          if (!activeWorldId) return;
+          const res = await api(
+            "/v1/sessions/" + encodeURIComponent(activeWorldId) + "/control",
+            {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify(
+                action === "step"
+                  ? { action: "step", seconds: 1 }
+                  : { action: action },
+              ),
+            },
+          );
+          if (!res.ok) {
+            showError(await readError(res));
+            return;
+          }
+          await fetchRuntime();
+          await refreshWorlds();
+          syncLiveView();
+        }
+
+        async function exportGlb() {
+          if (sceneMode) { await downloadScene(); return; }
+          await downloadExport("", activeWorldId + ".glb");
+        }
+
+        async function exportPack() {
+          if (sceneMode) { await downloadScene(true); return; }
+          await downloadExport("?profile=world_pack", "world.carina.zip");
+        }
+
+        async function downloadExport(query, fallbackName) {
+          if (!activeWorldId) return;
+          const res = await api(
+            "/v1/sessions/" +
+              encodeURIComponent(activeWorldId) +
+              "/exports" +
+              query,
+            { method: "POST" },
+          );
+          if (!res.ok) {
+            showError(await readError(res));
+            return;
+          }
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filenameFromDisposition(
+            res.headers.get("content-disposition"),
+            fallbackName,
+          );
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+
+        function filenameFromDisposition(header, fallbackName) {
+          if (!header) return fallbackName;
+          const star = header.match(/filename\*=UTF-8''([^;]+)/i);
+          if (star && star[1]) {
+            try {
+              return decodeURIComponent(star[1]);
+            } catch {
+              return fallbackName;
+            }
+          }
+          const named = header.match(/filename="([^"]+)"/);
+          return named && named[1] ? named[1] : fallbackName;
+        }
+
+        function syncBackdrop() {
+          const open =
+            rulesDrawer.classList.contains("open") ||
+            exportDrawer.classList.contains("open");
+          drawerBackdrop.hidden = !open;
+        }
+
+        function setRulesOpen(open) {
+          if (open) {
+            exportDrawer.hidden = true;
+            exportDrawer.classList.remove("open");
+            toggleExport.setAttribute("aria-expanded", "false");
+            toggleExport.setAttribute("aria-pressed", "false");
+          }
+          rulesDrawer.hidden = !open;
+          rulesDrawer.classList.toggle("open", open);
+          toggleRules.setAttribute("aria-expanded", open ? "true" : "false");
+          toggleRules.setAttribute("aria-pressed", open ? "true" : "false");
+          syncBackdrop();
+          if (open) void loadCurrentDocument();
+        }
+
+        function setExportOpen(open) {
+          if (open) {
+            rulesDrawer.hidden = true;
+            rulesDrawer.classList.remove("open");
+            toggleRules.setAttribute("aria-expanded", "false");
+            toggleRules.setAttribute("aria-pressed", "false");
+          }
+          exportDrawer.hidden = !open;
+          exportDrawer.classList.toggle("open", open);
+          toggleExport.setAttribute("aria-expanded", open ? "true" : "false");
+          toggleExport.setAttribute("aria-pressed", open ? "true" : "false");
+          syncBackdrop();
+          if (open) void loadExportPanel();
+        }
+
+        function closeDrawers() {
+          setRulesOpen(false);
+          setExportOpen(false);
+        }
+
+        function setChatOpen(open) {
+          chatEl.hidden = !open;
+          appEl.classList.toggle("chat-closed", !open);
+          toggleChat.setAttribute("aria-expanded", open ? "true" : "false");
+          toggleChat.setAttribute("aria-pressed", open ? "true" : "false");
+          window.requestAnimationFrame(resizeCanvas);
+        }
+
+        async function loadExportPanel() {
+          if (sceneMode) {
+            exportObjectsEl.textContent="";exportRevisionEl.textContent=sceneState ? sceneState.title || "" : "";
+            (sceneState && sceneState.chunks || []).forEach(row=>{const li=document.createElement("li");li.textContent=row.id+" · "+row.triangles+" triangles";exportObjectsEl.appendChild(li);});return;
+          }
+          exportObjectsEl.textContent = "";
+          exportRevisionEl.textContent = "";
+          if (!activeWorldId) {
+            exportRevisionEl.textContent = t("error.worldNotActive");
+            return;
+          }
+          const res = await api(
+            "/v1/sessions/" + encodeURIComponent(activeWorldId) + "/snapshot",
+          );
+          if (!res.ok) {
+            exportRevisionEl.textContent = await readError(res);
+            return;
+          }
+          const view = await res.json();
+          const snapshot = view.snapshot || {};
+          const revision = snapshot.revision || "";
+          exportRevisionEl.textContent =
+            t("ui.exportRevision") + " · " + revision;
+          const objects = snapshot.objects || [];
+          objects.forEach(function (item) {
+            const li = document.createElement("li");
+            li.textContent = item.name || item.sceneObjectId;
+            exportObjectsEl.appendChild(li);
+          });
+        }
+
+        async function loadCurrentDocument() {
+          if (currentDoc.scope === "global") {
+            const res = await api(
+              "/v1/profile/documents/" + encodeURIComponent(currentDoc.id),
+            );
+            if (!res.ok) {
+              rulesNote.textContent = await readError(res);
+              return;
+            }
+            const doc = await res.json();
+            rulesBody.value = doc.body || "";
+            docHash = doc.hash || "";
+            rulesNote.textContent = "";
+            return;
+          }
+          if (!activeWorldId) {
+            rulesNote.textContent = t("error.worldNotActive");
+            return;
+          }
+          const res = await api(
+            "/v1/sessions/" +
+              encodeURIComponent(activeWorldId) +
+              "/documents/" +
+              encodeURIComponent(currentDoc.id),
+          );
+          if (!res.ok) {
+            rulesNote.textContent = await readError(res);
+            return;
+          }
+          const doc = await res.json();
+          rulesBody.value = doc.body || "";
+          docHash = doc.hash || "";
+          rulesNote.textContent = "";
+        }
+
+        async function saveRules() {
+          if (currentDoc.scope !== "global" && !activeWorldId) {
+            rulesNote.textContent = t("error.worldNotActive");
+            return;
+          }
+          const payload = { body: rulesBody.value };
+          if (docHash) payload.expectedHash = docHash;
+          const path =
+            currentDoc.scope === "global"
+              ? "/v1/profile/documents/" + encodeURIComponent(currentDoc.id)
+              : "/v1/sessions/" +
+                encodeURIComponent(activeWorldId) +
+                "/documents/" +
+                encodeURIComponent(currentDoc.id);
+          const res = await api(path, {
+            method: "PUT",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) {
+            rulesNote.textContent = await readError(res);
+            return;
+          }
+          rulesNote.textContent = t("ui.rulesSaved");
+          await loadCurrentDocument();
+        }
+
+        document.querySelectorAll(".tab").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            currentDoc = {
+              id: btn.getAttribute("data-doc"),
+              scope: btn.getAttribute("data-scope"),
+            };
+            document.querySelectorAll(".tab").forEach(function (other) {
+              other.setAttribute(
+                "aria-selected",
+                other === btn ? "true" : "false",
+              );
+            });
+            void loadCurrentDocument();
+          });
+        });
+
+        document.getElementById("new-world").addEventListener("click", async function () {
+          const name = window.prompt(t("ui.newWorld"));
+          if (!name || !name.trim()) return;
+          setGenerating(true);
+          try {
+            const res = await api("/v1/sessions", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ name: name.trim() }),
+              signal: AbortSignal.timeout(620000),
+            });
+            if (!res.ok) {
+              showError(await readError(res));
+              return;
+            }
+            const result = await res.json();
+            const id =
+              result.worldId ||
+              (result.payload && result.payload.worldId) ||
+              (result.payload &&
+                result.payload.session &&
+                result.payload.session.sessionId);
+            await refreshWorlds();
+            if (id) await openWorld(id);
+            if (result && result.payload) applyObservation(result.payload, true);
+          } finally {
+            setGenerating(false);
+          }
+        });
+
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          void send();
+        });
+        input.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter" && !ev.shiftKey) {
+            ev.preventDefault();
+            form.requestSubmit();
+          }
+        });
+
+        document.getElementById("pause").addEventListener("click", function () {
+          void control("pause");
+        });
+        document.getElementById("run").addEventListener("click", function () {
+          void control("run");
+        });
+        document.getElementById("step").addEventListener("click", function () {
+          void control("step");
+        });
+        document.getElementById("freeze").addEventListener("click", async function () {
+          if (!activeWorldId) return;
+          if (sceneMode) { appendMessage("steward","三维区块在组装完成时已自动落盘。可用“导出当前三维世界”保存 GLB，生成服务离线后仍可重开。当前为参数化资产组装版本。"); return; }
+          const res = await api(
+            "/v1/sessions/" + encodeURIComponent(activeWorldId) + "/commands",
+            {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ intentKind: "spatial.freeze", arguments: {} }),
+            },
+          );
+          if (!res.ok) {
+            showError(await readError(res));
+            return;
+          }
+          const body = await res.json().catch(function () {
+            return {};
+          });
+          const spoken = resultText(body);
+          if (isSpokenText(spoken)) {
+            appendMessage("steward", spoken);
+          }
+          await loadMap();
+        });
+        document.getElementById("export-glb").addEventListener("click", function () {
+          void exportGlb();
+        });
+        document.getElementById("export-pack").addEventListener("click", function () {
+          void exportPack();
+        });
+        toggleRules.addEventListener("click", function () {
+          setRulesOpen(rulesDrawer.hidden);
+        });
+        toggleExport.addEventListener("click", function () {
+          setExportOpen(exportDrawer.hidden);
+        });
+        toggleChat.addEventListener("click", function () {
+          setChatOpen(chatEl.hidden);
+        });
+        document.getElementById("close-chat").addEventListener("click", function () {
+          setChatOpen(false);
+        });
+        document.getElementById("close-rules").addEventListener("click", function () {
+          setRulesOpen(false);
+        });
+        document.getElementById("close-export").addEventListener("click", function () {
+          setExportOpen(false);
+        });
+        drawerBackdrop.addEventListener("click", function () {
+          closeDrawers();
+        });
+        document.getElementById("save-rules").addEventListener("click", function () {
+          void saveRules();
+        });
+
+        document.querySelectorAll("nav [data-lang]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            lang = btn.getAttribute("data-lang") === "en" ? "en" : "zh";
+            applyI18n();
+          });
+        });
+
+        stageEl.addEventListener("contextmenu", function (ev) {
+          ev.preventDefault();
+        });
+        stageEl.addEventListener("pointerdown", function (ev) {
+          if (ev.button !== 2) return;
+          if (viewportMode() !== "play") return;
+          looking = true;
+          lastX = ev.clientX;
+          lastY = ev.clientY;
+          stageEl.classList.add("looking");
+          stageEl.focus();
+          try {
+            stageEl.setPointerCapture(ev.pointerId);
+          } catch (err) {
+            /* untrusted events still look */
+          }
+          ev.preventDefault();
+        });
+        stageEl.addEventListener("pointermove", function (ev) {
+          if (!looking || viewportMode() !== "play") return;
+          const dx = ev.clientX - lastX;
+          const dy = ev.clientY - lastY;
+          lastX = ev.clientX;
+          lastY = ev.clientY;
+          lookBy(dx, dy);
+          draw();
+          queueMove();
+        });
+        function endLook(ev) {
+          if (!looking) return;
+          if (ev && ev.button !== undefined && ev.button !== 2) return;
+          looking = false;
+          stageEl.classList.remove("looking");
+        }
+        stageEl.addEventListener("pointerup", endLook);
+        stageEl.addEventListener("pointercancel", endLook);
+
+        canvas.addEventListener("pointerdown", function (ev) {
+          if (ev.button !== 0 || document.pointerLockElement === canvas) return;
+          if (viewportMode() !== "play") {
+            canvas.focus();
+            return;
+          }
+          dragging = true;
+          dragMoved = false;
+          lastX = ev.clientX;
+          lastY = ev.clientY;
+          canvas.focus();
+          try {
+            canvas.setPointerCapture(ev.pointerId);
+          } catch (err) {
+            /* untrusted events (tests) still look */
+          }
+        });
+        canvas.addEventListener("pointermove", function (ev) {
+          if (!dragging) return;
+          const dx = ev.clientX - lastX;
+          const dy = ev.clientY - lastY;
+          if (Math.abs(dx) + Math.abs(dy) > 3) dragMoved = true;
+          lastX = ev.clientX;
+          lastY = ev.clientY;
+          lookBy(dx, dy);
+          draw();
+          queueMove();
+        });
+        canvas.addEventListener("pointerup", function (ev) {
+          if (surface && !inspectGeometry) { dragging = false; return; }
+          if (!dragMoved) {
+            selectedId = pick(ev.clientX, ev.clientY);
+            updateSelected();
+            if (selectedId) {
+              const obj =
+                mapView && mapView.objects
+                  ? mapView.objects.find(function (item) {
+                      return item.sceneObjectId === selectedId;
+                    })
+                  : null;
+              if (
+                obj &&
+                (obj.interactionProfile === "pickup" ||
+                  obj.interactionProfile === "door")
+              ) {
+                void interact(selectedId);
+              }
+            } else if (holdingId()) {
+              void dropHeld();
+            }
+            draw();
+          }
+          dragging = false;
+          queueMove();
+        });
+
+        window.addEventListener("keydown", function (ev) {
+          if (ev.key === "Escape" || (ev.key === "Tab" && stageEl.classList.contains("exploring"))) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            exitExploration();
+            if (!rulesDrawer.hidden || !exportDrawer.hidden) {
+              ev.preventDefault();
+              closeDrawers();
+              return;
+            }
+          }
+          if (ev.target.closest && ev.target.closest("input,textarea,select,[contenteditable=true]")) return;
+          if (ev.repeat && (ev.code === "KeyE" || ev.code === "KeyG")) return;
+          if (
+            ev.code === "KeyW" ||
+            ev.code === "KeyA" ||
+            ev.code === "KeyS" ||
+            ev.code === "KeyD" ||
+            ev.code === "ArrowUp" ||
+            ev.code === "ArrowDown" ||
+            ev.code === "ArrowLeft" ||
+            ev.code === "ArrowRight"
+          ) {
+            ev.preventDefault();
+            keys[ev.code] = true;
+            stageEl.focus();
+            return;
+          }
+          if (ev.code === "KeyE") {
+            if (sceneMode) return;
+            ev.preventDefault();
+            if (viewportMode() === "play" && !(surface && !inspectGeometry)) {
+              if (document.pointerLockElement === canvas) {
+                const r = canvas.getBoundingClientRect();
+                selectedId = pick(r.left+r.width/2, r.top+r.height/2);
+              }
+              if (selectedId) void interact(selectedId);
+            }
+            return;
+          }
+          if (ev.code === "KeyG") {
+            if (sceneMode) return;
+            ev.preventDefault();
+            if (viewportMode() === "play") void dropHeld();
+            return;
+          }
+          keys[ev.code] = true;
+        });
+        window.addEventListener("keyup", function (ev) {
+          keys[ev.code] = false;
+        });
+        function clearMoveKeys() {
+          velocity.x = 0; velocity.z = 0;
+          dragging = false; looking = false;
+          keys.ShiftLeft = false; keys.ShiftRight = false;
+          [
+            "KeyW",
+            "KeyA",
+            "KeyS",
+            "KeyD",
+            "ArrowUp",
+            "ArrowDown",
+            "ArrowLeft",
+            "ArrowRight",
+          ].forEach(function (code) {
+            keys[code] = false;
+          });
+        }
+
+        function applyStreamChrome() {
+          const runtimeDown = streamPhase === "disconnected";
+          const key = streamOverlayKey(streamPhase, generationStopped, runtimeDown);
+          streamOverlay.classList.remove("banner", "blocker");
+          streamOverlay.hidden = true;
+          if (streamPhase === "connecting" || streamPhase === "reconnecting") {
+            streamOverlay.hidden = false;
+            streamOverlay.classList.add("banner");
+            streamOverlayText.textContent = t(key || "ui.streamConnecting");
+          } else if (streamPhase === "disconnected") {
+            streamOverlay.hidden = false;
+            streamOverlay.classList.add("blocker");
+            streamOverlayText.textContent = t(key || "ui.streamDisconnected");
+          }
+          const noteKey = streamPhase === "live" && generationStopped ? "ui.generationStoppedPlayable" : "";
+          streamNote.textContent = noteKey ? t(noteKey) : "";
+          streamNote.classList.toggle("visible", !!noteKey);
+          ps2Frame.classList.toggle("hidden", streamHqFallback(streamPhase) !== "none");
+        }
+        function setStreamPhase(event) {
+          streamPhase = nextStreamPhase(streamPhase, event);
+          applyStreamChrome();
+        }
+        function playerUrl() {
+          return pixelStreamingUrl + "/player.html";
+        }
+        function startPixelStream() {
+          setStreamPhase("start");
+          ps2Frame.src = playerUrl();
+          void probeSignalling();
+        }
+        async function probeSignalling() {
+          try {
+            const res = await api("/v1/play/signalling");
+            const body = await res.json();
+            if (body && body.ok) {
+              if (streamPhase === "disconnected") setStreamPhase("retry");
+              if (streamPhase !== "live") setStreamPhase("signallingUp");
+            } else {
+              setStreamPhase("disconnect");
+            }
+          } catch (error) {
+            setStreamPhase("disconnect");
+          }
+        }
+
+        ps2Frame.addEventListener("load", function () {
+          if (String(ps2Frame.src).indexOf("player.html") < 0) return;
+          if (streamPhase === "connecting" || streamPhase === "reconnecting") {
+            setStreamPhase("iceConnected");
+          }
+        });
+        streamRetry.addEventListener("click", function () {
+          setStreamPhase("retry");
+          ps2Frame.src = playerUrl() + "?reconnect=" + Date.now();
+          void probeSignalling();
+        });
+        if (hideObservationBtn) {
+          hideObservationBtn.addEventListener("click", function () {
+            hideObservation();
+            refreshStageStatus();
+          });
+        }
+        streamTimer = setInterval(probeSignalling, 4000);
+
+        window.addEventListener("blur", clearMoveKeys);
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            if (sceneTimer) clearTimeout(sceneTimer); sceneTimer=0;
+            stopAtlas();
+            clearMoveKeys();
+            stopPoll();
+          } else if (activeWorldId) { startPoll(); if (sceneMode) void startScene(); else if (surface) startAtlas(); }
+        });
+        window.addEventListener("resize", resizeCanvas);
+
+        document.querySelector(".tab").setAttribute("aria-selected", "true");
+        applyI18n();
+        document.getElementById("toggle-proxies").textContent=t("ui.sceneExport");
+        document.getElementById("export-pack").textContent=t("ui.sceneArchive");
+        resizeCanvas();
+        applyStreamChrome();
+        startPixelStream();
+        window.requestAnimationFrame(loop);
+        void refreshWorlds().then(function () {
+          if (activeWorldId) void openWorld(activeWorldId);
+        });
+      })();
+    </script>
+  </body>
+</html>

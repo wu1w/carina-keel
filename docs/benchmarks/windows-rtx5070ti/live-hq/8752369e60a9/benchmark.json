@@ -1,0 +1,48 @@
+{
+  "job_id": "8752369e60a9",
+  "mode": "hq_pbr",
+  "capability": "pbrRasterIBL",
+  "not_lumen": true,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "frames": 48,
+  "warmup_frames": 8,
+  "gpu": {
+    "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+    "vram_mib": 16303,
+    "vram_used_mib": 798,
+    "driver": "616.56"
+  },
+  "backend": "ModernGL PBR+shadowMap+IBL (NOT Lumen) OpenGL 3.3.0 NVIDIA 616.56",
+  "gl_vendor": "NVIDIA Corporation",
+  "gl_renderer": "NVIDIA GeForce RTX 5070 Ti/PCIe/SSE2",
+  "lighting": "directional PBR + shadow maps + Polyhaven HDR IBL diffuse/spec approx \u2014 not Lumen",
+  "assets_label": "render-validation assets only (Polyhaven CC0); not world-model content",
+  "scene_glb": null,
+  "used_bundled_scene": true,
+  "timings": {
+    "render_ms_p50": 0.252,
+    "render_ms_p95": 0.314,
+    "readback_encode_ms_p50": 3.74,
+    "readback_encode_ms_p95": 170.655,
+    "avg_render_ms": 0.249,
+    "avg_readback_encode_ms": 40.315,
+    "scene_load_ms": 0.103,
+    "queue_wait_ms": 37.619,
+    "wall_ms": 2575.318,
+    "network_ms": null,
+    "network_ms_note": "measure at client only",
+    "honesty": "render_ms is glFinish-synced submit+GPU; not claimed as interactive game FPS"
+  },
+  "peak_vram_mib": 928,
+  "artifacts": {
+    "before": "before.png",
+    "after": "after.png",
+    "frame_strip": "frame_strip.png",
+    "frame_timings": "frame_timings.json",
+    "ibl_preview": "ibl_irradiance_preview.png"
+  },
+  "pbrRasterIBL_verified": true
+}

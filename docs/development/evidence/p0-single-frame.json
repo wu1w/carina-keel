@@ -1,0 +1,12 @@
+{
+  "jobId": "c380f2635ff9",
+  "frames": 1,
+  "frameTimingCount": 1,
+  "frameArtifacts": [
+    "frame_0000.png"
+  ],
+  "assetId": "ac37c156cee5773d",
+  "scenePath": "assets/uploaded/ac37c156cee5773d/asset.glb",
+  "assetsLabel": "uploaded GLB assetId=ac37c156cee5773d (content-addressed upload); not world-model content",
+  "scope": "protocol validated; not visual acceptance"
+}

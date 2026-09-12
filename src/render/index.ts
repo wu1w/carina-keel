@@ -1,7 +1,9 @@
 /**
- * zh: render 模块公开出口。一期只有接口与 mock。
- * en: Public render exports. Phase 1 is the interface plus mock.
+ * zh: render 模块公开出口。mock 是缺省；HTTP 静帧是可选适配器。
+ * en: Public render exports. Mock is the default; HTTP stills are an optional adapter.
  */
 export type { Renderer } from "./renderer.js";
 export { render } from "./renderer.js";
-export { MockRenderer } from "./mock-renderer.js";
+export { MockRenderer, describeView } from "./mock-renderer.js";
+export { HttpStillRenderer } from "./http-still-renderer.js";
+export { createRenderer } from "./create-renderer.js";

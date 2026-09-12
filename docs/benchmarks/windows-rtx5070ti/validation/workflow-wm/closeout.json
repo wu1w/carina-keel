@@ -1,0 +1,70 @@
+{
+  "at": "2026-09-12T11:12:30+08:00",
+  "product": "generative-world-agent",
+  "claims": {
+    "worldModelRan": true,
+    "worldModelKind": "lingbot-world-v2-1.3b still/I2V observation",
+    "nativeMeshGenerated": false,
+    "meshProviderUrl": null,
+    "mockTavernCommitted": false,
+    "ng1": false,
+    "p2Factory": false
+  },
+  "workflow": {
+    "nlCreate": "POST /v1/sessions → SceneSpec heuristic-plan (not world-model geometry)",
+    "observe": "CARINA_RENDERER_URL=http://127.0.0.1:18791 via ssh -N aiga (ProxyJump ixiaotao-cloud)",
+    "pack": "observation still/clip only; objects.length=0",
+    "worldRuntime": "CARINA_WORLD_RUNTIME_URL=http://127.0.0.1:18794 via ssh -L carina-win",
+    "upload": "POST /v1/assets/upload live; test-double 12-byte GLB, notWorldModel=true",
+    "cook": "not run for this smoke (CARINA_WORLD_RUNTIME_COOK unset)",
+    "pixelStreaming": "http://192.168.5.16:8080/player.html HTTP 200"
+  },
+  "carina": {
+    "url": "http://127.0.0.1:18790/",
+    "health": {
+      "renderer": true,
+      "meshProvider": false,
+      "worldRuntime": true,
+      "depth": true,
+      "nativeMesh": "unset",
+      "worldModel": "lingbot-still-observation"
+    },
+    "dataDir": "/tmp/carina-wm-20260912",
+    "worldId": "01M29SHVACTNWW7J35BSFAF637"
+  },
+  "lingbot": {
+    "ckpt": "/data/disk1/models/lingbot-world-v2-1.3b-bundle",
+    "t2i": "/data/disk1/models/sdxl-turbo",
+    "nativeMesh": false,
+    "lookHttpSeconds": 25.74,
+    "still": {
+      "path": "lingbot-tavern.jpg",
+      "width": 832,
+      "height": 464,
+      "bytes": 46179
+    },
+    "clip": {
+      "fps": 8,
+      "frames": 13,
+      "first": "lingbot-clip-first.jpg",
+      "last": "lingbot-clip-last.jpg"
+    },
+    "honestVisual": "Third-person interior table with two seated figures, hanging lanterns, wooden hall. Not first-person. Not frozen GLB. Pixels are not graph truth."
+  },
+  "worldRuntimeUploadSmoke": {
+    "assetId": "54267b825b3110a5",
+    "assetHash": "54267b825b3110a5cdaba82e19d4a7a89a2fa1fc73f37efa0b56e496120e22f6",
+    "sourceLabel": "test-double",
+    "claimsWorldModelGeneration": false,
+    "byteLength": 12
+  },
+  "blocked": {
+    "native3d": "No Hunyuan/Trellis/Meshy/Tripo service on AIGA or Windows. CARINA_MESH_PROVIDER_URL left unset. generate route stays blocked. Do not treat LingBot frames or the CC0 tavern as generated mesh."
+  },
+  "code": {
+    "createSkipsMockWhenObserve": true,
+    "createRunsHttpMeshWhenUrlSetEvenWithObserve": true,
+    "ueUploadEndpoint": "POST /v1/assets/upload",
+    "ueClient": "src/runtime/ue-world-runtime-client.ts"
+  }
+}

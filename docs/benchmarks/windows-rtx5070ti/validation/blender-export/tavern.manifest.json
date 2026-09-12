@@ -1,0 +1,213 @@
+{
+  "exportId": "01M28GAEM0ACF9B39DRZJZDW5N",
+  "worldId": "01M28GAE0QBQ6DKSHANGVNWYB8",
+  "snapshotRevision": "01M28GAEH7KK2TQC4RCGJ7QZ01",
+  "profile": "blender_glb",
+  "coordinateFrame": {
+    "units": "meters",
+    "handedness": "right",
+    "up": "y",
+    "scaleStatus": "anchored"
+  },
+  "units": "meters",
+  "files": [
+    {
+      "posixPath": "scene.glb",
+      "hash": "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+      "role": "scene_glb"
+    }
+  ],
+  "objectMapping": [
+    {
+      "sceneObjectId": "mock-world-wall-west",
+      "name": "墙西",
+      "glbNode": "墙西"
+    },
+    {
+      "sceneObjectId": "mock-world-wall-east",
+      "name": "墙东",
+      "glbNode": "墙东"
+    },
+    {
+      "sceneObjectId": "mock-world-wall-south",
+      "name": "墙南",
+      "glbNode": "墙南"
+    },
+    {
+      "sceneObjectId": "mock-world-wall-north-west",
+      "name": "墙北左",
+      "glbNode": "墙北左"
+    },
+    {
+      "sceneObjectId": "mock-world-wall-north-east",
+      "name": "墙北右",
+      "glbNode": "墙北右"
+    },
+    {
+      "sceneObjectId": "mock-world-wall-north-lintel",
+      "name": "墙北楣",
+      "glbNode": "墙北楣"
+    },
+    {
+      "sceneObjectId": "mock-world-floor",
+      "name": "地板",
+      "glbNode": "地板"
+    },
+    {
+      "sceneObjectId": "mock-world-door",
+      "name": "门",
+      "glbNode": "门"
+    },
+    {
+      "sceneObjectId": "mock-world-table",
+      "name": "桌子",
+      "glbNode": "桌子"
+    },
+    {
+      "sceneObjectId": "mock-world-chair-1",
+      "name": "椅子1",
+      "glbNode": "椅子1"
+    },
+    {
+      "sceneObjectId": "mock-world-chair-2",
+      "name": "椅子2",
+      "glbNode": "椅子2"
+    },
+    {
+      "sceneObjectId": "mock-world-chair-3",
+      "name": "椅子3",
+      "glbNode": "椅子3"
+    },
+    {
+      "sceneObjectId": "mock-world-cup",
+      "name": "杯子",
+      "glbNode": "杯子"
+    },
+    {
+      "sceneObjectId": "mock-world-npc-keeper",
+      "name": "老板",
+      "glbNode": "老板"
+    },
+    {
+      "sceneObjectId": "mock-world-garden-floor",
+      "name": "花园地板",
+      "glbNode": "花园地板"
+    },
+    {
+      "sceneObjectId": "mock-world-garden-wall-west",
+      "name": "花园墙西",
+      "glbNode": "花园墙西"
+    },
+    {
+      "sceneObjectId": "mock-world-garden-wall-east",
+      "name": "花园墙东",
+      "glbNode": "花园墙东"
+    },
+    {
+      "sceneObjectId": "mock-world-garden-wall-north",
+      "name": "花园墙北",
+      "glbNode": "花园墙北"
+    },
+    {
+      "sceneObjectId": "bar",
+      "name": "吧台",
+      "glbNode": "吧台"
+    },
+    {
+      "sceneObjectId": "bar-front",
+      "name": "吧台正面",
+      "glbNode": "吧台正面"
+    },
+    {
+      "sceneObjectId": "sign",
+      "name": "招牌",
+      "glbNode": "招牌"
+    },
+    {
+      "sceneObjectId": "garden-gate",
+      "name": "园门",
+      "glbNode": "园门"
+    }
+  ],
+  "materialMapping": [
+    {
+      "materialId": "mat-wood",
+      "name": "mat-wood"
+    },
+    {
+      "materialId": "mat-cloth",
+      "name": "mat-cloth"
+    },
+    {
+      "materialId": "mat-grass",
+      "name": "mat-grass"
+    }
+  ],
+  "sourceAssets": [
+    "assets/8e0779ba5db36c9540ced08c780f5dd45e3d9c5a74f6fc7b0d0be2b927937ada.mesh.json",
+    "assets/0785de2c5778637d77065aed0332b3a88080c3b9785d7dfd123ab1e8bcbc0470.mesh.json",
+    "assets/6b1cff874a62862269064fe14ee70f5cc1f5e099231249163ac0e062422e8eb9.mesh.json",
+    "assets/e2bf7efa0bd23133dc1b2cf0306cf7fbdc794f4b4537d11e889f896f08853f6e.mesh.json",
+    "assets/1ca52ac358bb4ba388becbc99a5c944596becce6522d0431e395289242a34747.mesh.json",
+    "assets/4bf73f3fc8794d78e0071008bc2f19e53c1a5989c893a3190463c35f589ddcb3.mesh.json",
+    "assets/e6fc9e553a52ad5dee4edae49acb0563a6fc18465e8837947d5457cdf4ecc5f1.mesh.json",
+    "assets/c604cf6eb4fa79db6ec3e7b63c0d9d22c421e35b01d28faf896dafbd9ce86c32.mesh.json",
+    "assets/3b4165d6c401d3856bbe9076d710215555288adad65f98a41b0b92ad337733d0.mesh.json",
+    "assets/ed86077220481508b0d36b89c8db6594006ceea0a03b63d325ae296092be324c.mesh.json",
+    "assets/f0708195990e88e8a9563f11421b04c2333d0f257deec2409effeb91ec7cae5a.mesh.json",
+    "assets/e335eaa30a6fe256bc9f7582873f3714a075e5e6bb673d0a679640f48c065367.mesh.json",
+    "assets/a7910d40b744e8eb13ce54c6f60996f96eb0dc763ea95f854a81e048a88d5a6b.mesh.json",
+    "assets/979ddd0869f6599568160d5761277dc9a587c2a4695752754e14f8c1c6776940.mesh.json",
+    "assets/80a4a182252435a334094cff373c93ebf9525dd93e072759d5786d667277aa51.camera.json",
+    "assets/bc2583c8dbb142bd79078dbd5d1b0511c022e989bd5aa281d07716cc7ef37f8b.mesh.json",
+    "assets/ea8381bcdbbc1be66c0d85020e1f6902673a846b415aebaf8cdd664ee2251d35.mesh.json",
+    "assets/f123f793324a3150819a27d89e9729e2a64c9e23e20b50b5cc0354fe7e05b3fc.mesh.json",
+    "assets/77d4c6183a3a6a5a0f86978d3a8ae3c8fdfa1a8e0d1bc9aaa2484b0344cafe55.mesh.json",
+    "assets/06116817329870c67dc8326999b10af0dd9a3b314b75332dbd5393f6276e83a0.scene-spec.json",
+    "assets/8c9f1d5376f70e12f11c6b9e242036c34f7ba0bf5e943530ee952d504987672d.scene-spec.json",
+    "assets/7d4f1849d84ca8695bd0c32302d6771ad0d2aa4a0d8766eb33c54587a1e72e89.scene-spec.json",
+    "WORLD.md",
+    "PLAYER.md",
+    "STEWARD.md",
+    "MEMORY.md",
+    "session.json"
+  ],
+  "license": "unknown",
+  "unsupportedFeatures": [
+    "production_topology",
+    "skeletal_animation",
+    "automatic_uv_unwrap"
+  ],
+  "validationResults": [
+    {
+      "id": "named_nodes",
+      "result": "pass"
+    },
+    {
+      "id": "independent_cup",
+      "result": "pass"
+    },
+    {
+      "id": "units_meters",
+      "result": "pass"
+    },
+    {
+      "id": "no_temp_urls",
+      "result": "pass"
+    },
+    {
+      "id": "license_not_commercial",
+      "result": "pass",
+      "detail": "license=unknown"
+    },
+    {
+      "id": "committed_gltf_fidelity",
+      "result": "pass",
+      "detail": "no_gltf_assets"
+    },
+    {
+      "id": "no_primitive_substitution",
+      "result": "pass"
+    }
+  ]
+}

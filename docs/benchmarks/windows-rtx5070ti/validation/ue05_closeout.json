@@ -1,0 +1,88 @@
+{
+  "slice": "UE-05 PARTIAL reframe ONLY — STOP for Cursor",
+  "proven": [
+    "Avocado spawned in ue05-avocado (assetId 85ae91e60ed519f5) alongside BoomBox — scene playable",
+    "streamer logs this reframe: 0x Missing shader / Failed to compile Material for Avocado",
+    "127.0.0.1:18794 LISTENING WorldRuntime pid 18932 untouched",
+    "127.0.0.1:18793 LISTENING sidecar pid 2108 untouched",
+    "Win→vps -R 18794 reverse tunnel pid 20452 untouched",
+    "Mac validation/ue05/ received reframe attempt PNGs (PARTIAL — not fruit-proof)"
+  ],
+  "item_reframe": {
+    "assetHash": "85ae91e60ed519f53a7e2096508837fedd446dcc450f8e05678b7a204679bd12",
+    "evidence": {
+      "streamer_logs": [
+        "C:/Users/wuyw/carina-rtx-validation/logs/ue05_streamer_reframe6.log",
+        "C:/Users/wuyw/carina-rtx-validation/logs/ue05_streamer_reframe7.log",
+        "C:/Users/wuyw/carina-rtx-validation/logs/ue05_streamer_reframe_final.log"
+      ],
+      "reframe_json": "C:/Users/wuyw/carina-rtx-validation/logs/ue05_reframe_capture.json",
+      "win_stage": "C:/Users/wuyw/carina-rtx-validation/logs/ue05_for_mac/"
+    },
+    "world": "ue05-avocado",
+    "fruit_pbr_visible_in_stills": false,
+    "files": [
+      "ue05_avocado_front_framed.png",
+      "ue05_avocado_side_framed.png"
+    ],
+    "position_note": "Carina (2,0,2.2) / UE(200,220,*) is BLACK VOID on this host ThirdPerson map (PS probe confirmed). Avocado placed in lit playable zone Carina ~(22,1,0) scale 3; BoomBox kept playable at ~(25,0.35,3) scale 4.",
+    "missing_shader_hits": 0,
+    "status": "PARTIAL",
+    "avocado_spawned": true,
+    "assetId": "85ae91e60ed519f5",
+    "boombox_playable": true,
+    "method_tried": [
+      "player_pose + BugItGo + HighResShot",
+      "PS uiless.html video canvas grab",
+      "ShowFlag.SkeletalMeshes 0",
+      "ToggleDebugCamera (left residual debug overlay; abandoned after D3D12 crashes)",
+      "scale sweep 1.5..50; standoff sweep; Unlit+ExposureOffset"
+    ],
+    "stills_note": "New reframe attempt PNGs copied for Cursor review; visual inspection still shows sky/dark shards/occlusion — NOT accepted as avocado-fruit proof. Shader-side avocado remains GREEN (0 Missing-shader).",
+    "requested": "FRONT+SIDE HighResShot of Khronos Avocado fruit with recognizable green/brown PBR"
+  },
+  "win_paths": {
+    "closeout": "C:/Users/wuyw/carina-rtx-validation/logs/ue05_closeout.json",
+    "stills_staged": "C:/Users/wuyw/carina-rtx-validation/logs/ue05_for_mac/"
+  },
+  "item3_tunnels": {
+    "status": "GREEN",
+    "services_untouched": true,
+    "18794_listening": "TCP 127.0.0.1:18794 LISTENING pid 18932 (python world_runtime)",
+    "18793_listening": "TCP 127.0.0.1:18793 LISTENING pid 2108 intact",
+    "tunnel_18793_untouched": true,
+    "reverse_tunnel_18794_pid": 20452
+  },
+  "item1_avocado_real_materials": {
+    "status": "GREEN",
+    "registry_shaderMergeOk": true,
+    "shaderMapHash": "03303C52B6749A75",
+    "note": "Unchanged from prior UE-05 cook MERGE; no re-cook this reframe slice",
+    "missing_shader_hits": 0,
+    "default_material_fallback": false,
+    "material": "2256_Avocado_d"
+  },
+  "mac_paths": {
+    "closeout": "/Users/william/world/docs/benchmarks/windows-rtx5070ti/validation/ue05_closeout.json",
+    "pngs": "/Users/william/world/docs/benchmarks/windows-rtx5070ti/validation/ue05/"
+  },
+  "timestamp_utc": "2026-09-11T10:48:51Z",
+  "constraints_ok": {
+    "no_cook_redone": true,
+    "boombox_playable": true,
+    "no_full_ShaderArchive_replace": true,
+    "tunnels_18793_18794_untouched": true,
+    "no_p0_claim": true,
+    "no_mac_src": true
+  },
+  "timestamp_asia_shanghai": "2026-09-11 18:48",
+  "p0_p1_claim": "NOT claimed complete — stop for Cursor",
+  "blocked": [
+    "Reframe stills do not yet show recognizable Khronos Avocado fruit PBR (green/brown) — camera framing / mesh silhouette remain PARTIAL",
+    "Carina (2,0,2.2) is black void on host map; used lit-zone Carina ~(22,1,0) instead",
+    "ToggleDebugCamera + repeated HighResShot correlated with D3D12 residency crashes; abandoned",
+    "P0/P1 not claimed complete"
+  ],
+  "agent": "Grok Bot / ling (Windows UE)",
+  "reframe_status": "PARTIAL"
+}

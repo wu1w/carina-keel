@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 import { ulid } from "ulid";
 import { CarinaError } from "../errors.js";
 import { NodeType, type GraphFile, type SessionFile } from "../schema/index.js";
+import { ensureV1Directories } from "./migrate-v1.js";
 import { encodeJson } from "./open.js";
+import { ensureV1 } from "./revision.js";
 import { isNodeErrno } from "./sandbox.js";
 
 const MARKDOWN_FILES = [
@@ -62,6 +64,8 @@ export async function createPack(
       encodeJson(session),
       "utf8",
     );
+    await ensureV1Directories(resolvedDir);
+    await ensureV1(resolvedDir);
   } catch (error) {
     if (error instanceof CarinaError) {
       throw error;

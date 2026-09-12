@@ -3,14 +3,14 @@ import { loadConfig } from "../../config.js";
 import { t } from "../../i18n/index.js";
 import { startHttpServer } from "../../server/index.js";
 import { waitForStopSignal } from "../daemon.js";
-import { requirePackPath, resolveConfig } from "../resolve-config.js";
-import { printStatus, runSafely } from "../run-safely.js";
+import { resolveConfig } from "../resolve-config.js";
+import { runSafely } from "../run-safely.js";
 
 const lang = loadConfig().lang;
 
 /**
- * zh: 启动本机 HTTP daemon。
- * en: Start the local HTTP daemon.
+ * zh: 启动本机 HTTP daemon。世界包可选。
+ * en: Start the local HTTP daemon. Pack path is optional.
  */
 export const serveCommand = defineCommand({
   meta: {
@@ -27,13 +27,6 @@ export const serveCommand = defineCommand({
   async run({ args }) {
     await runSafely(lang, async () => {
       const config = resolveConfig(args.pack);
-      try {
-        requirePackPath(config);
-      } catch {
-        printStatus("cli.needPack", lang);
-        process.exitCode = 1;
-        return;
-      }
       const { close } = await startHttpServer(config);
       await waitForStopSignal(close);
     });
