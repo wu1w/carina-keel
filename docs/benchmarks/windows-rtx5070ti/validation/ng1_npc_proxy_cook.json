@@ -1,0 +1,46 @@
+{
+  "probe": "ng1-npc-proxy-cook",
+  "at": "2026-09-13T00:07:20.292Z",
+  "notWorldModel": true,
+  "claimsWorldModelGeneration": false,
+  "sourceLabel": "proxy-mesh",
+  "pack": {
+    "dataDir": "/tmp/carina-ng1",
+    "worldId": "01M2AVSF55FF1J4SR3V0FPBC53"
+  },
+  "npcIds": [
+    "ng1-i23d-npc-keeper"
+  ],
+  "publishResult": {
+    "ok": true,
+    "cooked": true,
+    "spawned": [
+      "ng1-i23d-npc-keeper"
+    ],
+    "uploads": [
+      {
+        "assetId": "d590f36946b0d45d",
+        "assetHash": "d590f36946b0d45deee79e864e9cbdd1a71867e8aed2a231d6a26b893cda2878",
+        "sourceLabel": "proxy-mesh",
+        "claimsWorldModelGeneration": false
+      }
+    ],
+    "ms": 7798
+  },
+  "live": {
+    "objects": [
+      "bar-front",
+      "fireplace",
+      "courtyard-feature",
+      "interior-garden-floor",
+      "interior-garden-wall-west",
+      "interior-garden-wall-east",
+      "interior-garden-wall-south",
+      "ng1-i23d-npc-keeper"
+    ]
+  },
+  "verdict": {
+    "cookedAndSpawned": true,
+    "neverClaimsWorldModel": true
+  }
+}

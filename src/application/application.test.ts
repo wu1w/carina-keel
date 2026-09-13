@@ -27,6 +27,7 @@ function testConfig(dataDir: string): CarinaConfig {
     pack: undefined,
     lang: "zh",
     dataDir,
+    allowPrimitiveFixture: true,
   };
 }
 
@@ -70,6 +71,72 @@ async function withApp(
     await rm(dataDir, { recursive: true, force: true });
   }
 }
+
+/**
+ * zh: 夹具创建必须标明 fixture，不得写成 http / 世界模型。
+ * en: Fixture create must label fixture, not http / world-model.
+ */
+test("fixture session.create labels source fixture not native mesh", async () => {
+  await withApp(async (app) => {
+    const created = await app.dispatchCommand(
+      baseCommand("session.create", { arguments: { name: "酒馆" } }),
+    );
+    assert.equal(created.accepted, true);
+    const source = created.payload?.["source"] as
+      | { nativeMesh?: string; worldModel?: string }
+      | undefined;
+    assert.equal(source?.nativeMesh, "fixture");
+    assert.equal(source?.worldModel, "none");
+    assert.match(String(created.payload?.["text"] ?? ""), /夹具/);
+    const worldId = created.worldId;
+    assert.ok(worldId !== undefined);
+    const view = await app.getSessionView(worldId);
+    assert.equal(
+      view.snapshot.objects.some((item) => item.name === "门"),
+      true,
+    );
+  });
+});
+
+/**
+ * zh: 生产未配网格 URL 时不得把盒子酒馆当成生成结果提交。
+ * en: Production without a mesh URL must not commit the box tavern as generation.
+ */
+test("session.create without mesh URL or fixture does not commit a primitive tavern", async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "carina-app-nomesh-"));
+  const app = createApplication({
+    apiKey: undefined,
+    model: "gpt-4o-mini",
+    modelBaseUrl: "https://api.openai.com/v1",
+    token: "dev-token",
+    port: 18790,
+    pack: undefined,
+    lang: "zh",
+    dataDir,
+  });
+  try {
+    const created = await app.dispatchCommand(
+      baseCommand("session.create", { arguments: { name: "酒馆" } }),
+    );
+    assert.equal(created.accepted, true);
+    const source = created.payload?.["source"] as
+      | { nativeMesh?: string; worldModel?: string }
+      | undefined;
+    assert.equal(source?.nativeMesh, "none");
+    assert.equal(source?.worldModel, "none");
+    assert.match(String(created.payload?.["text"] ?? ""), /没有三维生成后端/);
+    const worldId = created.worldId;
+    assert.ok(worldId !== undefined);
+    const view = await app.getSessionView(worldId);
+    assert.equal(
+      view.snapshot.objects.some((item) => item.name === "门"),
+      false,
+    );
+  } finally {
+    await app.close();
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
 
 /**
  * zh: A1：创建酒馆与空间站，切换回来，名字与 WORLD.md 隔离。
@@ -195,6 +262,117 @@ test("A5 run advances the clock; pause freezes simTime", async () => {
     await delay(80);
     const afterWait = await app.getSessionView(worldId);
     assert.equal(afterWait.runtime.simTime, afterSecond.runtime.simTime);
+
+    const resumed = await app.dispatchCommand(
+      baseCommand("world.run", { worldId }),
+    );
+    assert.equal(resumed.accepted, true);
+    await delay(80);
+    const runningAgain = await app.getSessionView(worldId);
+    assert.equal(runningAgain.runtime.runState, "running");
+    assert.ok(runningAgain.runtime.simTime > afterSecond.runtime.simTime);
+  });
+});
+
+/**
+ * zh: A3：门高两米按已提交 AABB 核对 ≤5cm。不是世界模型网格。
+ * en: A3: door-two-meters-high checks committed AABB within 5cm. Not a world-model mesh.
+ */
+test("A3 door height calibrate stays within 5cm on committed bounds", async () => {
+  await withApp(async (app) => {
+    const created = await app.interpretAndDispatch(
+      "新建一个酒馆",
+      "natural_language",
+      undefined,
+      "user",
+    );
+    const worldId = created[0]?.worldId;
+    assert.ok(worldId !== undefined);
+
+    const calibrated = await app.interpretAndDispatch(
+      "门高两米",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(calibrated[0]?.accepted, true);
+    assert.equal(calibrated[0]?.payload?.["metricCheck"], "committed-bounds");
+    assert.equal(calibrated[0]?.payload?.["toleranceMeters"], 0.05);
+
+    const after = await app.getSessionView(worldId);
+    const door = after.snapshot.objects.find(
+      (item) => item.interactionProfile === "door",
+    );
+    assert.ok(door !== undefined);
+    const height = door.bounds.max.y - door.bounds.min.y;
+    assert.ok(Math.abs(height - 2) <= 0.05);
+  });
+});
+
+/**
+ * zh: A3：桌子向窗边一米按已提交 AABB 核对；窗是夹具参照，不是世界模型网格。
+ * en: A3: table one meter toward the window checks committed AABB. The window is a fixture referent, not a world-model mesh.
+ */
+test("A3 table toward window stays within 5cm on committed bounds", async () => {
+  await withApp(async (app) => {
+    const created = await app.interpretAndDispatch(
+      "新建一个酒馆",
+      "natural_language",
+      undefined,
+      "user",
+    );
+    const worldId = created[0]?.worldId;
+    assert.ok(worldId !== undefined);
+    const before = await app.getSessionView(worldId);
+    const tableBefore = before.snapshot.objects.find((item) => item.name === "桌子");
+    const windowPane = before.snapshot.objects.find((item) => item.name === "窗");
+    const chairBefore = before.snapshot.objects.find((item) => item.name === "椅子1");
+    assert.ok(tableBefore !== undefined);
+    assert.ok(windowPane !== undefined);
+    assert.ok(chairBefore !== undefined);
+    const distBefore = Math.hypot(
+      tableBefore.transform.position.x - windowPane.transform.position.x,
+      tableBefore.transform.position.z - windowPane.transform.position.z,
+    );
+
+    const calibrated = await app.interpretAndDispatch(
+      "把桌子向窗边移动一米，其他东西别动",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(calibrated[0]?.accepted, true);
+    assert.equal(calibrated[0]?.payload?.["metricCheck"], "committed-bounds");
+    assert.equal(calibrated[0]?.payload?.["towardObjectId"], "window");
+
+    const after = await app.getSessionView(worldId);
+    const tableAfter = after.snapshot.objects.find((item) => item.name === "桌子");
+    const windowAfter = after.snapshot.objects.find((item) => item.name === "窗");
+    const chairAfter = after.snapshot.objects.find((item) => item.name === "椅子1");
+    assert.ok(tableAfter !== undefined);
+    assert.ok(windowAfter !== undefined);
+    assert.ok(chairAfter !== undefined);
+    const distAfter = Math.hypot(
+      tableAfter.transform.position.x - windowAfter.transform.position.x,
+      tableAfter.transform.position.z - windowAfter.transform.position.z,
+    );
+    assert.ok(Math.abs(distBefore - distAfter - 1) <= 0.05);
+    assert.equal(chairAfter.transform.position.x, chairBefore.transform.position.x);
+    assert.equal(chairAfter.transform.position.z, chairBefore.transform.position.z);
+    assert.equal(windowAfter.transform.position.x, windowPane.transform.position.x);
+
+    const missing = await app.dispatchCommand(
+      baseCommand("spatial.calibrate", {
+        worldId,
+        arguments: {
+          objectId: "table",
+          towardObjectId: "灯塔",
+          meters: 1,
+        },
+      }),
+    );
+    assert.equal(missing.accepted, false);
+    assert.equal(missing.messageKey, "error.noReferent");
   });
 });
 
@@ -248,6 +426,7 @@ test("A10 append no-teleport; teleport rejected; global identity not in MEMORY.m
     );
     assert.equal(teleport.accepted, false);
     assert.equal(teleport.code, "COMMAND_REJECTED");
+    assert.equal(teleport.messageKey, "error.noTeleport");
 
     const afterTeleport = await app.getSessionView(worldId);
     assert.equal(afterTeleport.snapshot.objects.length, objectCount);
@@ -277,6 +456,130 @@ test("A10 append no-teleport; teleport rejected; global identity not in MEMORY.m
       ),
       false,
     );
+  });
+});
+
+/**
+ * zh: A10：没有魔法拒绝施法；禁止生成不种花园；后加条款仍写入快照。
+ * en: A10: no magic rejects cast; generation forbid does not plant a garden; later clauses still commit.
+ */
+test("A10 no-magic and generation-forbid reject; later clauses still commit", async () => {
+  await withApp(async (app) => {
+    const created = await app.interpretAndDispatch(
+      "新建一个酒馆",
+      "natural_language",
+      undefined,
+      "user",
+    );
+    const worldId = created[0]?.worldId;
+    assert.ok(worldId !== undefined);
+
+    const magicRule = await app.interpretAndDispatch(
+      "打开世界规则，写上没有魔法",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(magicRule[0]?.accepted, true);
+    const afterMagic = await app.getSessionView(worldId);
+    assert.equal(
+      afterMagic.snapshot.worldRules.clauses.some(
+        (clause) => clause.kind === "no_magic",
+      ),
+      true,
+    );
+
+    const cast = await app.dispatchCommand(
+      baseCommand("player.act", {
+        worldId,
+        mode: "player",
+        arguments: { action: "cast" },
+        text: "我施法",
+      }),
+    );
+    assert.equal(cast.accepted, false);
+    assert.equal(cast.messageKey, "error.noMagic");
+
+    const forbid = await app.interpretAndDispatch(
+      "打开世界规则，写上禁止生成",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(forbid[0]?.accepted, true);
+    const afterForbid = await app.getSessionView(worldId);
+    assert.equal(
+      afterForbid.snapshot.worldRules.clauses.some(
+        (clause) => clause.kind === "generation_forbid",
+      ),
+      true,
+    );
+    assert.equal(
+      afterForbid.snapshot.worldRules.clauses.some(
+        (clause) => clause.kind === "no_magic",
+      ),
+      true,
+    );
+    const regionCount = afterForbid.snapshot.regions.length;
+
+    const extended = await app.interpretAndDispatch(
+      "在门外生成花园",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(extended[0]?.accepted, false);
+    assert.equal(extended[0]?.messageKey, "error.generationForbid");
+    const afterExtend = await app.getSessionView(worldId);
+    assert.equal(afterExtend.snapshot.regions.length, regionCount);
+  });
+});
+
+/**
+ * zh: 无法抽出的法则只进 stewardConstraints，不拦扩展。
+ * en: Unstructured laws stay steward constraints and do not block extend.
+ */
+test("A10 unstructured tavern rule stays steward constraint and does not block extend", async () => {
+  await withApp(async (app) => {
+    const created = await app.interpretAndDispatch(
+      "新建一个酒馆",
+      "natural_language",
+      undefined,
+      "user",
+    );
+    const worldId = created[0]?.worldId;
+    assert.ok(worldId !== undefined);
+
+    const prose = await app.interpretAndDispatch(
+      "打开世界规则，写上酒只卖给熟人",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(prose[0]?.accepted, true);
+    const after = await app.getSessionView(worldId);
+    assert.equal(
+      after.snapshot.worldRules.stewardConstraints.some((line) =>
+        line.includes("酒只卖给熟人"),
+      ),
+      true,
+    );
+    assert.equal(
+      after.snapshot.worldRules.clauses.some(
+        (clause) => clause.kind === "generation_forbid",
+      ),
+      false,
+    );
+
+    const extended = await app.interpretAndDispatch(
+      "在门外生成花园",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(extended[0]?.accepted, true);
+    const grown = await app.getSessionView(worldId);
+    assert.ok(grown.snapshot.regions.length >= 2);
   });
 });
 
@@ -338,6 +641,45 @@ test("same commandId twice does not duplicate objects", async () => {
 });
 
 /**
+ * zh: 进程重启后同一 commandId 仍幂等，不复制世界。
+ * en: After process restart the same commandId stays idempotent and does not duplicate the world.
+ */
+test("commandId results persist across application restart", async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "carina-idemp-"));
+  const commandId = createUlid();
+  try {
+    const first = createApplication(testConfig(dataDir));
+    const created = await first.dispatchCommand(
+      baseCommand("session.create", {
+        commandId,
+        arguments: { name: "酒馆" },
+      }),
+    );
+    assert.equal(created.accepted, true);
+    const worldId = created.worldId;
+    assert.ok(worldId !== undefined);
+    const listed1 = await first.listSessions();
+    assert.equal(listed1.worlds.length, 1);
+    await first.close();
+
+    const second = createApplication(testConfig(dataDir));
+    const replayed = await second.dispatchCommand(
+      baseCommand("session.create", {
+        commandId,
+        arguments: { name: "酒馆" },
+      }),
+    );
+    assert.equal(replayed.accepted, true);
+    assert.equal(replayed.worldId, worldId);
+    const listed2 = await second.listSessions();
+    assert.equal(listed2.worlds.length, 1);
+    await second.close();
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
+/**
  * zh: 暂停不需要 apiKey。
  * en: Pause does not require an apiKey.
  */
@@ -364,8 +706,17 @@ test("pause does not require apiKey", async () => {
     const view = await app.getSessionView(worldId);
     assert.equal(view.runtime.runState, "paused");
 
-    const rejected = await app.interpretAndDispatch(
+    const calibrated = await app.interpretAndDispatch(
       "把桌子向窗边移动一米，其他东西别动",
+      "natural_language",
+      worldId,
+      "user",
+    );
+    assert.equal(calibrated[0]?.accepted, true);
+    assert.equal(calibrated[0]?.payload?.["metricCheck"], "committed-bounds");
+
+    const rejected = await app.interpretAndDispatch(
+      "这句话没有对应的控制意图xyz",
       "natural_language",
       worldId,
       "user",

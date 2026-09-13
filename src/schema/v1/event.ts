@@ -73,6 +73,17 @@ export const runtimeSnapshotSchema = z.object({
         z: z.number(),
       }),
       goal: z.string().optional(),
+      /**
+       * zh: 外观。proxy-mesh 是可导出的代理网格，不是生成角色，也不是胶囊碰撞体本身。
+       * en: Appearance. proxy-mesh is an exportable stand-in, not a generated character
+       *     and not the capsule collider itself.
+       */
+      appearance: z
+        .object({
+          kind: z.enum(["proxy-mesh", "capsule"]),
+          sourceLabel: z.string().min(1).optional(),
+        })
+        .optional(),
     }),
   ),
 });

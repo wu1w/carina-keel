@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { unzipSync } from "fflate";
 import { CarinaError } from "../errors.js";
-import { exportZip, type PackHandle } from "../pack/index.js";
+import { exportZip, writeMarkdown, type PackHandle } from "../pack/index.js";
 import { MockRenderer } from "../render/index.js";
 import {
   EdgeType,
@@ -485,6 +485,56 @@ test("attach copies a pack file, writes sidecar, and binds an Asset", async () =
     assert.equal(sidecar.nodeId, place.id);
     assert.equal(sidecar.posixPath, "assets/note.txt");
     assert.equal(sidecar.kind, "note");
+  } finally {
+    await removeHarness(packDir);
+  }
+});
+
+test("legacy go spawn relate honor WORLD.md clauses", async () => {
+  const { ctx, packDir } = await createHarness();
+  try {
+    const place = spawnedNode(
+      await executeTool("spawn", { type: NodeType.Place, name: "Tavern" }, ctx),
+    );
+    const bar = spawnedNode(
+      await executeTool(
+        "spawn",
+        { type: NodeType.Entity, name: "吧台", placeId: place.id },
+        ctx,
+      ),
+    );
+    await writeMarkdown(ctx.packHandle, "WORLD.md", "禁止瞬移。\n");
+    await assert.rejects(
+      () => executeTool("go", { placeId: place.id }, ctx),
+      (error: unknown) =>
+        error instanceof CarinaError &&
+        error.code === "COMMAND_REJECTED" &&
+        error.messageKey === "error.noTeleport",
+    );
+    await writeMarkdown(ctx.packHandle, "WORLD.md", "禁止生成。\n");
+    await assert.rejects(
+      () =>
+        executeTool(
+          "spawn",
+          { type: NodeType.Entity, name: "Innkeeper", placeId: place.id },
+          ctx,
+        ),
+      (error: unknown) =>
+        error instanceof CarinaError && error.code === "COMMAND_REJECTED",
+    );
+    await writeMarkdown(ctx.packHandle, "WORLD.md", "锁定吧台。\n");
+    await assert.rejects(
+      () =>
+        executeTool(
+          "relate",
+          { fromId: bar.id, toId: place.id, type: EdgeType.Knows },
+          ctx,
+        ),
+      (error: unknown) =>
+        error instanceof CarinaError &&
+        error.code === "COMMAND_REJECTED" &&
+        error.messageKey === "error.lockObject",
+    );
   } finally {
     await removeHarness(packDir);
   }

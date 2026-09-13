@@ -13,6 +13,7 @@ import {
   type WorldCommand,
 } from "../schema/index.js";
 import { sha256Hex } from "../pack/hash.js";
+import { listCheckpoints } from "../pack/index.js";
 import { createUlid } from "../world/ids.js";
 import { createSceneService, positionSchema } from "../world-scene/service.js";
 import { createExplorationLoader } from "./exploration.js";
@@ -263,6 +264,31 @@ export function registerSessionRoutes(
           }),
         });
       }
+    });
+  });
+
+  app.get("/v1/sessions/:worldId/checkpoints", (c) => {
+    return withApplication(c, application, lang, async (bound) => {
+      const worldId = c.req.param("worldId");
+      const view = await bound.getSessionView(worldId);
+      const packDir = packDirOfWorld(await bound.listSessions(), worldId);
+      const checkpoints =
+        packDir !== undefined
+          ? await listCheckpoints(packDir)
+          : [
+              {
+                revision: view.snapshot.revision,
+                parentRevision: view.snapshot.parentRevision,
+                createdAt: view.snapshot.createdAt,
+                summary: "",
+                current: true,
+              },
+            ];
+      return c.json({
+        worldId,
+        currentRevision: view.snapshot.revision,
+        checkpoints,
+      });
     });
   });
 
@@ -656,6 +682,35 @@ function stripBytes(value: unknown): unknown {
     return out;
   }
   return value;
+}
+
+/**
+ * zh: 从 listSessions 原形取出某世界的 packDir。
+ * en: Read a world's packDir from the raw listSessions shape.
+ */
+function packDirOfWorld(raw: unknown, worldId: string): string | undefined {
+  const rows = Array.isArray(raw)
+    ? raw
+    : raw !== null &&
+        typeof raw === "object" &&
+        Array.isArray((raw as { worlds?: unknown }).worlds)
+      ? (raw as { worlds: unknown[] }).worlds
+      : [];
+  for (const row of rows) {
+    if (row === null || typeof row !== "object") {
+      continue;
+    }
+    const record = row as Record<string, unknown>;
+    const id =
+      (typeof record["worldId"] === "string" && record["worldId"]) ||
+      (typeof record["sessionId"] === "string" && record["sessionId"]) ||
+      "";
+    const packDir = record["packDir"];
+    if (id === worldId && typeof packDir === "string" && packDir.length > 0) {
+      return packDir;
+    }
+  }
+  return undefined;
 }
 
 /**

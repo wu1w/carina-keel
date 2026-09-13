@@ -145,10 +145,16 @@ export {
   type VisualAcceptance,
   type WorldCommand,
   type WorldEvent,
+  type WorldModelSource,
+  type WorldModelSpaceProvider,
   type WorldRuleClause,
   type WorldRules,
   type WorldSessionRecord,
   type WorldSnapshot,
+  WORLD_MODEL_SPACE_PROVIDERS,
+  isWorldModelSpaceProvider,
+  worldModelSourceSchema,
+  worldModelSpaceProviderSchema,
 } from "./v1/index.js";
 export {
   renderClipSchema,

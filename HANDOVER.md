@@ -1,14 +1,14 @@
-# Carina / 龙骨 — 交接文档
+# Carina / 龙骨 — 环境交接（历史文档）
 
-> 历史联调记录（2026-09-10）：本文描述 v0.5 范围与当前原型环境，不再作为下一版产品边界。最新要求以 [PRD v1.0](PRD.md)、[模块架构](ARCHITECTURE.md) 和 [实施路线](NEXT_ITERATION_PLAN.md) 为准。下文“画面只作插画”“八工具/本体锁死”等属于旧设计；服务路径与操作注意事项仍供现有环境参考。
+> **本文不是当前状态。** 项目距离设计目标还差多少、哪些验收过了、下一步做什么，**唯一口径**是 [`docs/development/DESIGN_CHECKLIST.md`](./docs/development/DESIGN_CHECKLIST.md)；阶段证据索引在 [`docs/development/P0_PROGRESS.md`](./docs/development/P0_PROGRESS.md)。目标规格见 [PRD v1.0](PRD.md)，实施顺序见 [NG-1](./docs/NEXT_GENERATION_PLAN.md)。
+>
+> 本文保留的是 2026-09-10 v0.5 联调时的**环境事实**：机器、隧道、端口、权重路径、sidecar 启停、环境变量。下文“八工具 / 本体锁死 / 画面只作插画 / `main` 是 `94352b9`”等描述是旧设计与旧基线，已被取代；`carina spawn` / `go` 等图谱命令现在挂在 `carina legacy` 下。
 
-- 日期：2026-09-10
-- 读者：接着改代码、接模型、或复现「湖边酒馆」联调的人
+- 日期：2026-09-10（环境部分 2026-09-12 仍有效，见 §5–§6、§6.10）
+- 读者：需要复现 AIGA / Windows 联调环境的人
 - 原产品需求：[`PRD v0.5`](./docs/archive/PRD-v0.5.md)（已归档）
 - 仓库：https://github.com/wu1w/carina-keel
 - 本机工作区：`/Users/william/world`（跟踪 `origin/main`）
-
-**先读这段：** GitHub `main`（`94352b9`）是可交付的第一期核心（包、八工具、管家、loopback HTTP、MCP、纯文本 `look`）。**画面短片、HTTP 渲染器、LingBot sidecar、按需求烘焙种子图**目前还在本机工作区，**尚未 push**。只 clone `main` 看不到联调代码。交接前先 `git status`。
 
 ---
 
@@ -151,6 +151,7 @@ CARINA_API_KEY=local \
 CARINA_MODEL=grok-4.6 \
 CARINA_MODEL_BASE_URL=http://127.0.0.1:18645/v1 \
 CARINA_RENDERER_URL=http://127.0.0.1:18791 \
+CARINA_MESH_PROVIDER_URL=http://127.0.0.1:18795 \
 CARINA_PORT=18790 \
 pnpm exec tsx src/cli/main.ts serve /tmp/carina-demo.carina
 ```
@@ -309,6 +310,11 @@ Carina（只在 `src/config.ts`）：
 | `CARINA_MODEL` | `grok-4.6` | `gpt-4o-mini` |
 | `CARINA_MODEL_BASE_URL` | `http://127.0.0.1:18645/v1` | OpenAI |
 | `CARINA_RENDERER_URL` | `http://127.0.0.1:18791` | 无 → mock |
+| `CARINA_MESH_PROVIDER_URL` | `http://127.0.0.1:18795`（AIGA TripoSR，经隧道） | 无 → 不提交盒子酒馆 |
+| `CARINA_SPACE_PROVIDER_URL` | `http://127.0.0.1:18796`（Windows WorldGen，经 `ssh -L`） | 无 → 不声称世界模型 |
+| `CARINA_WORLD_RUNTIME_URL` | `http://127.0.0.1:18794` | 无 → 不发布到 UE |
+| `CARINA_WORLD_RUNTIME_WORLD_ID` | `ng1-i23d` | 未设则用 Carina worldId |
+| `CARINA_WORLD_RUNTIME_COOK` | 未设（配了 WR 即默认 cook） | `0` = 只上传 |
 | `CARINA_PORT` | `18790` | `18790` |
 
 Sidecar：
@@ -379,10 +385,6 @@ Sidecar：
 
 ---
 
-## 11. 建议的下一步（未做）
+## 11. 下一步
 
-- 把工作区里的渲染/sidecar 改动提交并推到 `carina-keel`。
-- 把 `/tmp/carina-demo.carina` 导出成仓库外的 zip，避免重启丢失。
-- I2V 的 `action_path` 换成更接近 idle 的位姿，减少湖景相机。
-- 刷新后 caption 带上地点名（`GET /v1/view` 现无元数据）。
-- 若要更高画质：更大世界模型或商用 `Renderer`，仍走 HTTP，不进核心。
+不在本文维护。见 [`docs/development/DESIGN_CHECKLIST.md`](./docs/development/DESIGN_CHECKLIST.md) 的「杀伤力待办」。

@@ -17,6 +17,7 @@ import type {
   SceneObject,
   SceneSpec,
   ValidationReport,
+  WorldModelSource,
   WorldSessionRecord,
   WorldSnapshot,
   WorldRules,
@@ -174,10 +175,27 @@ export type GenerationProvider = {
     name: string;
     purpose: JobPurpose;
     sceneSpec?: SceneSpec;
+    mode?: "create" | "extend";
+    camera?: {
+      position: { x: number; y: number; z: number };
+      yaw: number;
+    };
+    preserve?: Array<{ posixPath: string; hash: string }>;
+    seam?: {
+      position: { x: number; y: number; z: number };
+      fromRegionId: string;
+      toRegionId: string;
+    };
   }): Promise<{
     regions: RegionRevision[];
     objects: SceneObject[];
     assets?: GeneratedSceneAsset[];
+    /**
+     * zh: 本次真实走过的整空间世界模型来源（空间壳）。未设 `CARINA_SPACE_PROVIDER_URL` 时永远 undefined。
+     * en: Whole-space world-model provenance actually used this run (space shell). Always undefined
+     *     without `CARINA_SPACE_PROVIDER_URL`.
+     */
+    worldModel?: WorldModelSource;
   }>;
 };
 

@@ -27,7 +27,7 @@ const io = new WebIO().setLogger(new Logger(Logger.Verbosity.ERROR));
  */
 function testConfig(
   dataDir: string,
-  extra: { meshProviderUrl?: string } = {},
+  extra: { meshProviderUrl?: string; worldRuntimeCook?: boolean } = {},
 ): CarinaConfig {
   const config: CarinaConfig = {
     apiKey: undefined,
@@ -38,9 +38,20 @@ function testConfig(
     pack: undefined,
     lang: "zh",
     dataDir,
+    allowPrimitiveFixture: true,
   };
+  if (extra.meshProviderUrl !== undefined && extra.worldRuntimeCook === true) {
+    return {
+      ...config,
+      meshProviderUrl: extra.meshProviderUrl,
+      worldRuntimeCook: true,
+    };
+  }
   if (extra.meshProviderUrl !== undefined) {
     return { ...config, meshProviderUrl: extra.meshProviderUrl };
+  }
+  if (extra.worldRuntimeCook === true) {
+    return { ...config, worldRuntimeCook: true };
   }
   return config;
 }
@@ -103,9 +114,14 @@ test("native-mesh create stages GLB, freeze keeps it, reopen export parses the d
     const doorPlan = beforeFreeze.assetPlan?.items.find(
       (item) => item.objectId === "door",
     );
-    assert.equal(doorPlan?.status, "reuse-resolved");
-    assert.equal(doorPlan?.catalogId, "oak-door");
+    assert.equal(doorPlan?.status, "generate-complete");
+    assert.equal(doorPlan?.catalogId, undefined);
     assert.equal(typeof doorPlan?.assetHash, "string");
+    const chairPlan = beforeFreeze.assetPlan?.items.find(
+      (item) => item.objectId === "chair",
+    );
+    assert.equal(chairPlan?.status, "reuse-resolved");
+    assert.equal(chairPlan?.catalogId, "oak-chair");
     assert.equal(beforeFreeze.factoryManifest?.claimsWorldModelGeneration, false);
     assert.equal(
       beforeFreeze.factoryManifest?.generator,
@@ -266,6 +282,7 @@ test("create with observe and mesh URL stages HTTP GLB without waiting for a sti
               cook: input.cook,
               claims: input.claimsWorldModelGeneration,
               count: input.assets.length,
+              names: input.assets.map((asset) => asset.originalFilename),
             });
             return {
               ok: true,
@@ -314,13 +331,30 @@ test("create with observe and mesh URL stages HTTP GLB without waiting for a sti
         | { nativeMesh?: string; worldModel?: string }
         | undefined;
       assert.equal(source?.nativeMesh, "http");
-      assert.equal(source?.worldModel, "lingbot-still-observation");
+      assert.equal(source?.worldModel, "none");
+      assert.equal(
+        (created.payload?.["source"] as { observation?: string } | undefined)
+          ?.observation,
+        "lingbot-still",
+      );
       assert.equal(uploads.length, 1);
-      assert.deepEqual(uploads[0], {
-        cook: false,
-        claims: false,
-        count: 5,
-      });
+      const first = uploads[0] as {
+        cook: boolean;
+        claims: boolean;
+        count: number;
+        names: string[];
+      };
+      assert.equal(first.cook, false);
+      assert.equal(first.claims, false);
+      assert.ok(first.count >= 5);
+      assert.equal(
+        first.names.every((name) => /^[A-Za-z0-9_-]+\.glb$/.test(name)),
+        true,
+      );
+      assert.equal(first.names.includes("bar-front.glb"), true);
+      assert.equal(first.names.includes("door.glb"), true);
+      assert.equal(first.names.includes("table.glb"), true);
+      assert.equal(first.names.includes("cup.glb"), true);
       const calibrated = await app.dispatchCommand(
         baseCommand("spatial.calibrate", {
           worldId,
@@ -332,15 +366,121 @@ test("create with observe and mesh URL stages HTTP GLB without waiting for a sti
       );
       assert.equal(calibrated.accepted, true);
       assert.equal(uploads.length, 2);
-      assert.deepEqual(uploads[1], {
-        cook: false,
-        claims: false,
-        count: 5,
-      });
+      const second = uploads[1] as {
+        cook: boolean;
+        claims: boolean;
+        count: number;
+        names: string[];
+      };
+      assert.equal(second.cook, false);
+      assert.equal(second.claims, false);
+      assert.ok(second.count >= 5);
+      assert.equal(second.names.includes("bar-front.glb"), true);
+      assert.equal(second.names.includes("door.glb"), true);
     } finally {
       await app.close();
     }
   } finally {
+    await server.close();
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * zh: generation.stop 取消进行中的 WorldRuntime cook；已提交包保留。不是世界模型。
+ * en: generation.stop aborts an in-flight WorldRuntime cook; the committed pack stays. Not a world model.
+ */
+test("generation.stop aborts in-flight WorldRuntime cook and keeps the pack", async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "carina-wr-abort-"));
+  const fixture = await makeBarCounterGlb();
+  const server = await listenGlb(fixture);
+  let releasePublish: (() => void) | undefined;
+  let markStarted: () => void = () => {
+    return;
+  };
+  const startedGate = new Promise<void>((resolve) => {
+    markStarted = resolve;
+  });
+  let sawAbort = false;
+  let markAborted: () => void = () => {
+    return;
+  };
+  const abortedGate = new Promise<void>((resolve) => {
+    markAborted = resolve;
+  });
+  const app = createApplication(
+    testConfig(dataDir, { meshProviderUrl: server.url, worldRuntimeCook: true }),
+    {
+      ueWorldRuntime: {
+        async status() {
+          return { ok: true };
+        },
+        async upload() {
+          throw new Error("unused");
+        },
+        async getAsset() {
+          return { ok: false };
+        },
+        async getWorld() {
+          return { appliedRevision: "0" };
+        },
+        async publishGenerated(input) {
+          markStarted();
+          await new Promise<void>((resolve) => {
+            const finish = (aborted: boolean): void => {
+              if (aborted) {
+                sawAbort = true;
+                markAborted();
+              }
+              resolve();
+            };
+            if (input.signal?.aborted === true) {
+              finish(true);
+              return;
+            }
+            const onAbort = (): void => {
+              input.signal?.removeEventListener("abort", onAbort);
+              finish(true);
+            };
+            input.signal?.addEventListener("abort", onAbort);
+            releasePublish = () => {
+              input.signal?.removeEventListener("abort", onAbort);
+              finish(false);
+            };
+          });
+          return {
+            ok: false,
+            cooked: false,
+            rolledBack: sawAbort,
+            uploads: [],
+            error: sawAbort ? "WorldRuntime publish aborted" : "released",
+          };
+        },
+      },
+    },
+  );
+  try {
+    const created = await app.dispatchCommand(
+      baseCommand("session.create", { arguments: { name: "吧台" } }),
+    );
+    assert.equal(created.accepted, true);
+    const worldId = created.worldId;
+    assert.ok(worldId !== undefined);
+    await startedGate;
+    const stopped = await app.dispatchCommand(
+      baseCommand("generation.stop", { worldId }),
+    );
+    assert.equal(stopped.accepted, true);
+    await abortedGate;
+    assert.equal(sawAbort, true);
+    const view = await app.getSessionView(worldId);
+    assert.equal(
+      view.snapshot.objects.some((object) => object.sceneObjectId === "bar-front"),
+      true,
+    );
+  } finally {
+    releasePublish?.();
+    await app.close();
     await server.close();
     await rm(dataDir, { recursive: true, force: true });
   }
@@ -404,10 +544,10 @@ test("native-mesh create fails on 500 or corrupt GLB without a silent tavern", a
 });
 
 /**
- * zh: HTTP 路径上换桌子目录材质不改吧台网格，也不改墙。
- * en: On the HTTP path, swapping the table catalog material does not retarget the bar or move walls.
+ * zh: 有 mesh URL 时桌子已是 generate，目录换材质应拒绝，不改吧台和墙。
+ * en: With a mesh URL the table is generate; a catalog material swap is rejected and does not move the bar or walls.
  */
-test("NL dark-oak table swap leaves bar-front and walls alone", async () => {
+test("NL dark-oak table swap is rejected when the table is generated", async () => {
   const dataDir = await mkdtemp(path.join(tmpdir(), "carina-native-mat-"));
   const fixture = await makeBarCounterGlb();
   const server = await listenGlb(fixture);
@@ -449,7 +589,8 @@ test("NL dark-oak table swap leaves bar-front and walls alone", async () => {
       worldId,
       "user",
     );
-    assert.equal(swapped[0]?.accepted, true);
+    assert.equal(swapped[0]?.accepted, false);
+    assert.equal(swapped[0]?.code, "COMMAND_REJECTED");
     const after = await app.getSessionView(worldId);
     const barAfter = after.snapshot.objects.find(
       (object) => object.sceneObjectId === "bar-front",
@@ -461,8 +602,8 @@ test("NL dark-oak table swap leaves bar-front and walls alone", async () => {
     assert.ok(tableAfter !== undefined);
     assert.deepEqual(barAfter.assetRefs, barRefs);
     assert.equal(barAfter.materialRefs.includes(BAR_COUNTER_MATERIAL_NAME), true);
-    assert.equal(tableAfter.materialRefs.includes("mat-oak-table-dark"), true);
-    assert.notEqual(tableAfter.assetRefs[0], tableBefore.assetRefs[0]);
+    assert.equal(tableAfter.materialRefs.includes("mat-oak-table-dark"), false);
+    assert.deepEqual(tableAfter.assetRefs, tableBefore.assetRefs);
     assert.equal(
       JSON.stringify(
         after.snapshot.objects

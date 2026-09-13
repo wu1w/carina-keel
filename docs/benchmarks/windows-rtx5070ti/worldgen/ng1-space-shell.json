@@ -1,0 +1,366 @@
+{
+  "probe": "ng1-space-shell",
+  "at": "2026-09-12T16:27:07.141Z",
+  "prompt": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+  "visualPrompt": "interior of a old tavern, first-person eye-level view standing inside the room, lakeside, view of a lake through the windows, rainy night, rain on the windows, warm glowing stone fireplace, old wooden bar counter with space to walk behind it, worn old wood, wooden beams, warm lighting",
+  "honesty": {
+    "claimsWorldModelGeneration": true,
+    "provider": "worldgen-flux-pano-da2",
+    "coverage": "single-viewpoint",
+    "scale": {
+      "method": "camera-height-prior",
+      "factor": 0.639563347434589,
+      "confidence": "low"
+    },
+    "note": "Single-viewpoint spherical shell from a generated panorama + 360 depth. Scale is a camera-height prior (low confidence); metric truth requires Carina calibration. Featured objects are TripoSR I23D and stay claimsWorldModelGeneration=false."
+  },
+  "sidecars": {
+    "mesh": {
+      "httpStatus": 200,
+      "ok": true,
+      "ready": true,
+      "nativeMesh": true,
+      "provider": "triposr-i23d",
+      "claimsWorldModelGeneration": false,
+      "t2i": "/data/disk1/models/sdxl-turbo",
+      "t2iLoaded": true,
+      "mcResolution": 128,
+      "t2iSteps": 4,
+      "lastTimings": {
+        "t2iMs": 301,
+        "meshMs": 210,
+        "totalMs": 587
+      },
+      "error": null
+    },
+    "space": {
+      "httpStatus": 200,
+      "ok": true,
+      "ready": true,
+      "nativeMesh": true,
+      "provider": "worldgen-flux-pano-da2",
+      "claimsWorldModelGeneration": true,
+      "coverage": "single-viewpoint",
+      "precision": "fp4",
+      "fluxBase": "camenduru/FLUX.1-dev-diffusers",
+      "nunchaku": "nunchaku-tech/nunchaku-flux.1-dev",
+      "lora": "LeoXie/WorldGen/models--WorldGen-Flux-Lora/worldgen_text2scene.safetensors",
+      "panorama": [
+        1600,
+        800
+      ],
+      "steps": 28,
+      "meshW": 800,
+      "gpuFreeMiB": 9037,
+      "gpuTotalMiB": 16275,
+      "lastTimings": {
+        "panoramaMs": 40153,
+        "depthMs": 184,
+        "meshMs": 459,
+        "totalMs": 40806
+      },
+      "error": null
+    }
+  },
+  "direct": {
+    "ms": 41480,
+    "timings": {
+      "panoramaMs": 39983,
+      "depthMs": 183,
+      "meshMs": 382,
+      "totalMs": 40557
+    },
+    "source": {
+      "provider": "worldgen-flux-pano-da2",
+      "kind": "space-shell",
+      "jobId": "10076b35ad664e3e826d35a940a16624",
+      "objectId": "interior-space-shell",
+      "coverage": "single-viewpoint",
+      "scale": {
+        "method": "camera-height-prior",
+        "factor": 0.639563347434589,
+        "confidence": "low"
+      },
+      "panorama": "FLUX.1-dev (nunchaku-tech/nunchaku-flux.1-dev svdq-fp4) + LeoXie/WorldGen/models--WorldGen-Flux-Lora/worldgen_text2scene.safetensors",
+      "depth": "haodongli/DA-2 (SphereViT, 360 depth)",
+      "prompt": "interior of a old tavern, first-person eye-level view standing inside the room, lakeside, view of a lake through the windows, rainy night, rain on the windows, warm glowing stone fireplace, old wooden bar counter with space to walk behind it, worn old wood, wooden beams, warm lighting",
+      "sceneDescription": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+      "seed": 42
+    },
+    "bounds": {
+      "min": {
+        "x": -10.76895523071289,
+        "y": -0.04548609256744385,
+        "z": -9.17954158782959
+      },
+      "max": {
+        "x": 6.238199710845947,
+        "y": 3.7246546745300293,
+        "z": 5.430484771728516
+      }
+    },
+    "validation": {
+      "ok": true,
+      "vertexCount": 320400,
+      "source": {
+        "provider": "worldgen-flux-pano-da2",
+        "kind": "space-shell",
+        "jobId": "10076b35ad664e3e826d35a940a16624",
+        "objectId": "interior-space-shell",
+        "coverage": "single-viewpoint",
+        "scale": {
+          "method": "camera-height-prior",
+          "factor": 0.639563347434589,
+          "confidence": "low"
+        },
+        "panorama": "FLUX.1-dev (nunchaku-tech/nunchaku-flux.1-dev svdq-fp4) + LeoXie/WorldGen/models--WorldGen-Flux-Lora/worldgen_text2scene.safetensors",
+        "depth": "haodongli/DA-2 (SphereViT, 360 depth)",
+        "prompt": "interior of a old tavern, first-person eye-level view standing inside the room, lakeside, view of a lake through the windows, rainy night, rain on the windows, warm glowing stone fireplace, old wooden bar counter with space to walk behind it, worn old wood, wooden beams, warm lighting",
+        "sceneDescription": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+        "seed": 42
+      },
+      "checks": [
+        {
+          "id": "world-model-source",
+          "result": "pass",
+          "detail": "worldgen-flux-pano-da2"
+        },
+        {
+          "id": "mesh",
+          "result": "pass",
+          "detail": "320400 vertices"
+        },
+        {
+          "id": "uv",
+          "result": "pass"
+        },
+        {
+          "id": "pbr",
+          "result": "pass"
+        },
+        {
+          "id": "units-meters",
+          "result": "pass",
+          "detail": "17.01m"
+        }
+      ]
+    },
+    "glb": {
+      "byteLength": 16145284,
+      "vertices": 320400,
+      "triangles": 636306,
+      "textureBytes": 2099424,
+      "nodeNames": [
+        "geometry_0"
+      ],
+      "extras": {
+        "source": "worldgen-flux-pano-da2",
+        "claimsWorldModelGeneration": true,
+        "worldModel": {
+          "provider": "worldgen-flux-pano-da2",
+          "kind": "space-shell",
+          "jobId": "10076b35ad664e3e826d35a940a16624",
+          "objectId": "interior-space-shell",
+          "coverage": "single-viewpoint",
+          "scale": {
+            "method": "camera-height-prior",
+            "factor": 0.639563347434589,
+            "confidence": "low"
+          },
+          "panorama": "FLUX.1-dev (nunchaku-tech/nunchaku-flux.1-dev svdq-fp4) + LeoXie/WorldGen/models--WorldGen-Flux-Lora/worldgen_text2scene.safetensors",
+          "depth": "haodongli/DA-2 (SphereViT, 360 depth)",
+          "prompt": "interior of a old tavern, first-person eye-level view standing inside the room, lakeside, view of a lake through the windows, rainy night, rain on the windows, warm glowing stone fireplace, old wooden bar counter with space to walk behind it, worn old wood, wooden beams, warm lighting",
+          "sceneDescription": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+          "seed": 42
+        }
+      }
+    },
+    "evidenceDir": "/Users/william/.carina/evidence/worldgen/10076b35ad664e3e826d35a940a16624"
+  },
+  "application": {
+    "worldId": "01M2B71PMCBJP585C4F4Z2N400",
+    "createMs": 53634,
+    "source": {
+      "nativeMesh": "http",
+      "worldModel": "worldgen-flux-pano-da2",
+      "spaceProvider": "http",
+      "observation": "none"
+    },
+    "generationControl": {
+      "mode": "create",
+      "objectId": "bar-front",
+      "objectIds": [
+        "bar-front",
+        "fireplace"
+      ],
+      "camera": {
+        "position": {
+          "x": 4,
+          "y": 1.6,
+          "z": 2
+        },
+        "yaw": 0,
+        "pitch": 0,
+        "fovY": 1.05,
+        "aspect": 1.7333333333333334
+      },
+      "backend": "http-space-shell+http-native-mesh",
+      "claimsWorldModelGeneration": true,
+      "worldModel": {
+        "provider": "worldgen-flux-pano-da2",
+        "kind": "space-shell",
+        "jobId": "57b4c8c43f4a4c2fa1395bf4f006b023",
+        "objectId": "interior-space-shell",
+        "coverage": "single-viewpoint",
+        "scale": {
+          "method": "camera-height-prior",
+          "factor": 0.20643210382083346,
+          "confidence": "low"
+        },
+        "panorama": "FLUX.1-dev (nunchaku-tech/nunchaku-flux.1-dev svdq-fp4) + LeoXie/WorldGen/models--WorldGen-Flux-Lora/worldgen_text2scene.safetensors",
+        "depth": "haodongli/DA-2 (SphereViT, 360 depth)",
+        "prompt": "interior of a old tavern, first-person eye-level view standing inside the room, lakeside, view of a lake through the windows, rainy night, rain on the windows, warm glowing stone fireplace, old wooden bar counter with space to walk behind it, worn old wood, wooden beams, warm lighting, windows, wooden tables, wooden chairs",
+        "sceneDescription": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+        "seed": 42,
+        "regionFit": {
+          "regionId": "interior",
+          "method": "scenespec-footprint",
+          "uniformScale": 2.178906449283946
+        },
+        "assetHash": "2cbef0554ec45f73b9a0df2b8f953f466aba31917ea85b728b6fb06ab2d60c87"
+      }
+    },
+    "shellGlb": {
+      "byteLength": 16188080,
+      "vertices": 320400,
+      "triangles": 638400,
+      "textureBytes": 2117044,
+      "nodeNames": [
+        "geometry_0"
+      ],
+      "extras": {
+        "source": "worldgen-flux-pano-da2",
+        "claimsWorldModelGeneration": true,
+        "worldModel": {
+          "provider": "worldgen-flux-pano-da2",
+          "kind": "space-shell",
+          "jobId": "57b4c8c43f4a4c2fa1395bf4f006b023",
+          "objectId": "interior-space-shell",
+          "coverage": "single-viewpoint",
+          "scale": {
+            "method": "camera-height-prior",
+            "factor": 0.20643210382083346,
+            "confidence": "low"
+          },
+          "panorama": "FLUX.1-dev (nunchaku-tech/nunchaku-flux.1-dev svdq-fp4) + LeoXie/WorldGen/models--WorldGen-Flux-Lora/worldgen_text2scene.safetensors",
+          "depth": "haodongli/DA-2 (SphereViT, 360 depth)",
+          "prompt": "interior of a old tavern, first-person eye-level view standing inside the room, lakeside, view of a lake through the windows, rainy night, rain on the windows, warm glowing stone fireplace, old wooden bar counter with space to walk behind it, worn old wood, wooden beams, warm lighting, windows, wooden tables, wooden chairs",
+          "sceneDescription": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+          "seed": 42
+        }
+      }
+    },
+    "shellPlacement": {
+      "transform": {
+        "position": {
+          "x": 6.009665404305971,
+          "y": 0.061443669473822744,
+          "z": 2.0221917537407403
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 2.178906449283946,
+          "y": 2.178906449283946,
+          "z": 2.178906449283946
+        }
+      },
+      "bounds": {
+        "min": {
+          "x": 0.7690983068191439,
+          "y": 0,
+          "z": 4.440892098500626e-16
+        },
+        "max": {
+          "x": 11.230901693180854,
+          "y": 7.384327590165558,
+          "z": 10
+        }
+      },
+      "extentM": {
+        "x": 10.46180338636171,
+        "y": 7.384327590165558,
+        "z": 10
+      },
+      "regionId": "interior",
+      "featuredInsideShell": {
+        "bar-front": true,
+        "fireplace": true
+      }
+    },
+    "assetPlan": {
+      "claimsWorldModelGeneration": true,
+      "worldModel": {
+        "provider": "worldgen-flux-pano-da2",
+        "kind": "space-shell",
+        "jobId": "57b4c8c43f4a4c2fa1395bf4f006b023",
+        "objectId": "interior-space-shell",
+        "assetHash": "2cbef0554ec45f73b9a0df2b8f953f466aba31917ea85b728b6fb06ab2d60c87",
+        "coverage": "single-viewpoint",
+        "scale": {
+          "method": "camera-height-prior",
+          "factor": 0.20643210382083346,
+          "confidence": "low"
+        },
+        "panorama": "FLUX.1-dev (nunchaku-tech/nunchaku-flux.1-dev svdq-fp4) + LeoXie/WorldGen/models--WorldGen-Flux-Lora/worldgen_text2scene.safetensors",
+        "depth": "haodongli/DA-2 (SphereViT, 360 depth)",
+        "prompt": "interior of a old tavern, first-person eye-level view standing inside the room, lakeside, view of a lake through the windows, rainy night, rain on the windows, warm glowing stone fireplace, old wooden bar counter with space to walk behind it, worn old wood, wooden beams, warm lighting, windows, wooden tables, wooden chairs",
+        "sceneDescription": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+        "seed": 42,
+        "regionFit": {
+          "regionId": "interior",
+          "method": "scenespec-footprint",
+          "uniformScale": 2.178906449283946
+        }
+      }
+    },
+    "freeze": {
+      "accepted": true
+    },
+    "reopen": {
+      "shellHashUnchanged": true,
+      "claimsWorldModelGeneration": true
+    },
+    "exportNodes": [
+      "吧台正面",
+      "吧台正面_mesh",
+      "壁炉",
+      "壁炉_mesh",
+      "门",
+      "oak-door",
+      "asset-root",
+      "桌子",
+      "oak-table",
+      "asset-root",
+      "椅子",
+      "oak-chair",
+      "asset-root",
+      "杯子",
+      "ceramic-cup",
+      "asset-root",
+      "空间壳",
+      "空间壳_mesh",
+      "窗",
+      "地板",
+      "西侧墙",
+      "东侧墙",
+      "北侧墙",
+      "南侧墙左",
+      "南侧墙右",
+      "南侧墙楣"
+    ]
+  }
+}

@@ -10,7 +10,11 @@ export const solarWmExperimentSchema = z
     claimsWorldModelGeneration: z.literal(false),
     producesMesh: z.literal(false),
     dryRunIsNotEvidence: z.literal(true),
-    status: z.enum(["blocked-no-runtime", "video-not-asset", "not-attempted"]),
+    /**
+     * zh: closed-ng1 = 2026-09-12 正式关闭：NG-1 不接 SolarWM（见 docs/SOLARWM_REVIEW.md §8）。
+     * en: closed-ng1 = formally closed on 2026-09-12: NG-1 does not integrate SolarWM (docs/SOLARWM_REVIEW.md §8).
+     */
+    status: z.enum(["closed-ng1", "blocked-no-runtime", "video-not-asset", "not-attempted"]),
     notes: z.string().min(1),
   })
   .refine((row) => row.claimsWorldModelGeneration === false && row.producesMesh === false, {

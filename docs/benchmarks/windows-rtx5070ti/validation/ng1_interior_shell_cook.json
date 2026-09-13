@@ -1,0 +1,148 @@
+{
+  "probe": "ng1-interior-shell-cook",
+  "at": "2026-09-13T00:41:47.550Z",
+  "honesty": {
+    "note": "SceneSpec scaffold boxes so isolate + walk has an indoor floor. Not world-model collision.",
+    "claimsWorldModelGeneration": false,
+    "sourceLabel": "scaffold-primitive"
+  },
+  "pack": {
+    "dataDir": "/tmp/carina-ng1",
+    "worldId": "01M2AVSF57227TCNGKZSB6GMEN"
+  },
+  "shell": {
+    "pieceIds": [
+      "floor",
+      "wall-west",
+      "wall-east",
+      "wall-north",
+      "wall-south-west",
+      "wall-south-east",
+      "wall-south-lintel"
+    ],
+    "floorBounds": {
+      "min": {
+        "x": 0,
+        "y": -0.15,
+        "z": 0
+      },
+      "max": {
+        "x": 12,
+        "y": 0,
+        "z": 10
+      }
+    },
+    "glbBytes": [
+      {
+        "objectId": "floor",
+        "byteLength": 1532
+      },
+      {
+        "objectId": "wall-west",
+        "byteLength": 1540
+      },
+      {
+        "objectId": "wall-east",
+        "byteLength": 1572
+      },
+      {
+        "objectId": "wall-north",
+        "byteLength": 1572
+      },
+      {
+        "objectId": "wall-south-west",
+        "byteLength": 1560
+      },
+      {
+        "objectId": "wall-south-east",
+        "byteLength": 1584
+      },
+      {
+        "objectId": "wall-south-lintel",
+        "byteLength": 1608
+      }
+    ]
+  },
+  "publishResult": {
+    "ok": true,
+    "cooked": true,
+    "spawned": [
+      "floor",
+      "wall-west",
+      "wall-east",
+      "wall-north",
+      "wall-south-west",
+      "wall-south-east",
+      "wall-south-lintel"
+    ],
+    "uploads": [
+      {
+        "assetId": "eb3ff4ea0b9bc4a8",
+        "assetHash": "eb3ff4ea0b9bc4a8102fa0f427bca9d25fd6d2fadd45c8137d1c8bceb792a9d5",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false
+      },
+      {
+        "assetId": "f2cadbb02cb1721c",
+        "assetHash": "f2cadbb02cb1721caeee0a706d2c8f26c8ee6e5fac6bab7d00d612b0dd8e55ae",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false
+      },
+      {
+        "assetId": "e5290ff99cc5793c",
+        "assetHash": "e5290ff99cc5793c2185c8b7b67424242e0d750d02b18b96e349edede9941226",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false
+      },
+      {
+        "assetId": "0715f37af5a127b4",
+        "assetHash": "0715f37af5a127b4cece3dd26a0398badf21a989011a11c0091a769e7a93b6b4",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false
+      },
+      {
+        "assetId": "9e33d53f3fe2c0f0",
+        "assetHash": "9e33d53f3fe2c0f03627b456f8261f69bdcb1eee99fbba13e21e2abb1b4192e9",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false
+      },
+      {
+        "assetId": "955f3b47097dc497",
+        "assetHash": "955f3b47097dc497440b7cd69c2529bbe526d434055e17fac21e424ca951791d",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false
+      },
+      {
+        "assetId": "6a185e384aeff83c",
+        "assetHash": "6a185e384aeff83cbe7c2490a07d837fc7cfadc2629bd2575f2d32aa141221a4",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false
+      }
+    ],
+    "ms": 284369
+  },
+  "live": {
+    "objects": [
+      "bar-front",
+      "fireplace",
+      "courtyard-feature",
+      "interior-garden-floor",
+      "interior-garden-wall-west",
+      "interior-garden-wall-east",
+      "interior-garden-wall-south",
+      "ng1-i23d-npc-keeper",
+      "interior-space-shell",
+      "floor",
+      "wall-west",
+      "wall-east",
+      "wall-north",
+      "wall-south-west",
+      "wall-south-east",
+      "wall-south-lintel"
+    ]
+  },
+  "verdict": {
+    "cookedAndSpawned": true,
+    "neverClaimsWorldModel": true
+  }
+}

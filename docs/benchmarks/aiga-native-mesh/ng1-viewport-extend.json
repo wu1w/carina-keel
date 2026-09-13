@@ -1,0 +1,135 @@
+{
+  "at": "2026-09-12T14:30:02.661Z",
+  "wrWorldId": "ng1-i23d",
+  "packWorldId": "01M2AVSF57227TCNGKZSB6GMEN",
+  "claimsWorldModelGeneration": false,
+  "overlayOnP1Cc0": true,
+  "gardenScaffoldNotCooked": true,
+  "notWorldModel": true,
+  "courtyardUpload": {
+    "ok": true,
+    "assetId": "6149953699316b57",
+    "assetHash": "6149953699316b57ad21210ef1334fa7bb86871c6bb62721b1e13a53e2ab4d70",
+    "byteLength": 1515764,
+    "sourceLabel": "http-native-mesh",
+    "claimsWorldModelGeneration": false,
+    "bakedWorldSpace": false,
+    "notWorldModel": true
+  },
+  "prepared": {
+    "assetId": "6149953699316b57",
+    "assetHash": "6149953699316b57ad21210ef1334fa7bb86871c6bb62721b1e13a53e2ab4d70",
+    "cookMs": 18421.338000014657,
+    "packageIds": [
+      "/Game/Imported/Dynamic/courtyard_feature/courtyard_feature/StaticMeshes/courtyard_feature"
+    ],
+    "shaderMergeOk": false,
+    "softObjectPath": "/Game/Imported/Dynamic/courtyard_feature/courtyard_feature/StaticMeshes/courtyard_feature",
+    "label": "courtyard_feature",
+    "cached": false,
+    "timingsMs": {
+      "importMs": 18479.401700024027,
+      "reparentMs": 13661.665299994638,
+      "cookMs": 18421.338000014657,
+      "classicPakMs": 217.4065999861341,
+      "iostoreMs": 277.82280000974424
+    },
+    "containerName": "CarinaPS-Windows_courtyard_feature",
+    "meshes": [
+      {
+        "name": "courtyard_feature",
+        "softObjectPath": "/Game/Imported/Dynamic/courtyard_feature/courtyard_feature/StaticMeshes/courtyard_feature"
+      }
+    ]
+  },
+  "health": {
+    "ok": true,
+    "live": true,
+    "ueBridge": true
+  },
+  "remount": [
+    "stop-streamer",
+    "taskkill-CarinaPS",
+    "ueBridge-down",
+    "start-streamer",
+    "ueBridge",
+    "settle-15s"
+  ],
+  "published": {
+    "ok": true,
+    "cooked": true,
+    "uploads": [
+      {
+        "ok": true,
+        "assetId": "8e9e52a7d38ef05b",
+        "assetHash": "8e9e52a7d38ef05ba0510f4dbeac36f40ab740821614b563384417e5570a5411",
+        "byteLength": 1321996,
+        "sourceLabel": "http-native-mesh",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      },
+      {
+        "ok": true,
+        "assetId": "1d66a32884181553",
+        "assetHash": "1d66a328841815534be5b287c99205949758068b7ea20b8d08a7d7d59c6402ec",
+        "byteLength": 1336776,
+        "sourceLabel": "http-native-mesh",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      },
+      {
+        "ok": true,
+        "assetId": "6149953699316b57",
+        "assetHash": "6149953699316b57ad21210ef1334fa7bb86871c6bb62721b1e13a53e2ab4d70",
+        "byteLength": 1515764,
+        "sourceLabel": "http-native-mesh",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      }
+    ],
+    "spawned": [
+      "bar-front",
+      "fireplace",
+      "courtyard-feature"
+    ]
+  },
+  "utoc": {
+    "before": "B03476E09B74D77DD9A2ACD1C91739619B09D311E6FF3A1E1EC435D143DA4CC9",
+    "after": "B03476E09B74D77DD9A2ACD1C91739619B09D311E6FF3A1E1EC435D143DA4CC9",
+    "pinned": "B03476E09B74D77DD9A2ACD1C91739619B09D311E6FF3A1E1EC435D143DA4CC9",
+    "unchanged": true
+  },
+  "spawnedInPixelStreaming": true,
+  "liveWorld": {
+    "worldId": "ng1-i23d",
+    "appliedRevision": "wr-717c17948c49",
+    "objects": [
+      {
+        "objectId": "bar-front",
+        "ueActorId": "StaticMeshActor_2147482376",
+        "transform": { "x": 1.2, "y": 0, "z": 7.05 }
+      },
+      {
+        "objectId": "fireplace",
+        "ueActorId": "StaticMeshActor_2147482375",
+        "transform": { "x": 9.4, "y": 0, "z": 9.55 }
+      },
+      {
+        "objectId": "courtyard-feature",
+        "ueActorId": "StaticMeshActor_2147482374",
+        "transform": { "x": 6, "y": 0, "z": -4 }
+      }
+    ]
+  },
+  "sideContainers": [
+    "CarinaPS-Windows_bar_front.{pak,utoc,ucas}",
+    "CarinaPS-Windows_fireplace.{pak,utoc,ucas}",
+    "CarinaPS-Windows_courtyard_feature.{pak,utoc,ucas}"
+  ],
+  "p1Cc0RoomStillMounted": "CarinaPS-Windows_tavern_pbr",
+  "macDaemonWorldRuntime": false,
+  "note": "MERGE overlay of I23D featured meshes on the P1 CC0 room. Garden floor/walls/gate remain scaffold and were not cooked. Not a world-model tavern."
+}

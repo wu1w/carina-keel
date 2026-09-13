@@ -5,6 +5,7 @@ import {
   type AssetPlanItem,
   type AssetPlanStatus,
   type SceneSpec,
+  type WorldModelSource,
 } from "../schema/index.js";
 
 export type CompileAssetPlanInput = {
@@ -19,11 +20,19 @@ export type CompileAssetPlanInput = {
    * en: Pack GLB hashes for reuse objects. Recorded on reuse-resolved when present.
    */
   completedReuse?: Readonly<Record<string, string>>;
+  /**
+   * zh: 已提交的世界模型空间壳来源（白名单 provider + 包内 assetHash）。有它计划才可声称世界模型生成。
+   * en: Committed world-model space-shell provenance (allowlisted provider + pack assetHash). Only
+   *     with it may the plan claim world-model generation.
+   */
+  worldModel?: WorldModelSource;
 };
 
 /**
- * zh: 把 SceneSpec 编成 AssetPlan。目录命中标 reuse-resolved；有包内 GLB 才标 complete。仍不得写成世界模型生成。
- * en: Compile a SceneSpec into an AssetPlan. Catalog hits are reuse-resolved; pack GLB marks complete. Still not world-model generation.
+ * zh: 把 SceneSpec 编成 AssetPlan。目录命中标 reuse-resolved；有包内 GLB 才标 complete。
+ *     只有白名单空间壳且已入包（assetHash）时 claimsWorldModelGeneration 才为 true。
+ * en: Compile a SceneSpec into an AssetPlan. Catalog hits are reuse-resolved; pack GLB marks complete.
+ *     claimsWorldModelGeneration is true only with an allowlisted space shell that is in the pack.
  */
 export function compileAssetPlan(
   spec: SceneSpec,
@@ -61,11 +70,17 @@ export function compileAssetPlan(
         : {}),
     };
   });
+  const worldModel = input.worldModel;
+  const claims =
+    worldModel !== undefined &&
+    typeof worldModel.assetHash === "string" &&
+    worldModel.assetHash.length > 0;
   return assetPlanSchema.parse({
     schemaVersion: 1,
     sceneSpecSource: spec.source,
     meshProviderUrlSet: input.meshProviderUrlSet,
-    claimsWorldModelGeneration: false,
+    claimsWorldModelGeneration: claims,
+    ...(worldModel !== undefined ? { worldModel } : {}),
     items,
   });
 }

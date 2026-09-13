@@ -11,6 +11,8 @@ export {
   encodeSceneSpecBytes,
   findSceneSpecObject,
   firstGenerateObject,
+  firstExtendGenerateObject,
+  interiorGenerateObjects,
   heuristicSceneSpec,
   resolveBarPlanObjectId,
   resolveFurniturePlanObjectId,

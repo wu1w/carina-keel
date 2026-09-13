@@ -78,6 +78,9 @@ test("loadConfig treats empty mesh provider URL and key file as unset", () => {
   });
   assert.equal(empty.meshProviderUrl, undefined);
   assert.equal(empty.meshProviderKeyFile, undefined);
+  assert.equal(empty.allowPrimitiveFixture, undefined);
+  const fixtureOn = loadConfig({ CARINA_PRIMITIVE_FIXTURE: "1" });
+  assert.equal(fixtureOn.allowPrimitiveFixture, true);
   const set = loadConfig({
     CARINA_MESH_PROVIDER_URL: "http://127.0.0.1:18795",
     CARINA_MESH_PROVIDER_KEY_FILE: "/tmp/mesh-key",
@@ -88,15 +91,27 @@ test("loadConfig treats empty mesh provider URL and key file as unset", () => {
     CARINA_PIXEL_STREAMING_URL: "http://192.168.5.16:8080",
   });
   assert.equal(stream.pixelStreamingUrl, "http://192.168.5.16:8080");
+  // zh: 配了 WorldRuntime 就默认 cook + remount；"0" 显式关闭。 en: WR configured → cook + remount default on.
   const wr = loadConfig({
     CARINA_WORLD_RUNTIME_URL: "http://127.0.0.1:18794",
-    CARINA_WORLD_RUNTIME_COOK: "1",
+    CARINA_WORLD_RUNTIME_WORLD_ID: "ng1-i23d",
   });
   assert.equal(wr.worldRuntimeUrl, "http://127.0.0.1:18794");
   assert.equal(wr.worldRuntimeCook, true);
-  const wrOff = loadConfig({ CARINA_WORLD_RUNTIME_URL: "" });
+  assert.equal(wr.worldRuntimeRemount, true);
+  assert.equal(wr.worldRuntimeWorldId, "ng1-i23d");
+  const wrUploadOnly = loadConfig({
+    CARINA_WORLD_RUNTIME_URL: "http://127.0.0.1:18794",
+    CARINA_WORLD_RUNTIME_COOK: "0",
+    CARINA_WORLD_RUNTIME_REMOUNT: "0",
+  });
+  assert.equal(wrUploadOnly.worldRuntimeCook, false);
+  assert.equal(wrUploadOnly.worldRuntimeRemount, false);
+  const wrOff = loadConfig({ CARINA_WORLD_RUNTIME_URL: "", CARINA_WORLD_RUNTIME_COOK: "1" });
   assert.equal(wrOff.worldRuntimeUrl, undefined);
   assert.equal(wrOff.worldRuntimeCook, undefined);
+  assert.equal(wrOff.worldRuntimeRemount, undefined);
+  assert.equal(wrOff.worldRuntimeWorldId, undefined);
   const solarOff = loadConfig({ CARINA_SOLARWM_ROOT: "" });
   assert.equal(solarOff.solarWmRoot, undefined);
   const solarOn = loadConfig({ CARINA_SOLARWM_ROOT: "/tmp/carina-solarwm" });

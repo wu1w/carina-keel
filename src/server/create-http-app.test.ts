@@ -49,8 +49,53 @@ test("GET /health is public", async () => {
       depth: false,
       nativeMesh: "unset",
       worldModel: "unset",
+      spaceProvider: false,
+      observation: "unset",
     },
   });
+});
+
+/**
+ * zh: 配了空间 provider URL 只报合同接上（http-space-shell），不报已生成。
+ * en: A configured space provider URL only reports the wired contract, never "generated".
+ */
+test("GET /health reports http-space-shell only as a wired contract", async () => {
+  const app = createHttpApp(
+    { ...config, spaceProviderUrl: "http://127.0.0.1:18796" },
+    {
+      runTurn: async function* () {
+        yield "";
+      },
+    },
+  );
+  const body = (await (await app.request("/health")).json()) as {
+    workflow: { worldModel: string; spaceProvider: boolean; nativeMesh: string };
+  };
+  assert.equal(body.workflow.worldModel, "http-space-shell");
+  assert.equal(body.workflow.spaceProvider, true);
+  assert.equal(body.workflow.nativeMesh, "unset");
+});
+
+/**
+ * zh: 有静帧观察 URL 也不把 LingBot 标成世界模型。
+ * en: A still-observation URL must not label LingBot as a world model.
+ */
+test("GET /health does not call LingBot a world model", async () => {
+  const app = createHttpApp(
+    { ...config, rendererUrl: "http://127.0.0.1:18791" },
+    {
+      runTurn: async function* () {
+        yield "";
+      },
+    },
+  );
+  const res = await app.request("/health");
+  const body = (await res.json()) as {
+    workflow: { worldModel?: string; observation?: string; renderer?: boolean };
+  };
+  assert.equal(body.workflow.worldModel, "unset");
+  assert.equal(body.workflow.observation, "lingbot-still");
+  assert.equal(body.workflow.renderer, true);
 });
 
 /**
@@ -480,6 +525,20 @@ test("GET /v1/sessions and runtime work with a fake application", async () => {
   assert.equal(runtime.status, 200);
   const snap = (await runtime.json()) as RuntimeSnapshot;
   assert.ok(snap.objects.length >= 3);
+
+  const checkpoints = await app.request("/v1/sessions/01WORLD/checkpoints", {
+    headers: { authorization: "Bearer test-token" },
+  });
+  assert.equal(checkpoints.status, 200);
+  const listedCheckpoints = (await checkpoints.json()) as {
+    worldId: string;
+    currentRevision: string;
+    checkpoints: Array<{ revision: string; current: boolean }>;
+  };
+  assert.equal(listedCheckpoints.worldId, "01WORLD");
+  assert.equal(listedCheckpoints.currentRevision, "rev1");
+  assert.equal(listedCheckpoints.checkpoints.length, 1);
+  assert.equal(listedCheckpoints.checkpoints[0]?.current, true);
 });
 
 /**

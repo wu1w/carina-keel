@@ -1,0 +1,232 @@
+{
+  "probe": "p4-expansion-hit",
+  "at": "2026-09-13T02:57:56.160Z",
+  "claimsWorldModelGeneration": false,
+  "notWorldModel": true,
+  "p4Pass": false,
+  "honesty": {
+    "coverage": "scheduler-only",
+    "note": "In-process runtime pose walk + evaluateExpansionHit. Garden boxes are a scaffold. I23D is not a world model. Scheduler hit is not a P4 story pass and not live UE boundary expansion.",
+    "garden": "scaffold",
+    "i23d": "not a world model",
+    "claimsWorldModelGeneration": false,
+    "notWorldModel": true,
+    "p4Pass": false
+  },
+  "source": {
+    "kind": "pack",
+    "dataDir": "/tmp/carina-ng1",
+    "worldId": "01M2AVSF57227TCNGKZSB6GMEN",
+    "revision": "01M2CAYK371FEFMG37E801ZT9P",
+    "packDir": "/tmp/carina-ng1/worlds/01M2AVSF55FF1J4SR3V0FPBC53.carina",
+    "regionIds": [
+      "interior",
+      "interior-garden"
+    ],
+    "regionNames": [
+      "室内",
+      "花园"
+    ],
+    "hasGardenRegion": true,
+    "sceneSpecCourtyard": true
+  },
+  "walk": {
+    "runtime": "in-process",
+    "liveUe": false,
+    "spawn": {
+      "x": 6,
+      "y": 0,
+      "z": 2
+    },
+    "far": {
+      "x": 6,
+      "y": 0,
+      "z": 8.5
+    },
+    "near": {
+      "x": 6,
+      "y": 0,
+      "z": 1.6600000000000001
+    },
+    "seam": {
+      "x": 6,
+      "y": 0,
+      "z": 0.06
+    },
+    "spawnReachedFar": true,
+    "final": {
+      "x": 6,
+      "y": 0,
+      "z": 1.6600000000000001
+    },
+    "steps": [
+      {
+        "t": 0.125,
+        "ok": true,
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 7.645
+        },
+        "nearBoundary": false
+      },
+      {
+        "t": 0.25,
+        "ok": true,
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 6.79
+        },
+        "nearBoundary": false
+      },
+      {
+        "t": 0.375,
+        "ok": true,
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 5.9350000000000005
+        },
+        "nearBoundary": false
+      },
+      {
+        "t": 0.5,
+        "ok": true,
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 5.08
+        },
+        "nearBoundary": false
+      },
+      {
+        "t": 0.625,
+        "ok": true,
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 4.225
+        },
+        "nearBoundary": false
+      },
+      {
+        "t": 0.75,
+        "ok": true,
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 3.37
+        },
+        "nearBoundary": false
+      },
+      {
+        "t": 0.875,
+        "ok": true,
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 2.5150000000000006
+        },
+        "nearBoundary": true
+      },
+      {
+        "t": 1,
+        "ok": true,
+        "position": {
+          "x": 6,
+          "y": 0,
+          "z": 1.6600000000000001
+        },
+        "nearBoundary": true
+      }
+    ]
+  },
+  "scheduler": {
+    "spawn": {
+      "nearBoundary": true,
+      "hasAdjacent": true,
+      "wouldEnqueue": false,
+      "wouldMarkReady": true,
+      "cacheHit": true,
+      "stage": "ready",
+      "readyReserve": 1,
+      "decision": {
+        "action": "skip",
+        "stage": "committed",
+        "cacheHit": false
+      }
+    },
+    "far": {
+      "nearBoundary": false,
+      "hasAdjacent": true,
+      "wouldEnqueue": false,
+      "wouldMarkReady": false,
+      "cacheHit": false,
+      "stage": "committed",
+      "readyReserve": 1,
+      "decision": {
+        "action": "skip",
+        "stage": "committed",
+        "cacheHit": false
+      }
+    },
+    "walked": {
+      "nearBoundary": true,
+      "hasAdjacent": true,
+      "wouldEnqueue": false,
+      "wouldMarkReady": true,
+      "cacheHit": true,
+      "stage": "ready",
+      "readyReserve": 1,
+      "decision": {
+        "action": "skip",
+        "stage": "committed",
+        "cacheHit": false
+      }
+    },
+    "destination": {
+      "nearBoundary": true,
+      "hasAdjacent": true,
+      "wouldEnqueue": false,
+      "wouldMarkReady": true,
+      "cacheHit": true,
+      "stage": "ready",
+      "readyReserve": 1,
+      "decision": {
+        "action": "skip",
+        "stage": "committed",
+        "cacheHit": false
+      }
+    },
+    "wouldEnqueue": false,
+    "wouldMarkReady": true,
+    "stage": "ready",
+    "readyReserve": 1,
+    "log": {
+      "stage": "ready",
+      "readyReserve": 1,
+      "approachCount": 1,
+      "cacheHits": 1,
+      "generateCount": 0,
+      "claimsWorldModelGeneration": false,
+      "notes": "Adjacent garden is a playable scaffold / SceneSpec courtyard, not world-model generation."
+    }
+  },
+  "worldRuntime": {
+    "urlSet": false,
+    "readStatus": false,
+    "cooked": false,
+    "remounted": false,
+    "spawned": false
+  },
+  "verdict": {
+    "schedulerDataOnly": true,
+    "boundaryNearReady": true,
+    "gardenIsScaffold": true,
+    "i23dIsWorldModel": false,
+    "p4Pass": false,
+    "claimsWorldModelGeneration": false,
+    "notWorldModel": true
+  }
+}

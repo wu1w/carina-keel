@@ -16,6 +16,7 @@ import {
   restoreCheckpoint,
   stageAsset,
   readAsset,
+  listCheckpoints,
   updateWorldDocument,
 } from "./index.js";
 
@@ -129,6 +130,15 @@ test("restoreCheckpoint copies the target snapshot into a new commit", async (t)
   assert.equal(restored.controlEpoch, later.controlEpoch + 1);
   const headAfter = await readHead(packDir);
   assert.equal(headAfter.revision, restored.revision);
+  const listed = await listCheckpoints(packDir);
+  assert.ok(listed.length >= 3);
+  assert.equal(listed[0]?.revision, restored.revision);
+  assert.equal(listed[0]?.current, true);
+  assert.equal(listed.some((row) => row.revision === mid.revision), true);
+  assert.equal(
+    listed.filter((row) => row.current).length,
+    1,
+  );
 });
 
 test("stageAsset is content-addressed and updateWorldDocument checks expectedHash", async (t) => {

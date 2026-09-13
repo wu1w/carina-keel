@@ -67,12 +67,31 @@ export function interpretFast(
       command(input, "session.switch", "author", { name: switched }, true),
     ];
   }
+  const toward = matchCalibrateToward(text, input.planObjectIds);
+  if (toward !== undefined) {
+    return [
+      command(input, "spatial.calibrate", "author", {
+        objectId: toward.objectId,
+        towardObjectId: toward.towardObjectId,
+        meters: toward.meters,
+      }),
+    ];
+  }
   const calibrate = matchCalibrate(text, input.planObjectIds);
   if (calibrate !== undefined) {
     return [
       command(input, "spatial.calibrate", "author", {
         objectId: calibrate.objectId,
         delta: calibrate.delta,
+      }),
+    ];
+  }
+  const height = matchCalibrateHeight(text, input.planObjectIds);
+  if (height !== undefined) {
+    return [
+      command(input, "spatial.calibrate", "author", {
+        objectId: height.objectId,
+        heightMeters: height.heightMeters,
       }),
     ];
   }
@@ -115,11 +134,30 @@ export function interpretFast(
   if (exported) {
     return [command(input, "export.create", "author", {})];
   }
+  const rulePatch = matchRulePatch(text);
+  if (rulePatch !== undefined) {
+    return [
+      command(input, "rules.update", "author", {
+        scope: rulePatch.scope,
+        documentId: rulePatch.documentId,
+        append: rulePatch.append,
+      }),
+    ];
+  }
   const navigate = matchNavigate(text);
   if (navigate !== undefined && input.canNavigate === true) {
     return [
       command(input, "player.navigate", "player", {
         name: navigate.name,
+      }),
+    ];
+  }
+  const turn = matchTurnToward(text);
+  if (turn !== undefined && input.canNavigate === true) {
+    return [
+      command(input, "player.act", "player", {
+        action: "look",
+        name: turn.name,
       }),
     ];
   }
@@ -143,16 +181,6 @@ export function interpretFast(
         prompt: input.text,
         fresh: shotKind === "scene",
         shotKind,
-      }),
-    ];
-  }
-  const rulePatch = matchRulePatch(text);
-  if (rulePatch !== undefined) {
-    return [
-      command(input, "rules.update", "author", {
-        scope: rulePatch.scope,
-        documentId: rulePatch.documentId,
-        append: rulePatch.append,
       }),
     ];
   }
@@ -294,6 +322,108 @@ function matchCalibrate(
   return undefined;
 }
 
+const WINDOW_REFERENT = "窗边|窗外|窗口|窗|the\\s+window";
+
+/**
+ * zh: 「把桌子向窗边移动一米」。方向由已提交窗的位置在校准里算出，这里只编参照。
+ * en: “Move the table one meter toward the window.” Direction is resolved at calibrate from the committed window.
+ */
+function matchCalibrateToward(
+  text: string,
+  planObjectIds: readonly string[] | undefined,
+): { objectId: string; towardObjectId: string; meters: number } | undefined {
+  const normalized = text.replace(/[。！!？?,，]/g, "").trim();
+  const zh = normalized.match(
+    new RegExp(
+      `^把?(${FURNITURE_LABEL})\\s*(?:往|向|朝)\\s*(${WINDOW_REFERENT})\\s*(?:移(?:动)?|挪(?:动)?)?\\s*(半|[0-9]+(?:\\.[0-9]+)?|[一二两三四五六七八九十])\\s*(?:米|m|meters?|metres?)?`,
+      "i",
+    ),
+  );
+  if (zh !== null && zh[1] !== undefined && zh[3] !== undefined) {
+    const meters = parseMeters(zh[3]);
+    if (meters !== undefined) {
+      return {
+        objectId: resolveFurniturePlanObjectId(zh[1], planObjectIds),
+        towardObjectId: resolveFurniturePlanObjectId("窗", planObjectIds),
+        meters,
+      };
+    }
+  }
+  const en = normalized.match(
+    new RegExp(
+      `^(?:move|shift)\\s+(?:the\\s+)?(${FURNITURE_LABEL})\\s+toward(?:s)?\\s+(?:the\\s+)?(window)\\s+(?:by\\s+)?([0-9]+(?:\\.[0-9]+)?)\\s*(?:m|meters?|metres?)?$`,
+      "i",
+    ),
+  );
+  if (en !== null && en[1] !== undefined && en[3] !== undefined) {
+    const meters = parseMeters(en[3]);
+    if (meters !== undefined) {
+      return {
+        objectId: resolveFurniturePlanObjectId(en[1], planObjectIds),
+        towardObjectId: resolveFurniturePlanObjectId("窗", planObjectIds),
+        meters,
+      };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * zh: 「门高两米」编成米制高度，不是镜头。
+ * en: “Door two meters high” compiles to a metric height, not a camera shot.
+ */
+function matchCalibrateHeight(
+  text: string,
+  planObjectIds: readonly string[] | undefined,
+): { objectId: string; heightMeters: number } | undefined {
+  const normalized = text.replace(/[。！!？?]/g, "").trim();
+  const zh = normalized.match(
+    new RegExp(
+      `把?(${FURNITURE_LABEL})(?:的)?高(?:度)?(?:加高到|调到|到|为|是)?\\s*(半|[0-9]+(?:\\.[0-9]+)?|[一二两三四五六七八九十])\\s*(?:米|m|meters?|metres?)?`,
+      "i",
+    ),
+  );
+  if (zh !== null && zh[1] !== undefined && zh[2] !== undefined) {
+    const heightMeters = parseMeters(zh[2]);
+    if (heightMeters !== undefined) {
+      return {
+        objectId: resolveFurniturePlanObjectId(zh[1], planObjectIds),
+        heightMeters,
+      };
+    }
+  }
+  const raised = normalized.match(
+    new RegExp(
+      `把(${FURNITURE_LABEL})(?:加高|调高)到\\s*(半|[0-9]+(?:\\.[0-9]+)?|[一二两三四五六七八九十])\\s*(?:米|m)?`,
+    ),
+  );
+  if (raised !== null && raised[1] !== undefined && raised[2] !== undefined) {
+    const heightMeters = parseMeters(raised[2]);
+    if (heightMeters !== undefined) {
+      return {
+        objectId: resolveFurniturePlanObjectId(raised[1], planObjectIds),
+        heightMeters,
+      };
+    }
+  }
+  const en = normalized.match(
+    new RegExp(
+      `(?:make|set)\\s+(?:the\\s+)?(${FURNITURE_LABEL})\\s+(?:to\\s+)?([0-9]+(?:\\.[0-9]+)?)\\s*(?:m|meters?|metres?)(?:\\s+(?:tall|high))?`,
+      "i",
+    ),
+  );
+  if (en !== null && en[1] !== undefined && en[2] !== undefined) {
+    const heightMeters = parseMeters(en[2]);
+    if (heightMeters !== undefined) {
+      return {
+        objectId: resolveFurniturePlanObjectId(en[1], planObjectIds),
+        heightMeters,
+      };
+    }
+  }
+  return undefined;
+}
+
 /**
  * zh: 单物件换目录材质。目录 PBR 不是世界模型材质。
  * en: Swap one object's catalog material. Catalog PBR is not a world-model material.
@@ -413,7 +543,7 @@ function matchExtend(
     return { openDoor: true };
   }
   if (
-    /^(在门外生成花园|门外生成花园|扩展花园|把花园接上|门外增加露台|增加露台|extend(\s+the)?\s+garden|add\s+(a\s+)?(garden|terrace))$/i.test(
+    /^(在门外生成花园|门外生成花园|扩展花园|把花园接上|门外增加露台|增加露台|生成相邻区域|生成相邻房间|extend(\s+the)?\s+garden|add\s+(a\s+)?(garden|terrace)|generate\s+(an?\s+)?adjacent\s+(region|area))$/i.test(
       normalized,
     )
   ) {
@@ -480,19 +610,30 @@ function matchNavigate(text: string): { name: string } | undefined {
 
 function navigateNameOf(raw: string): string {
   const key = raw.trim().toLowerCase();
-  if (key === "the bar" || key.includes("吧台")) {
+  if (key === "the bar" || key === "bar" || key.includes("吧台")) {
     return "吧台";
   }
-  if (key === "the door" || key.includes("门")) {
+  if (key === "the door" || key === "door" || key.includes("门")) {
     return "门";
   }
-  if (key === "the window" || key.includes("窗")) {
+  if (key === "the window" || key === "window" || key.includes("窗")) {
     return "窗";
   }
-  if (key === "the table" || key.includes("桌")) {
+  if (key === "the table" || key === "table" || key.includes("桌")) {
     return "桌子";
   }
   return raw.trim();
+}
+
+function matchTurnToward(text: string): { name: string } | undefined {
+  const normalized = text.replace(/[。！!？?]/g, "").trim();
+  const match = normalized.match(
+    /^(?:看向|转向|望向|转头看|look\s+at|turn\s+(?:to(?:ward)?|towards)|face)\s*(?:the\s+)?(吧台正面|吧台|门口|那扇门|门|窗边|窗外|窗|桌子|bar|door|window|table)$/i,
+  );
+  if (match === null || match[1] === undefined) {
+    return undefined;
+  }
+  return { name: navigateNameOf(match[1]) };
 }
 
 function matchLook(text: string): { fresh: boolean } | undefined {
@@ -539,6 +680,14 @@ function matchRulePatch(
       scope: "world",
       documentId: "WORLD.md",
       append: world[1].trim(),
+    };
+  }
+  const memory = text.match(/^(?:记住|记下|remember(?:\s+that)?)\s*(.+)$/i);
+  if (memory !== null && memory[1] !== undefined) {
+    return {
+      scope: "world",
+      documentId: "MEMORY.md",
+      append: memory[1].trim(),
     };
   }
   return undefined;

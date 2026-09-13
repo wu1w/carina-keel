@@ -3,4 +3,10 @@
  * en: Modeling-asset export. World zip remains pack's job.
  */
 export { buildModelExport, type ReadPackAsset } from "./build-model-export.js";
-export { buildBoxesGlb, buildMeshesGlb, type BoxNode, type MeshNode } from "./glb.js";
+export {
+  buildBakedShellGlb,
+  buildBoxesGlb,
+  buildMeshesGlb,
+  type BoxNode,
+  type MeshNode,
+} from "./glb.js";

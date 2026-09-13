@@ -5,6 +5,7 @@ import type {
   Vec3,
   WorldRules,
 } from "../schema/index.js";
+import { isObjectLocked } from "../spatial/locked-objects.js";
 import {
   aabbOverlaps,
   pointInAabb,
@@ -46,6 +47,7 @@ export type PlayerActionKind =
   | "drop"
   | "use"
   | "teleport"
+  | "cast"
   | "authorPlace";
 
 /**
@@ -86,6 +88,7 @@ export type WorldRuntime = {
     reason?: string;
     snapshot: RuntimeSnapshot;
   };
+  applyWorldRules(rules: WorldRules): void;
   applyCommittedScene(
     regions: RegionRevision[],
     objects: SceneObject[],
@@ -197,6 +200,9 @@ class WorldRuntimeImpl implements WorldRuntime {
     if (action.kind === "teleport") {
       return this.teleport(action);
     }
+    if (action.kind === "cast") {
+      return this.cast();
+    }
     if (this.runState === "paused" && isPausedRejected(action.kind)) {
       return this.fail("paused");
     }
@@ -218,6 +224,14 @@ class WorldRuntimeImpl implements WorldRuntime {
       default:
         return this.fail("unsupported");
     }
+  }
+
+  /**
+   * zh: 载入已编译法则。不改时钟、代次或场景。
+   * en: Load compiled rules. Does not change clock, epoch, or scene.
+   */
+  applyWorldRules(rules: WorldRules): void {
+    this.worldRules = structuredClone(rules);
   }
 
   /**
@@ -259,6 +273,7 @@ class WorldRuntimeImpl implements WorldRuntime {
         const npc: RuntimeSnapshot["npcs"][number] = {
           sceneObjectId: object.sceneObjectId,
           position: { ...object.transform.position },
+          appearance: { kind: "proxy-mesh", sourceLabel: "proxy-mesh" },
         };
         const goal = this.npcGoals.get(object.sceneObjectId);
         if (goal !== undefined) {
@@ -417,6 +432,9 @@ class WorldRuntimeImpl implements WorldRuntime {
     if (this.hasClause("no_teleport")) {
       return this.fail("no_teleport");
     }
+    if (this.hasClause("no_magic")) {
+      return this.fail("no_magic");
+    }
     if (this.runState === "paused") {
       return this.fail("paused");
     }
@@ -433,6 +451,21 @@ class WorldRuntimeImpl implements WorldRuntime {
     }
     this.syncHeldPositions();
     return this.okResult();
+  }
+
+  /**
+   * zh: 施法。有 no_magic 条款则拒绝。本运行时不实现魔法效果。
+   * en: Cast. A no_magic clause rejects. This runtime does not implement magic.
+   */
+  private cast(): {
+    ok: boolean;
+    reason?: string;
+    snapshot: RuntimeSnapshot;
+  } {
+    if (this.hasClause("no_magic")) {
+      return this.fail("no_magic");
+    }
+    return this.fail("unsupported");
   }
 
   /**
@@ -474,6 +507,9 @@ class WorldRuntimeImpl implements WorldRuntime {
     );
     if (object === undefined) {
       return this.fail("not_found");
+    }
+    if (isObjectLocked(this.worldRules, object)) {
+      return this.fail("lock_object");
     }
     if (
       object.mobility !== "movable" ||
@@ -576,6 +612,9 @@ class WorldRuntimeImpl implements WorldRuntime {
     if (object === undefined) {
       return this.fail("not_found");
     }
+    if (isObjectLocked(this.worldRules, object)) {
+      return this.fail("lock_object");
+    }
     setObjectPosition(object, action.position);
     if (action.yaw !== undefined) {
       object.transform = {
@@ -607,6 +646,11 @@ class WorldRuntimeImpl implements WorldRuntime {
         continue;
       }
       if (object.interactionProfile === "door" && object.open === true) {
+        continue;
+      }
+      // A single-viewpoint space shell is a visual overlay. Its AABB fills the
+      // room and must not be treated as a solid collider.
+      if (object.sceneObjectId.endsWith("-space-shell")) {
         continue;
       }
       if (object.mobility === "static" || object.mobility === "movable") {

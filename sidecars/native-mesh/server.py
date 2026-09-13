@@ -65,24 +65,44 @@ LOAD_ERROR: str | None = None
 LAST_TIMINGS: dict[str, Any] | None = None
 
 
-def _english_object(name: str, role: str, prompt: str) -> str:
+def _english_object(name: str, role: str, prompt: str, object_id: str = "") -> str:
     bits = []
-    lowered = f"{name} {role} {prompt}".lower()
-    if any(token in f"{name}{role}{prompt}" for token in ("吧台", "bar")) or "bar" in lowered:
-        bits.append("carved oak tavern bar front, wooden counter facade")
-    if "fireplace" in lowered or "壁炉" in f"{name}{role}{prompt}":
-        bits.append("stone fireplace")
-    if name.strip():
-        bits.append(name.strip())
-    if role.strip():
-        bits.append(role.strip())
-    if prompt.strip():
-        bits.append(prompt.strip()[:240])
-    bits.append(
-        "isolated 3d object, studio lighting, centered, plain gray background, "
-        "product photo, no people, no text, no watermark"
-    )
-    return ", ".join(bits)
+    identity = f"{object_id} {name}".strip()
+    identity_l = identity.lower()
+    blob = f"{identity} {role} {prompt}"
+    lowered = blob.lower()
+    # Classify by the featured object, not the whole tavern prompt.
+    # A fireplace POST still carries "旧木吧台" in sceneDescription.
+    if object_id == "fireplace" or "壁炉" in name or "fireplace" in identity_l:
+        bits.append("warm stone tavern fireplace")
+    elif object_id == "bar-front" or "吧台" in name or object_id == "bar":
+        bits.append("carved oak tavern bar front")
+    elif (
+        object_id in ("courtyard-feature", "courtyard-tree", "garden-gate")
+        or "garden" in identity_l
+        or "庭院" in name
+        or "花园" in name
+    ):
+        bits.append("small courtyard garden feature")
+    elif object_id == "door" or "门" in name or role == "door":
+        bits.append("wooden tavern door")
+    elif object_id == "table" or "桌子" in name:
+        bits.append("oak tavern table")
+    elif object_id == "cup" or "杯子" in name:
+        bits.append("ceramic tavern cup")
+    elif "fireplace" in lowered or "壁炉" in blob:
+        bits.append("warm stone tavern fireplace")
+    elif any(token in blob for token in ("吧台",)) or "bar-front" in lowered:
+        bits.append("carved oak tavern bar front")
+    elif "garden" in lowered or "庭院" in blob or "花园" in blob:
+        bits.append("small courtyard garden feature")
+    elif name.strip() and not any("\u4e00" <= ch <= "\u9fff" for ch in name):
+        bits.append(name.strip()[:40])
+    else:
+        bits.append("small isolated prop")
+    bits.append("isolated 3d object, studio lighting, gray background")
+    visual = ", ".join(bits)
+    return visual[:300]
 
 
 def _load_tsr():
@@ -175,6 +195,47 @@ def _fit_dimensions(mesh, dimensions: dict[str, Any] | None):
     return mesh
 
 
+def _uv_box(vertices):
+    import numpy as np
+
+    mins = vertices.min(axis=0)
+    extents = np.maximum(vertices.max(axis=0) - mins, 1e-6)
+    drop = int(np.argmin(extents))
+    uv = np.empty((len(vertices), 2), dtype=np.float64)
+    if drop == 0:
+        uv[:, 0] = (vertices[:, 1] - mins[1]) / extents[1]
+        uv[:, 1] = (vertices[:, 2] - mins[2]) / extents[2]
+    elif drop == 1:
+        uv[:, 0] = (vertices[:, 0] - mins[0]) / extents[0]
+        uv[:, 1] = (vertices[:, 2] - mins[2]) / extents[2]
+    else:
+        uv[:, 0] = (vertices[:, 0] - mins[0]) / extents[0]
+        uv[:, 1] = (vertices[:, 1] - mins[1]) / extents[1]
+    return np.clip(uv, 0.0, 1.0)
+
+
+def _apply_appearance(mesh, image):
+    import trimesh
+    from PIL import Image
+
+    if not isinstance(image, Image.Image):
+        return mesh
+    albedo = image.convert("RGB")
+    try:
+        material = trimesh.visual.material.PBRMaterial(
+            baseColorTexture=albedo,
+            metallicFactor=0.08,
+            roughnessFactor=0.62,
+        )
+        mesh.visual = trimesh.visual.TextureVisuals(
+            uv=_uv_box(mesh.vertices),
+            material=material,
+        )
+    except Exception:
+        return mesh
+    return mesh
+
+
 def _generate(body: dict[str, Any]) -> dict[str, Any]:
     global LAST_TIMINGS
     import torch
@@ -185,7 +246,7 @@ def _generate(body: dict[str, Any]) -> dict[str, Any]:
     role = str(body.get("role") or "")
     prompt = str(body.get("prompt") or body.get("sceneDescription") or "")
     object_id = str(body.get("objectId") or f"native-mesh-{uuid.uuid4().hex[:12]}")
-    visual = _english_object(name, role, prompt)
+    visual = _english_object(name, role, prompt, object_id)
     started = time.perf_counter()
     print(f"[mesh] t2i {object_id} {visual[:220]}", flush=True)
     image = _t2i(visual)
@@ -205,6 +266,7 @@ def _generate(body: dict[str, Any]) -> dict[str, Any]:
     mesh = meshes[0]
     dimensions = body.get("dimensions") if isinstance(body.get("dimensions"), dict) else None
     mesh = _fit_dimensions(mesh, dimensions)
+    mesh = _apply_appearance(mesh, image)
     glb = mesh.export(file_type="glb")
     if isinstance(glb, str):
         glb = glb.encode("utf-8")

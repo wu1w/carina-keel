@@ -1,0 +1,144 @@
+{
+  "probe": "interior-floor-drop-after-shell-collision-off",
+  "at": "2026-09-13T08:48:22+0800",
+  "notWorldModel": true,
+  "scaffoldPrimitive": true,
+  "claimsWorldModelGeneration": false,
+  "note": "Space shell is a visual overlay. Collision stays on SceneSpec scaffold boxes. isolate_carina hides the default Third Person map. Not a reconstructed room.",
+  "isolate": {
+    "ipcId": "5cb3db8f-2439-4534-bea0-b6003cef0e15",
+    "op": "isolate_carina",
+    "hidden": true,
+    "hiddenActors": 72,
+    "fillLight": true,
+    "ok": true,
+    "ms": 0.1230000052601099
+  },
+  "spaceShell": {
+    "objectId": "interior-space-shell",
+    "hasComp": true,
+    "hasMesh": true,
+    "mesh": "/Game/Imported/Dynamic/interior_space_shell_2cbef055/interior_space_shell_2cbef055/StaticMeshes/interior_space_shell_2cbef055.interior_space_shell_2cbef055",
+    "alive": true,
+    "actor": "StaticMeshActor_2147482359",
+    "x": 600.9665404305971,
+    "y": 202.21917537407404,
+    "z": 6.144366947382275,
+    "sx": 2.178906449283946,
+    "sy": 2.178906449283946,
+    "sz": 2.178906449283946,
+    "localRadius": 300.5671691894531,
+    "minX": 76.90981613614451,
+    "minY": -6.753393108738237e-06,
+    "minZ": -5.684341886080802e-14,
+    "maxX": 1123.0901568502827,
+    "maxY": 1000.0000249356054,
+    "maxZ": 738.4327465487531,
+    "boxComponents": 0,
+    "actorCollision": false,
+    "collisionEnabled": 0
+  },
+  "floor": {
+    "objectId": "floor",
+    "hasComp": true,
+    "hasMesh": true,
+    "mesh": "/Game/Imported/Dynamic/floor_eb3ff4ea/floor_eb3ff4ea/StaticMeshes/floor_eb3ff4ea.floor_eb3ff4ea",
+    "alive": true,
+    "actor": "StaticMeshActor_2147482358",
+    "x": 600,
+    "y": 500,
+    "z": -15,
+    "sx": 1,
+    "sy": 1,
+    "sz": 1,
+    "localRadius": 781.0609741210938,
+    "minX": 0,
+    "minY": 0,
+    "minZ": -15,
+    "maxX": 1200,
+    "maxY": 1000,
+    "maxZ": 9.5367431640625e-07,
+    "boxComponents": 0,
+    "actorCollision": true,
+    "collisionEnabled": 3
+  },
+  "interior_floor_drop": {
+    "dropFromCarina": [
+      6.0,
+      3.0,
+      5.0
+    ],
+    "expectedUeCm": {
+      "x": 600.0,
+      "y": 500.0,
+      "z": 300.0
+    },
+    "pose": {
+      "ok": true,
+      "groundHit": true,
+      "groundZ": 7.500000476837158,
+      "groundActor": "Actor_2147482357",
+      "pawnX": 600,
+      "pawnY": 500,
+      "pawnZ": 300
+    },
+    "psPawnAfterSettle": {
+      "x": 600,
+      "y": 444.875,
+      "z": 99.65000120607235,
+      "name": "BP_ThirdPersonCharacter_C_2147482384",
+      "possessed": true,
+      "collision": true,
+      "movementMode": 1,
+      "cheatFlying": false,
+      "gravityScale": 1
+    },
+    "standPawnAfterSettle": {
+      "x": 600,
+      "y": 500,
+      "z": 47.50000047677171,
+      "name": "Actor_2147482336",
+      "kind": "physics-box"
+    }
+  },
+  "door_inside_drop": {
+    "dropFromCarina": [
+      6.0,
+      2.5,
+      1.2
+    ],
+    "expectedUeCm": {
+      "x": 600.0,
+      "y": 120.0,
+      "z": 250.0
+    },
+    "pose": {
+      "ok": true,
+      "groundHit": true,
+      "groundZ": 7.500000476837158,
+      "groundActor": "Actor_2147482372",
+      "pawnX": 600,
+      "pawnY": 120,
+      "pawnZ": 250
+    },
+    "psPawnAfterSettle": {
+      "x": 600,
+      "y": 64.875,
+      "z": 99.65025564230342,
+      "name": "BP_ThirdPersonCharacter_C_2147482384",
+      "possessed": true,
+      "collision": true,
+      "movementMode": 1,
+      "cheatFlying": false,
+      "gravityScale": 1
+    },
+    "standPawnAfterSettle": {
+      "x": 663.0989206632972,
+      "y": 127.85095224916466,
+      "z": 19.999995898874626,
+      "name": "Actor_2147482334",
+      "kind": "physics-box"
+    }
+  },
+  "walkProof": true
+}

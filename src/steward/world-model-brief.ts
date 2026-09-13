@@ -78,7 +78,7 @@ export function isViewUtterance(text: string): boolean {
   ) {
     return false;
   }
-  if (/^(?:全局记住|全局规则|世界规则|以后这个世界)/.test(normalized)) {
+  if (/^(?:全局记住|全局规则|打开世界规则|世界规则|以后这个世界|记住|记下|remember(?:\s+that)?)/i.test(normalized)) {
     return false;
   }
   if (/^(?:新建一个|新开一个|创建一个)/.test(normalized)) {

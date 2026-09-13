@@ -1,0 +1,192 @@
+{
+  "glb": "/tmp/carina-ng1/tavern.glb",
+  "byteLength": 2678920,
+  "materials": [
+    "",
+    "",
+    "oak-door-pbr",
+    "oak-table-pbr",
+    "oak-chair-pbr",
+    "ceramic-cup-pbr",
+    "窗",
+    "地板",
+    "西侧墙",
+    "东侧墙",
+    "北侧墙",
+    "南侧墙左",
+    "南侧墙右",
+    "南侧墙楣",
+    "吧台"
+  ],
+  "textures": 6,
+  "claimsWorldModelGeneration": false,
+  "nodes": [
+    {
+      "name": "吧台正面",
+      "verts": 0,
+      "extras": {
+        "sceneObjectId": "bar-front"
+      }
+    },
+    {
+      "name": "geometry_0",
+      "verts": 22343,
+      "extras": {}
+    },
+    {
+      "name": "壁炉",
+      "verts": 0,
+      "extras": {
+        "sceneObjectId": "fireplace"
+      }
+    },
+    {
+      "name": "geometry_0",
+      "verts": 22127,
+      "extras": {}
+    },
+    {
+      "name": "门",
+      "verts": 0,
+      "extras": {
+        "sceneObjectId": "door"
+      }
+    },
+    {
+      "name": "oak-door",
+      "verts": 16,
+      "extras": {
+        "source": "carina-catalog-v1",
+        "catalogId": "oak-door"
+      }
+    },
+    {
+      "name": "asset-root",
+      "verts": 0,
+      "extras": {}
+    },
+    {
+      "name": "桌子",
+      "verts": 0,
+      "extras": {
+        "sceneObjectId": "table"
+      }
+    },
+    {
+      "name": "oak-table",
+      "verts": 20,
+      "extras": {
+        "source": "carina-catalog-v1",
+        "catalogId": "oak-table"
+      }
+    },
+    {
+      "name": "asset-root",
+      "verts": 0,
+      "extras": {}
+    },
+    {
+      "name": "椅子",
+      "verts": 0,
+      "extras": {
+        "sceneObjectId": "chair"
+      }
+    },
+    {
+      "name": "oak-chair",
+      "verts": 18,
+      "extras": {
+        "source": "carina-catalog-v1",
+        "catalogId": "oak-chair"
+      }
+    },
+    {
+      "name": "asset-root",
+      "verts": 0,
+      "extras": {}
+    },
+    {
+      "name": "杯子",
+      "verts": 0,
+      "extras": {
+        "sceneObjectId": "cup"
+      }
+    },
+    {
+      "name": "ceramic-cup",
+      "verts": 16,
+      "extras": {
+        "source": "carina-catalog-v1",
+        "catalogId": "ceramic-cup"
+      }
+    },
+    {
+      "name": "asset-root",
+      "verts": 0,
+      "extras": {}
+    },
+    {
+      "name": "窗",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "window"
+      }
+    },
+    {
+      "name": "地板",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "floor"
+      }
+    },
+    {
+      "name": "西侧墙",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "wall-west"
+      }
+    },
+    {
+      "name": "东侧墙",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "wall-east"
+      }
+    },
+    {
+      "name": "北侧墙",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "wall-north"
+      }
+    },
+    {
+      "name": "南侧墙左",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "wall-south-west"
+      }
+    },
+    {
+      "name": "南侧墙右",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "wall-south-east"
+      }
+    },
+    {
+      "name": "南侧墙楣",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "wall-south-lintel"
+      }
+    },
+    {
+      "name": "吧台",
+      "verts": 24,
+      "extras": {
+        "sceneObjectId": "bar"
+      }
+    }
+  ]
+}

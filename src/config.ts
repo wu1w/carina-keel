@@ -34,10 +34,24 @@ export type CarinaConfig = {
   rtxServiceUrl?: string;
   rtxServiceKeyFile?: string;
   /**
-   * zh: 原生网格 HTTP 适配器根 URL。空字符串视为未设置，走 mock。
-   * en: Native-mesh HTTP adapter root URL. Empty string is unset and keeps the mock.
+   * zh: 原生网格 HTTP 适配器根 URL。空字符串视为未设置，生产路径不得用程序酒馆假装 nativeMesh。
+   * en: Native-mesh HTTP adapter root URL. Empty string is unset; production must not fake nativeMesh with the fixture tavern.
    */
   meshProviderUrl?: string;
+  /**
+   * zh: 整空间世界模型 HTTP 根 URL（Windows 5070 Ti 上的 WorldGen sidecar，经 SSH 隧道 127.0.0.1:18796）。
+   *     设了它，session.create 才会先生成空间壳；没设则结构仍是目录/脚手架，不得声称世界模型。
+   * en: Whole-space world-model HTTP root URL (WorldGen sidecar on the Windows 5070 Ti via SSH tunnel
+   *     127.0.0.1:18796). With it, session.create generates a space shell first; without it the
+   *     structure stays catalog/scaffold and must not claim world-model generation.
+   */
+  spaceProviderUrl?: string;
+  spaceProviderKeyFile?: string;
+  /**
+   * zh: 测试/诊断才允许提交程序酒馆夹具。不是世界模型，也不能标 nativeMesh。
+   * en: Tests/diagnostics may submit the primitive tavern fixture. Not a world model; must not set nativeMesh.
+   */
+  allowPrimitiveFixture?: boolean;
   /**
    * zh: Bearer 密钥文件路径。不要把文件内容写进仓库或日志。
    * en: Path to a Bearer token file. Do not write the contents into the repo or logs.
@@ -49,13 +63,30 @@ export type CarinaConfig = {
      */
     worldRuntimeUrl?: string;
     /**
-     * zh: 上传后是否 cook/install/activate/spawn。缺省只上传。
-     * en: After upload, whether to cook/install/activate/spawn. Default false.
+     * zh: 上传后是否 cook/install/activate/spawn。配置了 WorldRuntime 即默认 cook（2026-09-13 起，
+     *     live 回滚与 remount 均已验证：a7_live_rollback.json / a7_live_cook_publish.json）；
+     *     `CARINA_WORLD_RUNTIME_COOK=0` 退回只上传。
+     * en: After upload, whether to cook/install/activate/spawn. Defaults to true once a WorldRuntime
+     *     URL is configured (live rollback + remount verified 2026-09-13); `CARINA_WORLD_RUNTIME_COOK=0`
+     *     falls back to upload-only.
      */
     worldRuntimeCook?: boolean;
     /**
-     * zh: SolarWM 源码根目录。未设则支线记 blocked-no-runtime。有目录也不把视频写成网格。
-     * en: SolarWM source root. Unset records blocked-no-runtime. A tree still does not make video a mesh.
+     * zh: 新侧容器安装前后是否让 WorldRuntime 重启宿主以重挂载（每次发布最多一次）。默认开；
+     *     `CARINA_WORLD_RUNTIME_REMOUNT=0` 关闭——那样新容器的 activate 会失败并回滚。
+     * en: Whether WorldRuntime restarts the host around installs of new side containers (at most once
+     *     per publish). Default on; `CARINA_WORLD_RUNTIME_REMOUNT=0` disables it, after which activating
+     *     a new container fails and rolls back.
+     */
+    worldRuntimeRemount?: boolean;
+    /**
+     * zh: WorldRuntime 世界 id。未设则用 Carina worldId。正式视口当前是 ng1-i23d overlay，不是世界模型酒馆。
+     * en: WorldRuntime world id. Unset uses the Carina worldId. The live viewport is an ng1-i23d overlay, not a world-model tavern.
+     */
+    worldRuntimeWorldId?: string;
+    /**
+     * zh: SolarWM 源码根目录。未设 = 支线对 NG-1 正式关闭（closed-ng1）。有目录也不把视频写成网格。
+     * en: SolarWM source root. Unset = side-quest formally closed for NG-1 (closed-ng1). A tree still does not make video a mesh.
      */
     solarWmRoot?: string;
     explorationBudget?: number;
@@ -102,14 +133,29 @@ export function loadConfig(
     ...(emptyToUndefined(env["CARINA_MESH_PROVIDER_URL"])
       ? { meshProviderUrl: env["CARINA_MESH_PROVIDER_URL"]! }
       : {}),
+    ...(emptyToUndefined(env["CARINA_SPACE_PROVIDER_URL"])
+      ? { spaceProviderUrl: env["CARINA_SPACE_PROVIDER_URL"]! }
+      : {}),
+    ...(emptyToUndefined(env["CARINA_SPACE_PROVIDER_KEY_FILE"])
+      ? { spaceProviderKeyFile: env["CARINA_SPACE_PROVIDER_KEY_FILE"]! }
+      : {}),
+    ...(env["CARINA_PRIMITIVE_FIXTURE"] === "1"
+      ? { allowPrimitiveFixture: true }
+      : {}),
     ...(emptyToUndefined(env["CARINA_MESH_PROVIDER_KEY_FILE"])
       ? { meshProviderKeyFile: env["CARINA_MESH_PROVIDER_KEY_FILE"]! }
       : {}),
     ...(emptyToUndefined(env["CARINA_WORLD_RUNTIME_URL"])
       ? { worldRuntimeUrl: env["CARINA_WORLD_RUNTIME_URL"]! }
       : {}),
-    ...(env["CARINA_WORLD_RUNTIME_COOK"] === "1"
-      ? { worldRuntimeCook: true }
+    ...(emptyToUndefined(env["CARINA_WORLD_RUNTIME_URL"])
+      ? {
+          worldRuntimeCook: env["CARINA_WORLD_RUNTIME_COOK"] !== "0",
+          worldRuntimeRemount: env["CARINA_WORLD_RUNTIME_REMOUNT"] !== "0",
+        }
+      : {}),
+    ...(emptyToUndefined(env["CARINA_WORLD_RUNTIME_WORLD_ID"])
+      ? { worldRuntimeWorldId: env["CARINA_WORLD_RUNTIME_WORLD_ID"]! }
       : {}),
     ...(emptyToUndefined(env["CARINA_SOLARWM_ROOT"])
       ? { solarWmRoot: env["CARINA_SOLARWM_ROOT"]! }

@@ -246,6 +246,19 @@ function interiorFurniture(worldId: string): SceneObject[] {
     semanticNodeId: `${worldId}-sem-door`,
     open: false,
   });
+  /**
+   * zh: 西墙内侧的夹具窗，给「向窗边」当参照。不是世界模型网格。
+   * en: Fixture window on the inner west wall so “toward the window” has a referent. Not a world-model mesh.
+   */
+  const windowPane = boxObject({
+    sceneObjectId: `${worldId}-window`,
+    name: "窗",
+    min: { x: -0.18, y: 1, z: 2.2 },
+    max: { x: -0.02, y: 2.4, z: 3.4 },
+    mobility: "static",
+    interactionProfile: "none",
+    semanticNodeId: `${worldId}-sem-window`,
+  });
   const table = boxObject({
     sceneObjectId: tableId,
     name: "桌子",
@@ -302,7 +315,7 @@ function interiorFurniture(worldId: string): SceneObject[] {
     semanticNodeId: `${worldId}-sem-keeper`,
     materialRefs: ["mat-cloth"],
   });
-  return [door, table, chair1, chair2, chair3, cup, npc];
+  return [door, windowPane, table, chair1, chair2, chair3, cup, npc];
 }
 
 function gardenObjects(worldId: string): SceneObject[] {

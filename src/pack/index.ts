@@ -28,6 +28,8 @@ export { sha256Hex } from "./hash.js";
 export {
   commitRevision,
   ensureV1,
+  listCheckpoints,
+  readCommit,
   readHead,
   readSnapshot,
   readWorldDocuments,
@@ -35,6 +37,7 @@ export {
   readAsset,
   stageAsset,
   updateWorldDocument,
+  type CheckpointRow,
 } from "./revision.js";
 
 /**

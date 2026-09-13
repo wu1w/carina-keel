@@ -72,6 +72,15 @@ function clauseFromLine(line: string): WorldRuleClause | undefined {
       payload: { text: line },
     };
   }
+  const locked = parseLockedObject(line);
+  if (locked !== undefined) {
+    return {
+      id: createUlid(),
+      kind: "lock_object",
+      sourceSpan: line,
+      payload: { name: locked },
+    };
+  }
   return undefined;
 }
 
@@ -100,6 +109,30 @@ function parseLockHour(line: string): number | undefined {
       return hour === 12 ? 12 : hour + 12;
     }
     return hour;
+  }
+  return undefined;
+}
+
+/**
+ * zh: 从「锁定吧台 / lock the bar」抽出对象名。
+ * en: Extract the object name from "锁定吧台" / "lock the bar".
+ */
+function parseLockedObject(line: string): string | undefined {
+  const lockCn = line.match(/锁定\s*([^\s，。；;]+)/);
+  if (lockCn?.[1] && lockCn[1].length > 0) {
+    return lockCn[1].replace(/[。．.]+$/, "");
+  }
+  const immovable = line.match(/([^\s，。；;]+)\s*不可移动/);
+  if (immovable?.[1] && immovable[1].length > 0) {
+    return immovable[1];
+  }
+  const dontMove = line.match(/不要动\s*([^\s，。；;]+)/);
+  if (dontMove?.[1] && dontMove[1].length > 0) {
+    return dontMove[1].replace(/[。．.]+$/, "");
+  }
+  const lockEn = line.match(/lock(?:\s+the)?\s+([a-z0-9_-]+)/i);
+  if (lockEn?.[1] && lockEn[1].length > 0) {
+    return lockEn[1];
   }
   return undefined;
 }

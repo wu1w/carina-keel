@@ -1,37 +1,31 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import test from "node:test";
 import { createPack } from "../pack/index.js";
 import { NodeType } from "../schema/index.js";
 import { main } from "./main.js";
+import { legacyCommand } from "./commands/legacy.js";
 import { createToolContext, executeTool } from "./tool-session.js";
 
+const execFileAsync = promisify(execFile);
+
 /**
- * zh: 根命令挂上八工具对应的离线 CLI。
- * en: Root command exposes offline CLIs for the eight world tools.
+ * zh: 根命令只挂产品入口；图谱工具在 legacy 下，不在 --help 里冒充产品。
+ * en: Root CLI is the product path; graph tools live under legacy and do not impersonate the product.
  */
-test("main registers look go say remember attach alongside pack commands", () => {
+test("main registers product commands and nests leftover pack tools under legacy", () => {
   const names = Object.keys(main.subCommands ?? {}).sort();
   assert.deepEqual(
     names,
-    [
-      "attach",
-      "chat",
-      "export",
-      "go",
-      "look",
-      "mcp",
-      "new",
-      "query",
-      "relate",
-      "remember",
-      "say",
-      "serve",
-      "sessions",
-      "spawn",
-    ].sort(),
+    ["chat", "legacy", "look", "mcp", "new", "remember", "serve", "sessions"].sort(),
+  );
+  assert.deepEqual(
+    Object.keys(legacyCommand.subCommands ?? {}).sort(),
+    ["attach", "export", "go", "query", "relate", "say", "spawn"].sort(),
   );
 });
 
@@ -101,4 +95,16 @@ test("cli tool-session persists look go say remember attach", async (t) => {
   assert.equal(reopened.packHandle.session.placeId, place.id);
   assert.equal(reopened.store.query({ type: NodeType.Claim }).length > 0, true);
   assert.equal(reopened.store.query({ type: NodeType.Asset }).length > 0, true);
+});
+
+/**
+ * zh: `carina --help` 产品入口不含 spawn/go。
+ * en: `carina --help` lists the product path, not leftover spawn/go.
+ */
+test("carina help lists product commands not leftover spawn or go", async () => {
+  const { stdout } = await execFileAsync("pnpm", ["exec", "tsx", "src/cli/main.ts", "--help"]);
+  assert.match(stdout, /\bchat\b/);
+  assert.match(stdout, /\blegacy\b/);
+  assert.equal(/\bspawn\b/.test(stdout), false);
+  assert.equal(/\bgo\b/.test(stdout), false);
 });

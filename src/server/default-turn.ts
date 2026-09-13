@@ -1,26 +1,33 @@
-import type { CarinaConfig } from "../config.js";
+import { t, isMessageKey } from "../i18n/index.js";
 import { CarinaError } from "../errors.js";
-import { t } from "../i18n/index.js";
 import { runTurn } from "../steward/index.js";
 import { createToolContext, executeTool } from "../tools/index.js";
+import type { CarinaConfig } from "../config.js";
 import {
   interpretText,
+  normalizeSessionList,
   type Application,
 } from "./bind-application.js";
 import type { HttpAppOptions } from "./create-http-app.js";
 import type { RunTurnFn } from "./normalize-turn.js";
 
 /**
- * zh: 打开世界包（若有），接到管家对话；无包时走 application 发言。
- * en: Open a pack when present and bind steward chat; otherwise utterance via application.
+ * zh: 有 application 时聊天走 WorldCommand 门面。八工具只在 application 加载失败时兜底。
+ * en: With an application, chat uses the WorldCommand facade. The eight tools are fallback when application failed to load.
  */
 export async function createDefaultHttpOptions(
   config: CarinaConfig,
   application?: Application,
 ): Promise<HttpAppOptions> {
+  if (application !== undefined) {
+    return {
+      runTurn: utteranceTurn(config, application),
+      application,
+    };
+  }
   if (config.pack !== undefined && config.pack !== "") {
     const toolContext = await createToolContext(config.pack, config.lang);
-    const options: HttpAppOptions = {
+    return {
       runTurn: (message: string) =>
         runTurn(message, {
           store: toolContext.store,
@@ -30,23 +37,15 @@ export async function createDefaultHttpOptions(
         }),
       rollLook: () => executeTool("look", {}, toolContext),
     };
-    if (application !== undefined) {
-      options.application = application;
-    }
-    return options;
   }
-  const options: HttpAppOptions = {
-    runTurn: utteranceTurn(config, application),
+  return {
+    runTurn: utteranceTurn(config, undefined),
   };
-  if (application !== undefined) {
-    options.application = application;
-  }
-  return options;
 }
 
 /**
- * zh: 无包时用 chat.utterance / interpretAndDispatch。
- * en: Without a pack, send chat.utterance through interpretAndDispatch.
+ * zh: 自然语言进 interpretAndDispatch。拒绝时给出真实错误文案。
+ * en: Natural language goes through interpretAndDispatch. Rejections surface the real error copy.
  */
 function utteranceTurn(
   config: CarinaConfig,
@@ -56,25 +55,44 @@ function utteranceTurn(
     if (application === undefined) {
       throw new CarinaError("WORLD_NOT_ACTIVE", "error.worldNotActive");
     }
+    const listed = normalizeSessionList(await application.listSessions());
+    const worldId = listed.activeWorldId ?? listed.worlds[0]?.worldId;
     const results = await interpretText(
       application,
       message,
       "natural_language",
-      undefined,
+      worldId,
       "user",
     );
     for (const result of results) {
-      if (result.payload !== undefined && typeof result.payload["text"] === "string") {
-        yield result.payload["text"];
-        continue;
-      }
-      if (result.accepted) {
-        yield t("ui.commandAccepted", config.lang);
-        continue;
-      }
-      yield t("error.commandRejected", config.lang);
+      yield spokenFromResult(result, config);
     }
   };
+}
+
+/**
+ * zh: 用户只看到结果句。没有 payload 文本时用错误码或已接受。
+ * en: Users see the result sentence. Without payload text, use the error key or accepted ack.
+ */
+function spokenFromResult(
+  result: {
+    accepted: boolean;
+    messageKey?: string | undefined;
+    payload?: Record<string, unknown> | undefined;
+  },
+  config: CarinaConfig,
+): string {
+  const text = result.payload?.["text"];
+  if (typeof text === "string" && text.length > 0) {
+    return text;
+  }
+  if (!result.accepted) {
+    if (result.messageKey !== undefined && isMessageKey(result.messageKey)) {
+      return t(result.messageKey, config.lang);
+    }
+    return t("error.commandRejected", config.lang);
+  }
+  return t("ui.commandAccepted", config.lang);
 }
 
 /**

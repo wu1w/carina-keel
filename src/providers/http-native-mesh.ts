@@ -82,7 +82,7 @@ export function createHttpNativeMeshProvider(
         text: true,
         imageReference: false,
         depthReference: false,
-        cameraControl: false,
+        cameraControl: true,
         actionControl: false,
         continuous: false,
         cancel: true,
@@ -512,6 +512,18 @@ function buildGenerateRequest(
   body["sceneDescription"] = plan.sceneDescription;
   if (extras.sceneSpec !== undefined) {
     body["sceneSpec"] = extras.sceneSpec;
+  }
+  if (extras.mode !== undefined) {
+    body["mode"] = extras.mode;
+  }
+  if (extras.camera !== undefined) {
+    body["camera"] = extras.camera;
+  }
+  if (extras.preserve !== undefined) {
+    body["preserve"] = extras.preserve;
+  }
+  if (extras.seam !== undefined) {
+    body["seam"] = extras.seam;
   }
   const target = extras.generateTarget;
   if (target === undefined) {

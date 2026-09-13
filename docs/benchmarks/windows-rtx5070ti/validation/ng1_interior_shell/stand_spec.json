@@ -1,0 +1,31 @@
+{
+  "views": [
+    {
+      "name": "interior_center",
+      "loc": [6, 1.6, 5],
+      "rot": { "pitch": -8, "yaw": 0, "roll": 0 }
+    },
+    {
+      "name": "door_inside_to_garden",
+      "loc": [6, 1.6, 1.2],
+      "rot": { "pitch": -8, "yaw": -90, "roll": 0 }
+    }
+  ],
+  "standTests": [
+    {
+      "name": "interior_floor_drop",
+      "drop": [6, 3, 5],
+      "rot": { "pitch": -20, "yaw": 0, "roll": 0 },
+      "springArmLength": 350,
+      "settleS": 2.5
+    },
+    {
+      "name": "door_inside_drop",
+      "drop": [6, 2.5, 1.2],
+      "rot": { "pitch": -15, "yaw": -90, "roll": 0 },
+      "springArmLength": 280,
+      "settleS": 2.5
+    }
+  ],
+  "wireOverhead": { "loc": [6, 14, 5], "pitch": -89 }
+}

@@ -18,10 +18,14 @@ from .asset_registry import (
     load_registry,
     register_upload,
 )
+from .carina_light import lit_interior_execs
+from .play_enter import isolate_then_enter, look_play, carina_yaw_rad_to_ue_deg
+from .host_streamer import start_streamer, stop_streamer
 from .ipc_ue import send_command, ue_bridge_available
 from .prepare_contract import PrepareContractError, validate_prepare_request
-from .pipeline_install import install_asset
+from .pipeline_install import install_asset, uninstall_asset
 from .pipeline_prepare import prepare_asset
+from .spawn_collision import wants_collision
 from .transforms import carina_to_ue, validate_wire_transform
 from .world_store import STORE, WorldError
 
@@ -54,7 +58,223 @@ def status() -> dict[str, Any]:
 
 @app.get("/health")
 def health() -> dict[str, Any]:
-    return {"ok": True, "live": bool(config.LIVE), "port": config.PORT}
+    return {"ok": True, "live": bool(config.LIVE), "port": config.PORT, "hostRemount": True}
+
+
+def _replay_world(world_id: str) -> dict[str, Any]:
+    """The host does not persist spawned actors across a restart: re-activate and re-spawn every
+    object this world already had, from the WorldRuntime store. Does not touch paks or revision."""
+    world = STORE.load(world_id)
+    reg = load_registry()
+    replayed: list[str] = []
+    failed: list[dict[str, Any]] = []
+    for obj in list(world.get("objects") or []):
+        object_id = obj.get("objectId")
+        asset_hash = obj.get("assetHash")
+        entry = (reg.get("byHash") or {}).get(asset_hash) or (world.get("activatedAssets") or {}).get(asset_hash) or {}
+        soft = entry.get("softObjectPath")
+        if not isinstance(object_id, str) or not isinstance(asset_hash, str) or not soft:
+            failed.append({"objectId": object_id, "error": "no softObjectPath"})
+            continue
+        try:
+            wire_tf = validate_wire_transform(obj.get("transform"))
+            ue_tf = carina_to_ue(wire_tf)
+        except Exception as e:  # keep replaying the rest
+            failed.append({"objectId": object_id, "error": f"transform: {e}"})
+            continue
+        try:
+            act = send_command({"op": "activate", "assetHash": asset_hash, "softObjectPath": soft})
+            if not act.get("ok"):
+                failed.append({"objectId": object_id, "error": f"activate: {act.get('error')}"})
+                continue
+            ipc = send_command({
+                "op": "spawn",
+                "objectId": object_id,
+                "assetHash": asset_hash,
+                "softObjectPath": soft,
+                "ueLocationCm": ue_tf["ueLocationCm"],
+                "ueRotationQuat": ue_tf["ueRotationQuat"],
+                "ueRotatorDeg": ue_tf["ueRotatorDeg"],
+                "ueScale": ue_tf["ueScale"],
+                "collision": wants_collision(object_id),
+            })
+        except Exception as e:  # IPC decode/IO trouble must not abort the whole replay
+            failed.append({"objectId": object_id, "error": f"ipc: {e}"})
+            continue
+        if not ipc.get("ok"):
+            failed.append({"objectId": object_id, "error": f"spawn: {ipc.get('error')}"})
+            continue
+        obj["ueActorId"] = ipc.get("ueActorId")
+        obj["respawnMs"] = ipc.get("ms")
+        replayed.append(object_id)
+    if replayed:
+        STORE.save(world)
+    return {"worldId": world_id, "replayed": replayed, "failed": failed}
+
+
+ACTIVE_WORLD_FILE = config.STATE_DIR / "active_world.json"
+
+
+def _set_active_world(world_id: str) -> None:
+    """The host has one level; the world whose objects were spawned last is what the viewport shows."""
+    try:
+        config.ensure_dirs()
+        ACTIVE_WORLD_FILE.write_text(json.dumps({"worldId": world_id}), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _replay_targets() -> list[str]:
+    """Replay only the viewport's world: the last world that spawned, or (when it has no objects
+    left) the most recently modified world that still has objects. Never every world at once —
+    they would all land in the same level."""
+    active: str | None = None
+    try:
+        active = str(json.loads(ACTIVE_WORLD_FILE.read_text(encoding="utf-8")).get("worldId") or "") or None
+    except Exception:
+        active = None
+    if active and STORE.load(active).get("objects"):
+        return [active]
+    newest: tuple[float, str] | None = None
+    try:
+        for p in config.WORLDS_DIR.glob("*.json"):
+            try:
+                data = json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if data.get("objects"):
+                mtime = p.stat().st_mtime
+                if newest is None or mtime > newest[0]:
+                    newest = (mtime, str(data.get("worldId") or p.stem))
+    except OSError:
+        pass
+    return [newest[1]] if newest else []
+
+
+@app.post("/v1/host/streamer/{action}")
+async def host_streamer(action: str, request: Request) -> JSONResponse:
+    """Remount hook: stop the packaged streamer before installing new side containers, start it
+    after so the host mounts them (one restart per publish). `start` then replays every world's
+    spawned objects because the host forgets them on restart. Never touches paks."""
+    body: dict[str, Any] = {}
+    try:
+        raw = await request.body()
+        if raw:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict):
+                body = parsed
+    except Exception:
+        body = {}
+    if action == "stop":
+        result = stop_streamer()
+    elif action == "start":
+        result = start_streamer(wait_for_bridge=True)
+        if result.get("ok") and body.get("replay", True) is not False:
+            ids = body.get("replayWorldIds")
+            if not isinstance(ids, list):
+                ids = _replay_targets()
+            replay: list[dict[str, Any]] = []
+            for w in ids:
+                try:
+                    replay.append(_replay_world(str(w)))
+                except Exception as e:
+                    traceback.print_exc()
+                    replay.append({"worldId": str(w), "replayed": [], "failed": [{"error": str(e)}]})
+            result["replay"] = replay
+            try:
+                lit = isolate_then_enter(send_command, execs=lit_interior_execs())
+                result["isolate"] = lit["isolate"]
+                result["litInteriorExecs"] = lit["litInteriorExecs"]
+                result["viewmodeLit"] = lit["viewmodeLit"]
+                result["playEnter"] = lit.get("playEnter")
+                result["p1Pass"] = False
+                result["claimsGeneratedLighting"] = False
+                result["claimsWorldModelGeneration"] = False
+                result["interiorLitVerified"] = False
+            except Exception as e:
+                result["isolate"] = result.get("isolate") or {"ok": False, "error": str(e)}
+                result["p1Pass"] = False
+                result["claimsGeneratedLighting"] = False
+                result["claimsWorldModelGeneration"] = False
+                result["interiorLitVerified"] = False
+                result["viewmodeLit"] = False
+    else:
+        return _err(404, f"unknown streamer action {action!r}; use stop|start")
+    return JSONResponse(result, status_code=200 if result.get("ok") else 503)
+
+
+@app.post("/v1/host/isolate")
+async def host_isolate() -> JSONResponse:
+    """Hide the default Third Person map and exec Lit visibility cvars.
+
+    Does not remount, cook, or touch paks. Not a P1 pass. Not generated lighting.
+    """
+    if not ue_bridge_available():
+        return _err(501, "isolate requires host WorldRuntime IPC")
+    try:
+        lit = isolate_then_enter(send_command, execs=lit_interior_execs())
+    except Exception as e:
+        traceback.print_exc()
+        return _err(500, f"isolate failed: {e}")
+    isolate = lit.get("isolate") if isinstance(lit.get("isolate"), dict) else {}
+    ok = True if not isinstance(isolate, dict) else isolate.get("ok", True) is not False
+    return JSONResponse(
+        {
+            "ok": bool(ok),
+            "isolate": lit.get("isolate"),
+            "litInteriorExecs": lit["litInteriorExecs"],
+            "viewmodeLit": lit["viewmodeLit"],
+            "playEnter": lit.get("playEnter"),
+            "p1Pass": False,
+            "claimsGeneratedLighting": False,
+            "claimsWorldModelGeneration": False,
+            "interiorLitVerified": False,
+        },
+        status_code=200 if ok else 501,
+    )
+
+
+@app.post("/v1/host/spawned")
+async def host_spawned() -> JSONResponse:
+    """Dump possessed pawn + spawned actors. Does not pose, isolate, or remount."""
+    if not ue_bridge_available():
+        return _err(501, "spawned dump requires host WorldRuntime IPC")
+    try:
+        dumped = send_command({"op": "dump_spawned"})
+    except Exception as e:
+        traceback.print_exc()
+        return _err(500, f"dump_spawned failed: {e}")
+    if not isinstance(dumped, dict):
+        return _err(500, "dump_spawned returned a non-object")
+    return JSONResponse(dumped, status_code=200 if dumped.get("ok") is not False else 501)
+
+
+@app.post("/v1/host/look")
+async def host_look(request: Request) -> JSONResponse:
+    """Rotate the possessed pawn in place. No teleport. Not a P1 pass."""
+    if not ue_bridge_available():
+        return _err(501, "look requires host WorldRuntime IPC")
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    if "ueYawDeg" in body:
+        yaw_ue = float(body["ueYawDeg"])
+    elif "yawRad" in body:
+        yaw_ue = carina_yaw_rad_to_ue_deg(float(body["yawRad"]))
+    else:
+        return _err(400, "ueYawDeg or yawRad required")
+    try:
+        looked = look_play(send_command, yaw_ue_deg=yaw_ue)
+    except Exception as e:
+        traceback.print_exc()
+        return _err(500, f"look failed: {e}")
+    looked["p1Pass"] = False
+    looked["claimsGeneratedLighting"] = False
+    looked["claimsWorldModelGeneration"] = False
+    return JSONResponse(looked, status_code=200 if looked.get("ok") else 501)
 
 
 @app.post("/v1/assets/upload")
@@ -146,7 +366,7 @@ async def assets_prepare(world_id: str, request: Request) -> JSONResponse:
             return _err(400, str(e))
         # Fail keeps old scene: prepare does not mutate applied objects; still revision gate
         world = STORE.load(world_id)
-        result_inner = prepare_asset(asset_id, asset_hash)
+        result_inner = prepare_asset(asset_id, asset_hash, force=body.get("force") is True)
         world.setdefault("preparedAssets", {})[asset_hash] = {
             "assetId": asset_id,
             "assetHash": asset_hash,
@@ -210,6 +430,44 @@ async def assets_install(world_id: str, request: Request) -> JSONResponse:
     except Exception as e:
         traceback.print_exc()
         return _err(500, f"install failed (scene unchanged): {e}", worldId=world_id)
+
+
+@app.post("/v1/worlds/{world_id}/assets/uninstall")
+async def assets_uninstall(world_id: str, request: Request) -> JSONResponse:
+    """Remove a MERGE side container copied this publish. Never host/global.utoc."""
+    body = await request.json()
+    try:
+        prior, command_id, expected, revision = STORE.begin_mutate(world_id, body)
+        if prior is not None:
+            return JSONResponse(prior)
+        asset_hash = body.get("assetHash")
+        if not isinstance(asset_hash, str):
+            return _err(400, "assetHash required")
+        world = STORE.load(world_id)
+        result_inner = uninstall_asset(asset_hash)
+        installed = world.setdefault("installedAssets", {})
+        installed.pop(asset_hash, None)
+        activated = world.setdefault("activatedAssets", {})
+        activated.pop(asset_hash, None)
+        out = {
+            "ok": True,
+            "worldId": world_id,
+            "assetHash": asset_hash,
+            "commandId": command_id,
+            "revision": revision,
+            "removed": result_inner.get("removed"),
+            "missing": result_inner.get("missing"),
+            "containerName": result_inner.get("containerName"),
+            "note": result_inner.get("note"),
+        }
+        return JSONResponse(STORE.commit_success(world, command_id, revision, out))
+    except WorldError as e:
+        return _err(e.status, str(e), worldId=world_id)
+    except FileNotFoundError as e:
+        return _err(404, str(e), worldId=world_id)
+    except Exception as e:
+        traceback.print_exc()
+        return _err(500, f"uninstall failed (host paks unchanged): {e}", worldId=world_id)
 
 
 @app.post("/v1/worlds/{world_id}/assets/activate")
@@ -310,7 +568,7 @@ async def objects_create(world_id: str, request: Request) -> JSONResponse:
             "ueRotationQuat": ue_tf["ueRotationQuat"],
             "ueRotatorDeg": ue_tf["ueRotatorDeg"],
             "ueScale": ue_tf["ueScale"],
-            "collision": True,
+            "collision": wants_collision(object_id, body.get("collision") if isinstance(body.get("collision"), bool) else None),
         })
         if not ipc.get("ok"):
             return _err(501, f"UE spawn failed: {ipc.get('error')}", worldId=world_id, ipc=ipc)
@@ -323,6 +581,7 @@ async def objects_create(world_id: str, request: Request) -> JSONResponse:
             "spawnMs": ipc.get("ms"),
         })
         world["objects"] = objs
+        _set_active_world(world_id)
         out = {
             "ok": True,
             "worldId": world_id,

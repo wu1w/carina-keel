@@ -264,6 +264,120 @@ export function buildMeshesGlb(nodes: MeshNode[]): Uint8Array {
   return encodeGlb(json, concat(binChunks));
 }
 
+/**
+ * zh: 把多块局部网格烘成一个世界空间节点 / 一个 mesh（每块一个 primitive + 材质）。
+ *     UE Interchange 一个 glTF mesh → 一个 StaticMesh，所以壳只需一次 spawn（原点、单位变换）。
+ * en: Bake several local meshes into one world-space node / one mesh (one primitive + material
+ *     per piece). UE Interchange turns one glTF mesh into one StaticMesh, so the shell spawns
+ *     once at the origin with an identity transform.
+ */
+export function buildBakedShellGlb(name: string, pieces: MeshNode[]): Uint8Array {
+  const json = {
+    asset: { version: "2.0", generator: "Carina" },
+    scene: 0,
+    scenes: [{ name: "Scene", nodes: [0] }],
+    nodes: [{ name, mesh: 0 }],
+    meshes: [
+      {
+        name,
+        primitives: [] as Array<{
+          attributes: { POSITION: number; NORMAL: number };
+          indices: number;
+          material: number;
+        }>,
+      },
+    ],
+    materials: [] as Array<{
+      name: string;
+      pbrMetallicRoughness: {
+        baseColorFactor: [number, number, number, number];
+        metallicFactor: number;
+        roughnessFactor: number;
+      };
+    }>,
+    accessors: [] as Array<Record<string, unknown>>,
+    bufferViews: [] as Array<{
+      buffer: number;
+      byteOffset: number;
+      byteLength: number;
+      target: number;
+    }>,
+    buffers: [{ byteLength: 0 }],
+  };
+  const binChunks: Uint8Array[] = [];
+  let binOffset = 0;
+  const pushView = (bytes: Uint8Array, target: number): number => {
+    json.bufferViews.push({
+      buffer: 0,
+      byteOffset: binOffset,
+      byteLength: bytes.byteLength,
+      target,
+    });
+    binChunks.push(bytes);
+    binOffset += bytes.byteLength;
+    return json.bufferViews.length - 1;
+  };
+  pieces.forEach((piece, index) => {
+    const world: number[] = [];
+    const min = [Infinity, Infinity, Infinity] as [number, number, number];
+    const max = [-Infinity, -Infinity, -Infinity] as [number, number, number];
+    const local = piece.mesh.positions;
+    for (let i = 0; i < local.length; i += 3) {
+      const x = (local[i] ?? 0) + piece.translation.x;
+      const y = (local[i + 1] ?? 0) + piece.translation.y;
+      const z = (local[i + 2] ?? 0) + piece.translation.z;
+      world.push(x, y, z);
+      if (x < min[0]) min[0] = x;
+      if (y < min[1]) min[1] = y;
+      if (z < min[2]) min[2] = z;
+      if (x > max[0]) max[0] = x;
+      if (y > max[1]) max[1] = y;
+      if (z > max[2]) max[2] = z;
+    }
+    const posView = pushView(packFloats(world), ARRAY_BUFFER);
+    const normView = pushView(packFloats(piece.mesh.normals), ARRAY_BUFFER);
+    const idxView = pushView(packUshorts(piece.mesh.indices), ELEMENT_ARRAY);
+    const base = json.accessors.length;
+    json.accessors.push(
+      {
+        bufferView: posView,
+        componentType: FLOAT,
+        count: world.length / 3,
+        type: "VEC3",
+        min,
+        max,
+      },
+      {
+        bufferView: normView,
+        componentType: FLOAT,
+        count: piece.mesh.normals.length / 3,
+        type: "VEC3",
+      },
+      {
+        bufferView: idxView,
+        componentType: UNSIGNED_SHORT,
+        count: piece.mesh.indices.length,
+        type: "SCALAR",
+      },
+    );
+    json.materials.push({
+      name: piece.name,
+      pbrMetallicRoughness: {
+        baseColorFactor: [piece.mesh.albedo[0], piece.mesh.albedo[1], piece.mesh.albedo[2], 1],
+        metallicFactor: 0,
+        roughnessFactor: 0.72,
+      },
+    });
+    json.meshes[0]?.primitives.push({
+      attributes: { POSITION: base, NORMAL: base + 1 },
+      indices: base + 2,
+      material: index,
+    });
+  });
+  json.buffers[0] = { byteLength: binOffset };
+  return encodeGlb(json, concat(binChunks));
+}
+
 function packUshorts(values: number[]): Uint8Array {
   const padded = align4(values.length * 2);
   const out = new Uint8Array(padded);

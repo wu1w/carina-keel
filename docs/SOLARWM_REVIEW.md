@@ -66,6 +66,18 @@ Wan发布验证环境使用PyTorch2.5.1/CUDA12.4与FlashAttention等组件。507
 
 暂定选择：SolarWM可作为后台参考/待探索区域生成候选；数据引擎作为几何观测前处理候选。已固化酒馆、游戏控制与导出契约继续由稳定3D世界管理。只有B/C证明资产一致性与总成本改善后，才扩大范围。逐帧神经外观增强不是SolarWM已证明的DLSS式用途。
 
+## 8. 结论：NG-1 正式关闭（2026-09-12）
+
+按 [NG-1 §6](NEXT_GENERATION_PLAN.md) 的 3 个开发日预算，实验 A/B/C **一次都没有跑**，现在正式关闭，不再计入 NG-1，理由如下：
+
+1. **设备已被占用。** 能跑 Wan2.2-TI2V-5B Stage2 的只有 Windows RTX 5070 Ti（16 GB）。它现在同时承担正式视口（UE5 Pixel Streaming，`CarinaPS.exe`）和整空间世界模型 sidecar（`sidecars/worldgen-scene`，FLUX.1-dev NVFP4 + DA-2，约 10 GB 峰值）。§5 已经写明 5B 不能与重建/渲染同时满载；三者共存不可能。AIGA MI210 是 ROCm，Wan/FlashAttention 基线未验证，不作为 5B 目标。
+2. **产品路径已经不需要它证明的东西。** SolarWM 在 NG-1 里的定位是「观测处理 / 参考生成」：从视频里经数据引擎恢复几何。2026-09-12 起 `session.create` 走 `CARINA_SPACE_PROVIDER_URL` 直接拿到带来源的房间尺度网格（全景 → 360° 深度 → 球面网格），几何不再需要从视频反推。实验 A 要证明的「测量链可信」对 NG-1 没有下游消费者。
+3. **实验 B/C 的比较对象消失。** B 是「SolarWM vs 现有世界模型生成短片」，现有世界模型（LingBot 1.3B 静帧）本身只作观察，不进几何；C 是把视频片段固化为候选，而空间壳路径已经直接给出候选。做 B/C 只会得到一份没人接的对照。
+
+**代码侧：** `runSolarWmExperiment` 在 `CARINA_SOLARWM_ROOT` 未设时返回 `status: "closed-ng1"`，factoryManifest 会如实记录；设了目录才回到 `video-not-asset`。`src/solarwm/` 与 schema 保留，不删。
+
+**何时重开：** P4 边玩边扩展若出现「多视角外观一致性」需求（走出门回看、绕物），且 5070 Ti 空出来（例如 UE 迁到独立机器），再按 §6 的 A → B → C 顺序开一个新的 3 日预算。重开前不下载权重、不申请数据。
+
 ## 7. 证据链接
 
 - [官方仓库与发布矩阵](https://github.com/Junchao-cs/SolarWM)

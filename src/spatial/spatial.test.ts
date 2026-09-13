@@ -18,6 +18,7 @@ test("buildPrimitiveTavern is a frozen playable interior", () => {
   const tavern = buildPrimitiveTavern("world-a", "rev-a");
   const names = tavern.objects.map((object) => object.name);
   assert.equal(names.includes("门"), true);
+  assert.equal(names.includes("窗"), true);
   assert.equal(names.includes("桌子"), true);
   assert.equal(names.includes("椅子1"), true);
   assert.equal(names.includes("椅子2"), true);

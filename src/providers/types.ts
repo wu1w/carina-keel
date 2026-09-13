@@ -34,6 +34,21 @@ export type NativeMeshGenerateTarget = {
 export type NativeMeshSubmitExtras = {
   sceneSpec?: SceneSpec;
   generateTarget?: NativeMeshGenerateTarget;
+  /**
+   * zh: create 生成室内特色网格；extend 生成门外区域，不得重提吧台。
+   * en: create generates the interior featured mesh; extend generates the outdoor area and must not resubmit the bar.
+   */
+  mode?: "create" | "extend";
+  camera?: {
+    position: { x: number; y: number; z: number };
+    yaw: number;
+  };
+  preserve?: Array<{ posixPath: string; hash: string }>;
+  seam?: {
+    position: { x: number; y: number; z: number };
+    fromRegionId: string;
+    toRegionId: string;
+  };
 };
 
 /**

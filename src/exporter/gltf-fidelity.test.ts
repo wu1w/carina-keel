@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
+  Document,
   Logger,
   Node as GltfNode,
   WebIO,
@@ -309,6 +310,47 @@ test("reopen pack from disk then export a parseable GLB", async (t) => {
   assert.equal(hashes.has(staged.posixPath), true);
 });
 
+/**
+ * zh: TripoSR 的 geometry_0 / Material_0 导出成物件名，bar-body 不动。
+ * en: Export renames TripoSR geometry_0 / Material_0 to the object name; bar-body stays.
+ */
+test("export renames generic generated mesh nodes and keeps named fixture nodes", async () => {
+  const generic = await makeGeometry0Glb();
+  const assets = new Map<string, { ext: string; bytes: Uint8Array }>();
+  const staged = stageMemory(assets, generic, "glb");
+  const object = sceneObject({
+    sceneObjectId: "fireplace",
+    name: "壁炉",
+    assetRefs: [staged.posixPath],
+  });
+  const snapshot = snapshotOf("ng1-export", "rev-n", [object], [
+    { posixPath: staged.posixPath, hash: staged.hash },
+  ]);
+  const { glb } = await buildModelExport({
+    snapshot,
+    objects: snapshot.objects,
+    regions: snapshot.regions,
+    readAsset: memoryReadAsset(assets),
+  });
+  const doc = await io.readBinary(glb);
+  const names = doc.getRoot().listNodes().map((node) => node.getName());
+  assert.equal(names.includes("geometry_0"), false);
+  assert.equal(names.includes("壁炉"), true);
+  assert.equal(names.includes("壁炉_mesh"), true);
+  assert.equal(
+    doc.getRoot().listMeshes().some((item) => item.getName() === "geometry_0"),
+    false,
+  );
+  assert.equal(
+    doc.getRoot().listMeshes().some((item) => item.getName() === "壁炉_mesh"),
+    true,
+  );
+  assert.equal(
+    doc.getRoot().listMaterials().some((item) => item.getName() === "壁炉-pbr"),
+    true,
+  );
+});
+
 function stageMemory(
   assets: Map<string, { ext: string; bytes: Uint8Array }>,
   bytes: Uint8Array,
@@ -414,6 +456,31 @@ function findNamed(node: GltfNode, name: string): GltfNode | undefined {
     }
   }
   return undefined;
+}
+
+async function makeGeometry0Glb(): Promise<Uint8Array> {
+  const doc = new Document().setLogger(new Logger(Logger.Verbosity.ERROR));
+  const buffer = doc.createBuffer();
+  const position = doc
+    .createAccessor("pos")
+    .setType("VEC3")
+    .setArray(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]))
+    .setBuffer(buffer);
+  const indices = doc
+    .createAccessor("idx")
+    .setType("SCALAR")
+    .setArray(new Uint16Array([0, 1, 2]))
+    .setBuffer(buffer);
+  const material = doc.createMaterial("Material_0");
+  const prim = doc
+    .createPrimitive()
+    .setAttribute("POSITION", position)
+    .setIndices(indices)
+    .setMaterial(material);
+  const mesh = doc.createMesh("geometry_0").addPrimitive(prim);
+  const node = doc.createNode("geometry_0").setMesh(mesh);
+  doc.createScene("Scene").addChild(node);
+  return io.writeBinary(doc);
 }
 
 function positionCount(mesh: ReturnType<GltfNode["getMesh"]>): number {

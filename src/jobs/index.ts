@@ -8,4 +8,5 @@ export {
   type ApplicabilityContext,
   type EnqueueJobInput,
   type JobQueue,
+  type JobQueueOptions,
 } from "./queue.js";

@@ -3,6 +3,7 @@ import path from "node:path";
 import { CarinaError } from "../errors.js";
 import { sha256Hex, writeFileAtomic } from "../pack/index.js";
 import { compileWorldRules } from "../spatial/compile-world-rules.js";
+import { isObjectLocked } from "../spatial/locked-objects.js";
 import type {
   CommitRecord,
   ExportManifest,
@@ -529,6 +530,7 @@ class MemoryRuntime implements RuntimeHandle {
   private runState: "running" | "paused";
   private player: RuntimeSnapshot["player"];
   private objects: RuntimeSnapshot["objects"];
+  private sceneObjects: SceneObject[];
   private npcs: RuntimeSnapshot["npcs"];
   private navigating = false;
 
@@ -544,6 +546,7 @@ class MemoryRuntime implements RuntimeHandle {
       holdingObjectIds: [],
     };
     this.objects = snapshot.objects.map(toRuntimeObject);
+    this.sceneObjects = snapshot.objects.map((item) => structuredClone(item));
     this.npcs = snapshot.objects
       .filter((item) => item.interactionProfile === "npc")
       .map((item) => ({
@@ -583,11 +586,28 @@ class MemoryRuntime implements RuntimeHandle {
   ):
     | { ok: true; snapshot: RuntimeSnapshot }
     | { ok: false; code: string; messageKey: string } {
-    if (isTeleport(action) && hasNoTeleport(rules)) {
+    if (isTeleport(action) && hasClause(rules, "no_teleport")) {
       return {
         ok: false,
         code: "COMMAND_REJECTED",
-        messageKey: "error.commandRejected",
+        messageKey: "error.noTeleport",
+      };
+    }
+    if (
+      (isTeleport(action) || isMagic(action)) &&
+      hasClause(rules, "no_magic")
+    ) {
+      return {
+        ok: false,
+        code: "COMMAND_REJECTED",
+        messageKey: "error.noMagic",
+      };
+    }
+    if (mutatesLockedObject(action, rules, this.sceneObjects)) {
+      return {
+        ok: false,
+        code: "COMMAND_REJECTED",
+        messageKey: "error.lockObject",
       };
     }
     if (action.kind === "stopNavigation") {
@@ -633,6 +653,7 @@ class MemoryRuntime implements RuntimeHandle {
     this.simTime = snapshot.simTime;
     this.runState = snapshot.session.runState;
     this.objects = snapshot.objects.map(toRuntimeObject);
+    this.sceneObjects = snapshot.objects.map((item) => structuredClone(item));
     this.npcs = snapshot.objects
       .filter((item) => item.interactionProfile === "npc")
       .map((item) => ({
@@ -735,8 +756,8 @@ export function createJobQueue(): JobQueueApi {
 }
 
 /**
- * zh: mock 生成器，用原始酒馆填场景。
- * en: Mock provider that fills a primitive tavern scene.
+ * zh: mock 生成器，用原始酒馆填场景。仅测试夹具，不是世界模型。
+ * en: Mock provider that fills a primitive tavern scene. Test fixture only, not a world model.
  */
 export function createMockProvider(spatial: SpatialApi): GenerationProvider {
   return {
@@ -881,6 +902,38 @@ function toRuntimeObject(item: SceneObject): RuntimeSnapshot["objects"][number] 
   return row;
 }
 
+function mutatesLockedObject(
+  action: PlayerActionInput,
+  rules: WorldRules,
+  objects: SceneObject[],
+): boolean {
+  const act = action.arguments["action"];
+  const mutating =
+    typeof act === "string" &&
+    /pickup|place|authorplace|calibrate|move.?object/i.test(act);
+  const targetId =
+    typeof action.arguments["targetId"] === "string"
+      ? action.arguments["targetId"]
+      : typeof action.arguments["objectId"] === "string"
+        ? action.arguments["objectId"]
+        : typeof action.arguments["target"] === "string"
+          ? action.arguments["target"]
+          : undefined;
+  if (!mutating && targetId === undefined) {
+    return false;
+  }
+  if (targetId === undefined) {
+    return false;
+  }
+  const object = objects.find(
+    (item) =>
+      item.sceneObjectId === targetId ||
+      item.name === targetId ||
+      item.sceneObjectId.endsWith(`-${targetId}`),
+  );
+  return object !== undefined && isObjectLocked(rules, object);
+}
+
 function isTeleport(action: PlayerActionInput): boolean {
   const args = action.arguments;
   const keys = ["action", "kind", "type", "verb"];
@@ -899,8 +952,26 @@ function isTeleport(action: PlayerActionInput): boolean {
   return false;
 }
 
-function hasNoTeleport(rules: WorldRules): boolean {
-  return rules.clauses.some((clause) => clause.kind === "no_teleport");
+function isMagic(action: PlayerActionInput): boolean {
+  const args = action.arguments;
+  const keys = ["action", "kind", "type", "verb"];
+  for (const key of keys) {
+    const value = args[key];
+    if (typeof value === "string" && /魔法|施法|spell|\bcast\b/i.test(value)) {
+      return true;
+    }
+  }
+  if (action.text !== undefined && /魔法|施法|\bspell\b|\bcast\b/i.test(action.text)) {
+    return true;
+  }
+  return false;
+}
+
+function hasClause(
+  rules: WorldRules,
+  kind: WorldRules["clauses"][number]["kind"],
+): boolean {
+  return rules.clauses.some((clause) => clause.kind === kind);
 }
 
 function vec3Of(

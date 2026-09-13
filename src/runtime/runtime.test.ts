@@ -27,6 +27,8 @@ test("pause freezes simTime and NPC motion", () => {
     ?.sceneObjectId;
   assert.ok(npcId !== undefined);
   const start = runtime.snapshot().npcs.find((npc) => npc.sceneObjectId === npcId);
+  assert.equal(start?.appearance?.kind, "proxy-mesh");
+  assert.equal(start?.appearance?.sourceLabel, "proxy-mesh");
   assert.ok(start !== undefined);
   runtime.run();
   runtime.step(10);
@@ -149,6 +151,45 @@ test("paused runtime still accepts walk in a committed room", () => {
   assert.equal(moved.ok, true);
   assert.ok(moved.snapshot.player.position.z > start.z + 0.3);
   assert.equal(runtime.getRunState(), "paused");
+});
+
+/**
+ * zh: 空间壳是单视点视觉覆盖，AABB 不得当成实心挡走路。
+ * en: A space shell is a single-viewpoint overlay; its AABB must not block walking.
+ */
+test("space-shell AABB does not block a committed-room walk", () => {
+  const worldId = "rt-shell";
+  const revision = "rev1";
+  const tavern = buildPrimitiveTavern(worldId, revision);
+  const floor = tavern.objects.find((object) => object.name === "地板");
+  assert.ok(floor !== undefined);
+  const runtime = createRuntime({
+    worldId,
+    revision,
+    regions: tavern.regions,
+    objects: [
+      ...tavern.objects,
+      {
+        ...floor,
+        sceneObjectId: `${worldId}-space-shell`,
+        name: "空间壳",
+        bounds: {
+          min: { x: -20, y: -2, z: -20 },
+          max: { x: 20, y: 10, z: 20 },
+        },
+      },
+    ],
+    worldRules: compileWorldRules("", revision, "h"),
+    controlEpoch: 0,
+  });
+  const start = runtime.snapshot().player.position;
+  const moved = runtime.executePlayerAction({
+    kind: "move",
+    position: { x: start.x, y: 0, z: start.z + 0.6 },
+    yaw: 0,
+  });
+  assert.equal(moved.ok, true);
+  assert.ok(moved.snapshot.player.position.z > start.z + 0.3);
 });
 
 /**
@@ -283,4 +324,77 @@ test("lock_after_hour rejects opening doors", () => {
   });
   assert.equal(result.ok, false);
   assert.equal(result.reason, "lock_after_hour");
+});
+
+/**
+ * zh: no_magic 条款拒绝施法且不改位置。
+ * en: The no_magic clause rejects cast and leaves position unchanged.
+ */
+test("no_magic rejects cast", () => {
+  const worldId = "rt-magic";
+  const revision = "rev1";
+  const tavern = buildPrimitiveTavern(worldId, revision);
+  const runtime = createRuntime({
+    worldId,
+    revision,
+    regions: tavern.regions,
+    objects: tavern.objects,
+    worldRules: compileWorldRules("没有魔法。", revision, "h"),
+    controlEpoch: 0,
+  });
+  runtime.run();
+  const before = runtime.snapshot().player.position;
+  const result = runtime.executePlayerAction({ kind: "cast" });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "no_magic");
+  const after = result.snapshot.player.position;
+  assert.equal(after.x, before.x);
+  assert.equal(after.y, before.y);
+  assert.equal(after.z, before.z);
+});
+
+/**
+ * zh: lock_object 拒绝挪桌子、拿锁定杯子。
+ * en: lock_object rejects moving the table and picking up a locked cup.
+ */
+test("lock_object rejects authorPlace and pickup", () => {
+  const worldId = "rt-lock";
+  const revision = "rev1";
+  const tavern = buildPrimitiveTavern(worldId, revision);
+  const table = tavern.objects.find((object) => object.name === "桌子");
+  const cup = tavern.objects.find((object) => object.name === "杯子");
+  assert.ok(table !== undefined);
+  assert.ok(cup !== undefined);
+  const runtime = createRuntime({
+    worldId,
+    revision,
+    regions: tavern.regions,
+    objects: tavern.objects,
+    worldRules: compileWorldRules("锁定桌子。\n锁定杯子。", revision, "h"),
+    controlEpoch: 0,
+  });
+  runtime.pause();
+  const before = { ...table.transform.position };
+  const placed = runtime.executePlayerAction({
+    kind: "authorPlace",
+    targetId: table.sceneObjectId,
+    position: { x: 3, y: 0, z: 2.8 },
+  });
+  assert.equal(placed.ok, false);
+  assert.equal(placed.reason, "lock_object");
+  const tableAfter = placed.snapshot.objects.find(
+    (object) => object.sceneObjectId === table.sceneObjectId,
+  );
+  assert.ok(tableAfter !== undefined);
+  assert.equal(tableAfter.position.x, before.x);
+  const pickup = runtime.executePlayerAction({
+    kind: "pickup",
+    targetId: cup.sceneObjectId,
+  });
+  assert.equal(pickup.ok, false);
+  assert.equal(pickup.reason, "lock_object");
+  assert.equal(
+    pickup.snapshot.player.holdingObjectIds.includes(cup.sceneObjectId),
+    false,
+  );
 });

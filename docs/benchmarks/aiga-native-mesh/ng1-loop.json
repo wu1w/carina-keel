@@ -1,0 +1,233 @@
+{
+  "at": "2026-09-12T13:09:48.754Z",
+  "prompt": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+  "meshProviderUrl": "http://127.0.0.1:18795",
+  "provider": "triposr-i23d",
+  "claimsWorldModelGeneration": false,
+  "elapsedMs": 19382,
+  "worldId": "01M2AVSF57227TCNGKZSB6GMEN",
+  "healthBefore": {
+    "httpStatus": 200,
+    "ok": true,
+    "ready": true,
+    "nativeMesh": true,
+    "provider": "triposr-i23d",
+    "claimsWorldModelGeneration": false,
+    "t2i": "/data/disk1/models/sdxl-turbo",
+    "t2iLoaded": true,
+    "mcResolution": 128,
+    "t2iSteps": 4,
+    "lastTimings": null,
+    "error": null
+  },
+  "healthAfter": {
+    "httpStatus": 200,
+    "ok": true,
+    "ready": true,
+    "nativeMesh": true,
+    "provider": "triposr-i23d",
+    "claimsWorldModelGeneration": false,
+    "t2i": "/data/disk1/models/sdxl-turbo",
+    "t2iLoaded": true,
+    "mcResolution": 128,
+    "t2iSteps": 4,
+    "lastTimings": {
+      "t2iMs": 301,
+      "meshMs": 212,
+      "totalMs": 580
+    },
+    "error": null
+  },
+  "create": {
+    "accepted": true,
+    "interiorGenerateObjectIds": [
+      "bar-front",
+      "fireplace"
+    ],
+    "sceneSpecSource": "heuristic-plan",
+    "barFront": {
+      "byteLength": 1321996,
+      "magic": "glTF",
+      "vertexCount": 22343,
+      "hasUv": true,
+      "hasPbr": true,
+      "factoryOk": true,
+      "notBox": true
+    },
+    "fireplace": {
+      "byteLength": 1336776,
+      "magic": "glTF",
+      "vertexCount": 22127,
+      "hasUv": true,
+      "hasPbr": true,
+      "factoryOk": true,
+      "notBox": true
+    },
+    "generationControl": {
+      "mode": "create",
+      "objectId": "bar-front",
+      "camera": {
+        "position": {
+          "x": 4,
+          "y": 1.6,
+          "z": 2
+        },
+        "yaw": 0,
+        "pitch": 0,
+        "fovY": 1.05,
+        "aspect": 1.7333333333333334
+      },
+      "backend": "http-native-mesh",
+      "claimsWorldModelGeneration": false
+    },
+    "source": {
+      "nativeMesh": "http",
+      "worldModel": "none"
+    }
+  },
+  "look": {
+    "accepted": true,
+    "yaw": 2.3409672408152273
+  },
+  "calibrate": {
+    "originalBarX": 2.2,
+    "calibratedBarX": 1.2000000000000002,
+    "deltaX": -1
+  },
+  "freeze": {
+    "accepted": true
+  },
+  "reopen": {
+    "accepted": true,
+    "barFrontVerts": 22343,
+    "fireplaceVerts": 22127
+  },
+  "extend": {
+    "accepted": true,
+    "portalSeamOk": true,
+    "courtyardFeature": {
+      "byteLength": 1515764,
+      "magic": "glTF",
+      "vertexCount": 26905,
+      "hasUv": true,
+      "hasPbr": true,
+      "factoryOk": true,
+      "notBox": true
+    }
+  },
+  "export": {
+    "path": "/tmp/carina-ng1/tavern.glb",
+    "byteLength": 2678920,
+    "magic": "glTF",
+    "nodeNames": [
+      "吧台正面",
+      "geometry_0",
+      "壁炉",
+      "geometry_0",
+      "门",
+      "oak-door",
+      "asset-root",
+      "桌子",
+      "oak-table",
+      "asset-root",
+      "椅子",
+      "oak-chair",
+      "asset-root",
+      "杯子",
+      "ceramic-cup",
+      "asset-root",
+      "窗",
+      "地板",
+      "西侧墙",
+      "东侧墙",
+      "北侧墙",
+      "南侧墙左",
+      "南侧墙右",
+      "南侧墙楣",
+      "吧台"
+    ]
+  },
+  "worldRuntime": {
+    "health": {
+      "ok": true,
+      "live": true,
+      "port": 18794
+    },
+    "ok": true,
+    "cooked": false,
+    "uploads": [
+      {
+        "ok": true,
+        "assetId": "8e9e52a7d38ef05b",
+        "assetHash": "8e9e52a7d38ef05ba0510f4dbeac36f40ab740821614b563384417e5570a5411",
+        "byteLength": 1321996,
+        "sourceLabel": "http-native-mesh",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      },
+      {
+        "ok": true,
+        "assetId": "1d66a32884181553",
+        "assetHash": "1d66a328841815534be5b287c99205949758068b7ea20b8d08a7d7d59c6402ec",
+        "byteLength": 1336776,
+        "sourceLabel": "http-native-mesh",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      }
+    ],
+    "verifiedGet": {
+      "barFront": "8e9e52a7d38ef05b",
+      "fireplace": "1d66a32884181553",
+      "hashMatch": true,
+      "cooked": false,
+      "spawnedInPixelStreaming": false
+    }
+  },
+  "honest": {
+    "notWorldModel": true,
+    "geometry": "TripoSR I23D featured objects + catalog structure"
+  },
+  "dcc": {
+    "blender": "4.5.13",
+    "evidence": "docs/benchmarks/aiga-native-mesh/ng1-blender.json",
+    "selectable": [
+      "吧台正面",
+      "壁炉",
+      "门",
+      "杯子",
+      "桌子",
+      "椅子",
+      "oak-door",
+      "ceramic-cup",
+      "geometry_0",
+      "geometry_0.001"
+    ],
+    "generatedMeshes": [
+      {
+        "parent": "吧台正面",
+        "mesh": "geometry_0",
+        "verts": 22343
+      },
+      {
+        "parent": "壁炉",
+        "mesh": "geometry_0.001",
+        "verts": 22127
+      }
+    ],
+    "catalogOrScaffold": [
+      "oak-door",
+      "oak-table",
+      "oak-chair",
+      "ceramic-cup",
+      "吧台"
+    ],
+    "leftoverBoxBarVerts": 24,
+    "packedGeneratedAlbedo": [
+      512,
+      512
+    ],
+    "claimsWorldModelGeneration": false
+  }
+}

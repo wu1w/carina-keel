@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { decideExpansion, ExpansionTracker } from "./expansion-scheduler.js";
+import { buildConnectedTavern, buildPrimitiveTavern } from "./primitive-tavern.js";
+import {
+  decideExpansion,
+  evaluateExpansionHit,
+  ExpansionTracker,
+} from "./expansion-scheduler.js";
 
 /**
  * zh: 已有花园再靠近是缓存命中，不再生成。
@@ -84,4 +89,67 @@ test("ExpansionTracker snapshot never claims world-model generation", () => {
   assert.equal(log.readyReserve, 1);
   assert.equal(log.generateCount, 1);
   assert.match(log.notes, /not world-model/i);
+});
+
+
+/**
+ * zh: 已接花园时走近接缝只标 ready，不再入队。这是调度器数据，不是 P4 故事通过。
+ * en: Approaching a seam with a garden already attached marks ready and does not enqueue. Scheduler data, not a P4 story pass.
+ */
+test("boundary-near marks expansion ready without claiming a P4 pass", () => {
+  const tavern = buildConnectedTavern("w-ready", "rev1");
+  const snapshot = { regions: tavern.regions, objects: tavern.objects };
+  const far = evaluateExpansionHit({
+    snapshot,
+    player: { x: 4, y: 0, z: 2 },
+  });
+  assert.equal(far.hasAdjacent, true);
+  assert.equal(far.nearBoundary, false);
+  assert.equal(far.wouldEnqueue, false);
+  assert.equal(far.wouldMarkReady, false);
+  assert.equal(far.stage, "committed");
+  assert.equal(far.readyReserve, 1);
+
+  const near = evaluateExpansionHit({
+    snapshot,
+    player: { x: 4, y: 0, z: 4.2 },
+  });
+  assert.equal(near.nearBoundary, true);
+  assert.equal(near.wouldEnqueue, false);
+  assert.equal(near.wouldMarkReady, true);
+  assert.equal(near.stage, "ready");
+  assert.equal(near.readyReserve, 1);
+  assert.equal(near.decision.cacheHit || near.cacheHit, true);
+
+  const tracker = new ExpansionTracker();
+  tracker.countApproach("w-ready");
+  tracker.countCacheHit("w-ready");
+  const log = tracker.snapshot({
+    worldId: "w-ready",
+    hasAdjacent: true,
+    inFlight: false,
+    nearBoundary: true,
+  });
+  assert.equal(log.stage, "ready");
+  assert.equal(log.readyReserve, 1);
+  assert.equal(log.claimsWorldModelGeneration, false);
+  assert.match(log.notes, /not world-model/i);
+});
+
+/**
+ * zh: 还没有邻区时走近门口会入队 planned，不是 ready，也不是世界模型生成。
+ * en: Approaching a door with no neighbor enqueues planned, not ready, and not world-model generation.
+ */
+test("boundary-near without a garden would enqueue planned, not ready", () => {
+  const tavern = buildPrimitiveTavern("w-plan", "rev1");
+  const hit = evaluateExpansionHit({
+    snapshot: { regions: tavern.regions, objects: tavern.objects },
+    player: { x: 4, y: 0, z: 4.2 },
+  });
+  assert.equal(hit.hasAdjacent, false);
+  assert.equal(hit.nearBoundary, true);
+  assert.equal(hit.wouldEnqueue, true);
+  assert.equal(hit.wouldMarkReady, false);
+  assert.equal(hit.stage, "planned");
+  assert.equal(hit.readyReserve, 0);
 });

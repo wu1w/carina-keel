@@ -1,0 +1,273 @@
+{
+  "probe": "a7-live-rollback",
+  "at": "2026-09-12T16:42:22.247Z",
+  "worldRuntime": {
+    "url": "http://127.0.0.1:18794",
+    "health": {
+      "ok": true,
+      "live": true,
+      "port": 18794
+    }
+  },
+  "scratchWorldId": "a7-rollback-live",
+  "assets": [
+    {
+      "objectId": "bar-front",
+      "hash": "f0dde9d3178904c954010e3f96f222b81940297c167fda592f0238ccafa93623",
+      "byteLength": 1244344
+    },
+    {
+      "objectId": "fireplace",
+      "hash": "6efb7bebdfcb49e44bd08ee4fee24d6dfbe047916ced289ff4005e21f2c1d1be",
+      "byteLength": 1616184
+    }
+  ],
+  "forcedFailure": "AbortController fired after the first successful POST /objects (spawn #1); spawn #2 threw",
+  "publishResult": {
+    "ok": false,
+    "cooked": false,
+    "rolledBack": true,
+    "error": "UE activate failed: SoftObjectPath failed to load: /Game/Imported/Dynamic/bar_front_f0dde9d3/bar_front_f0dde9d3/StaticMeshes/bar_front_f0dde9d3",
+    "spawned": [],
+    "uploads": [
+      {
+        "assetId": "f0dde9d3178904c9",
+        "assetHash": "f0dde9d3178904c954010e3f96f222b81940297c167fda592f0238ccafa93623"
+      },
+      {
+        "assetId": "6efb7bebdfcb49e4",
+        "assetHash": "6efb7bebdfcb49e44bd08ee4fee24d6dfbe047916ced289ff4005e21f2c1d1be"
+      }
+    ]
+  },
+  "liveState": {
+    "before": {
+      "appliedRevision": "wr-37771cb5e182",
+      "installedAssets": [],
+      "objects": []
+    },
+    "after": {
+      "appliedRevision": "wr-464c24c256d4",
+      "installedAssets": [],
+      "objects": []
+    }
+  },
+  "protectedWorldsAfter": {
+    "ng1-i23d": {
+      "installedAssets": [
+        "8e9e52a7d38ef05ba0510f4dbeac36f40ab740821614b563384417e5570a5411",
+        "1d66a328841815534be5b287c99205949758068b7ea20b8d08a7d7d59c6402ec",
+        "6149953699316b57ad21210ef1334fa7bb86871c6bb62721b1e13a53e2ab4d70"
+      ],
+      "objects": [
+        "bar-front",
+        "fireplace",
+        "courtyard-feature"
+      ]
+    },
+    "ue02-final": {
+      "installedAssets": [
+        "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+        "629373db5bc61c4c3beaaa0bf73e2f7baf93921e7a86e9675d2fca1ff4262673"
+      ],
+      "objects": [
+        "avocado",
+        "boombox",
+        "tavern-scaffold-p0",
+        "p1-Bar",
+        "p1-BarFootRest",
+        "p1-Ceiling",
+        "p1-Cup",
+        "p1-Door",
+        "p1-Fireplace",
+        "p1-Floor",
+        "p1-HearthMetal",
+        "p1-WallEast",
+        "p1-WallNorthL",
+        "p1-WallNorthLintel",
+        "p1-WallNorthR",
+        "p1-WallSouth",
+        "p1-WallWest"
+      ]
+    }
+  },
+  "rollbackCalls": {
+    "uninstalls": [
+      {
+        "at": 106414,
+        "method": "POST",
+        "path": "/v1/worlds/a7-rollback-live/assets/uninstall",
+        "status": 200,
+        "ms": 230,
+        "body": {
+          "ok": true,
+          "removed": [
+            "CarinaPS-Windows_fireplace_6efb7beb.pak",
+            "CarinaPS-Windows_fireplace_6efb7beb.utoc",
+            "CarinaPS-Windows_fireplace_6efb7beb.ucas"
+          ],
+          "missing": [],
+          "containerName": "CarinaPS-Windows_fireplace_6efb7beb"
+        }
+      },
+      {
+        "at": 106644,
+        "method": "POST",
+        "path": "/v1/worlds/a7-rollback-live/assets/uninstall",
+        "status": 200,
+        "ms": 247,
+        "body": {
+          "ok": true,
+          "removed": [
+            "CarinaPS-Windows_bar_front_f0dde9d3.pak",
+            "CarinaPS-Windows_bar_front_f0dde9d3.utoc",
+            "CarinaPS-Windows_bar_front_f0dde9d3.ucas"
+          ],
+          "missing": [],
+          "containerName": "CarinaPS-Windows_bar_front_f0dde9d3"
+        }
+      }
+    ],
+    "deletes": []
+  },
+  "verdict": {
+    "spawnedObjectDeleted": true,
+    "newContainersUninstalled": true,
+    "uninstallRemovedFiles": true,
+    "protectedWorldsUntouched": true
+  },
+  "timeline": [
+    {
+      "at": 4,
+      "method": "POST",
+      "path": "/v1/assets/upload",
+      "status": 200,
+      "ms": 70,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 79,
+      "method": "POST",
+      "path": "/v1/assets/upload",
+      "status": 200,
+      "ms": 100,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 180,
+      "method": "GET",
+      "path": "/v1/worlds/a7-rollback-live",
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "at": 190,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/prepare",
+      "status": 200,
+      "ms": 49608,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 49798,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/prepare",
+      "status": 200,
+      "ms": 55426,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 105224,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/install",
+      "status": 200,
+      "ms": 561,
+      "body": {
+        "ok": true,
+        "mountedPackages": [
+          "CarinaPS-Windows_bar_front_f0dde9d3.pak",
+          "CarinaPS-Windows_bar_front_f0dde9d3.utoc",
+          "CarinaPS-Windows_bar_front_f0dde9d3.ucas"
+        ],
+        "installMs": 299.85529999248683
+      }
+    },
+    {
+      "at": 105785,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/install",
+      "status": 200,
+      "ms": 545,
+      "body": {
+        "ok": true,
+        "mountedPackages": [
+          "CarinaPS-Windows_fireplace_6efb7beb.pak",
+          "CarinaPS-Windows_fireplace_6efb7beb.utoc",
+          "CarinaPS-Windows_fireplace_6efb7beb.ucas"
+        ],
+        "installMs": 276.7185000120662
+      }
+    },
+    {
+      "at": 106330,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/activate",
+      "status": 501,
+      "ms": 74,
+      "body": {
+        "ok": false,
+        "error": "UE activate failed: SoftObjectPath failed to load: /Game/Imported/Dynamic/bar_front_f0dde9d3/bar_front_f0dde9d3/StaticMeshes/bar_front_f0dde9d3"
+      }
+    },
+    {
+      "at": 106404,
+      "method": "GET",
+      "path": "/v1/worlds/a7-rollback-live",
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "at": 106414,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/uninstall",
+      "status": 200,
+      "ms": 230,
+      "body": {
+        "ok": true,
+        "removed": [
+          "CarinaPS-Windows_fireplace_6efb7beb.pak",
+          "CarinaPS-Windows_fireplace_6efb7beb.utoc",
+          "CarinaPS-Windows_fireplace_6efb7beb.ucas"
+        ],
+        "missing": [],
+        "containerName": "CarinaPS-Windows_fireplace_6efb7beb"
+      }
+    },
+    {
+      "at": 106644,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/uninstall",
+      "status": 200,
+      "ms": 247,
+      "body": {
+        "ok": true,
+        "removed": [
+          "CarinaPS-Windows_bar_front_f0dde9d3.pak",
+          "CarinaPS-Windows_bar_front_f0dde9d3.utoc",
+          "CarinaPS-Windows_bar_front_f0dde9d3.ucas"
+        ],
+        "missing": [],
+        "containerName": "CarinaPS-Windows_bar_front_f0dde9d3"
+      }
+    }
+  ],
+  "totalMs": 106920
+}

@@ -19,9 +19,10 @@ start_local_forward() {
 }
 
 echo "AIGA hop is ProxyJump; prefer a long-lived:"
-echo "  ssh -N -o ServerAliveInterval=15 -L 127.0.0.1:18791:127.0.0.1:18791 -L 127.0.0.1:18792:127.0.0.1:18792 aiga"
+echo "  ssh -N -o ServerAliveInterval=15 -L 127.0.0.1:18791:127.0.0.1:18791 -L 127.0.0.1:18792:127.0.0.1:18792 -L 127.0.0.1:18795:127.0.0.1:18795 aiga"
 start_local_forward 18791 aiga
 start_local_forward 18792 aiga
+start_local_forward 18795 aiga
 start_local_forward 18794 carina-win
 start_local_forward 18793 carina-win
 
@@ -30,6 +31,11 @@ curl -sS -m 5 http://127.0.0.1:18791/health || true
 echo
 curl -sS -m 5 http://127.0.0.1:18792/health || true
 echo
+curl -sS -m 5 http://127.0.0.1:18795/health || true
+echo
 curl -sS -m 5 http://127.0.0.1:18794/health || true
 echo
 curl -sS -m 5 -o /dev/null -w "ps2 %{http_code}\n" http://192.168.5.16:8080/player.html || true
+echo
+echo "Set CARINA_MESH_PROVIDER_URL=http://127.0.0.1:18795 only when 18795 health.ok is true."
+echo "TripoSR I23D is native-mesh, not a world model."

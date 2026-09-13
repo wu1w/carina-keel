@@ -18,9 +18,9 @@ export function runSolarWmExperiment(input: {
       claimsWorldModelGeneration: false,
       producesMesh: false,
       dryRunIsNotEvidence: true,
-      status: "blocked-no-runtime",
+      status: "closed-ng1",
       notes:
-        "CARINA_SOLARWM_ROOT unset. SolarWM is not a mesh factory; dry-run is not 3D evidence.",
+        "SolarWM side-quest formally closed for NG-1 on 2026-09-12 (docs/SOLARWM_REVIEW.md §8): the 5070 Ti is allocated to UE Pixel Streaming + the WorldGen space shell, and the shell path yields geometry directly. Set CARINA_SOLARWM_ROOT only to reopen the experiment; video is still not a mesh.",
     });
   }
   if (!existsSync(root)) {

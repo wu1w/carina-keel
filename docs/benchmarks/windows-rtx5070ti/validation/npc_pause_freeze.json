@@ -1,0 +1,31 @@
+{
+  "probe": "npc-pause-freeze",
+  "at": "2026-09-13T00:11:00.146Z",
+  "honesty": {
+    "note": "Fixture keeper proxy-mesh. Pause freezes simTime and NPC motion. Not a generated character.",
+    "appearance": {
+      "kind": "proxy-mesh",
+      "sourceLabel": "proxy-mesh"
+    },
+    "claimsWorldModelGeneration": false
+  },
+  "run": {
+    "simTime": 9.999999999999998,
+    "moved": 2.8350000000000115
+  },
+  "pause": {
+    "simTime": 9.999999999999998,
+    "runState": "paused",
+    "npcDelta": {
+      "x": 0,
+      "z": 0
+    }
+  },
+  "cookEvidence": "docs/benchmarks/windows-rtx5070ti/validation/ng1_npc_proxy_cook.json",
+  "verdict": {
+    "appearanceIsProxy": true,
+    "movedWhileRunning": true,
+    "simTimeFrozen": true,
+    "npcFrozen": true
+  }
+}

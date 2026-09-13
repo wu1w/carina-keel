@@ -1,0 +1,190 @@
+{
+  "probe": "checkpoints-ux",
+  "at": "2026-09-13T00:11:01.205Z",
+  "honesty": {
+    "note": "HTTP list + restore of pack revisions. Browser panel is verified separately. Not a 10-minute naive-user A9 pass."
+  },
+  "url": "http://127.0.0.1:18790",
+  "worldId": "01M2B71PMCBJP585C4F4Z2N400",
+  "listedWorlds": [
+    {
+      "worldId": "01M2B71PMCBJP585C4F4Z2N400",
+      "name": "雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面"
+    }
+  ],
+  "openStatus": 200,
+  "before": {
+    "currentRevision": "01M2C068C7MY3BE44V19CGMEZ8",
+    "count": 29,
+    "summaries": [
+      {
+        "revision": "01M2C068C7MY3BE44V19CGMEZ8",
+        "summary": "Restore checkpoint 01M2C04ZQR1EP0P1484VPZKJZS",
+        "current": true
+      },
+      {
+        "revision": "01M2C068BTDSSTDAXJ0S80WCEY",
+        "summary": "spatial.freeze",
+        "current": false
+      },
+      {
+        "revision": "01M2C0688HTBQAPENGSJ8PQN6W",
+        "summary": "update session projection",
+        "current": false
+      },
+      {
+        "revision": "01M2C0688AW891ANW683529DS0",
+        "summary": "touch session",
+        "current": false
+      },
+      {
+        "revision": "01M2C0685DD8Y7PF4YZ6E07YMP",
+        "summary": "update session projection",
+        "current": false
+      },
+      {
+        "revision": "01M2C06854X9TTMFNHJVQB48P7",
+        "summary": "touch session",
+        "current": false
+      },
+      {
+        "revision": "01M2C04ZQR1EP0P1484VPZKJZS",
+        "summary": "Restore checkpoint 01M2C02THPBJ08CKAXA419BT80",
+        "current": false
+      },
+      {
+        "revision": "01M2C04ZQA57NTCG52GJQR5JG9",
+        "summary": "spatial.freeze",
+        "current": false
+      },
+      {
+        "revision": "01M2C04ZM1V0X4R395J9H5JHBE",
+        "summary": "update session projection",
+        "current": false
+      },
+      {
+        "revision": "01M2C04ZKRH4D427ZH00SJ3J1W",
+        "summary": "touch session",
+        "current": false
+      },
+      {
+        "revision": "01M2C04ZGVTKZ477KCJ6KFAD53",
+        "summary": "update session projection",
+        "current": false
+      },
+      {
+        "revision": "01M2C04ZGFPSATKXA2B5RAZC3Z",
+        "summary": "touch session",
+        "current": false
+      },
+      {
+        "revision": "01M2C02THPBJ08CKAXA419BT80",
+        "summary": "Restore checkpoint 01M2BZY118CN4KS18K7TBA6EEP",
+        "current": false
+      },
+      {
+        "revision": "01M2C02TH8Q7G5KWBGD3M2JWTQ",
+        "summary": "spatial.freeze",
+        "current": false
+      },
+      {
+        "revision": "01M2C02TDYGECRMP2VEXB9SXZB",
+        "summary": "update session projection",
+        "current": false
+      },
+      {
+        "revision": "01M2C02TDP52GEDGCXPF1AY5EB",
+        "summary": "touch session",
+        "current": false
+      },
+      {
+        "revision": "01M2C02TARHXH5PZC44RTAXZY4",
+        "summary": "update session projection",
+        "current": false
+      },
+      {
+        "revision": "01M2C02TAEJTJJC3KCJMENP7YM",
+        "summary": "touch session",
+        "current": false
+      },
+      {
+        "revision": "01M2BZY118CN4KS18K7TBA6EEP",
+        "summary": "Restore checkpoint 01M2B73AR34FX88SFH8B5M6AG8",
+        "current": false
+      },
+      {
+        "revision": "01M2BZY10TVKKHKFDH7HDNPGF0",
+        "summary": "spatial.freeze",
+        "current": false
+      },
+      {
+        "revision": "01M2BZY0XFJ29T1WB4EEHP074H",
+        "summary": "update session projection",
+        "current": false
+      },
+      {
+        "revision": "01M2BZY0X77SDEPT1J9HNMHE4T",
+        "summary": "touch session",
+        "current": false
+      },
+      {
+        "revision": "01M2BZY0T964A3E6TERC36M8EG",
+        "summary": "update session projection",
+        "current": false
+      },
+      {
+        "revision": "01M2BZY0SZJMQEB0620S5E5RHW",
+        "summary": "touch session",
+        "current": false
+      },
+      {
+        "revision": "01M2B73AR34FX88SFH8B5M6AG8",
+        "summary": "spatial.freeze",
+        "current": false
+      },
+      {
+        "revision": "01M2B73AJDFXKDMN5M5ES10FKT",
+        "summary": "generation.commit",
+        "current": false
+      },
+      {
+        "revision": "01M2B71PMWDTDAVDFM2EVFJXN8",
+        "summary": "scene-spec.plan",
+        "current": false
+      },
+      {
+        "revision": "01M2B71PMM79441NWB9D18RR2M",
+        "summary": "Create world session",
+        "current": false
+      },
+      {
+        "revision": "01M2B71PME6B23M9362G7KAX05",
+        "summary": "v1 baseline from graph and session; no reconstructed event history",
+        "current": false
+      }
+    ]
+  },
+  "restore": {
+    "target": "01M2C068BTDSSTDAXJ0S80WCEY",
+    "accepted": true,
+    "httpStatus": 200,
+    "currentRevision": "01M2C1MRNW6YX38YWXCD3PT5TV",
+    "count": 30
+  },
+  "browser": {
+    "url": "http://127.0.0.1:18790/",
+    "panelHeading": "检查点",
+    "currentLabel": "当前",
+    "restoreClicked": true,
+    "afterCurrent": "Restore checkpoint 01M2C068C7MY3BE44V19CGMEZ8",
+    "stewardAck": "已退回上一个检查点。历史还在。",
+    "listCount": 31,
+    "error": ""
+  },
+  "verdict": {
+    "listed": true,
+    "panelPayload": true,
+    "restored": true,
+    "browserRestored": true
+  }
+}

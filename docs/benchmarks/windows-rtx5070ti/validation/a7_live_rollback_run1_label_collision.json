@@ -1,0 +1,172 @@
+{
+  "probe": "a7-live-rollback",
+  "at": "2026-09-12T16:36:55.227Z",
+  "worldRuntime": {
+    "url": "http://127.0.0.1:18794",
+    "health": {
+      "ok": true,
+      "live": true,
+      "port": 18794
+    }
+  },
+  "scratchWorldId": "a7-rollback-live",
+  "assets": [
+    {
+      "objectId": "bar-front",
+      "hash": "f0dde9d3178904c954010e3f96f222b81940297c167fda592f0238ccafa93623",
+      "byteLength": 1244344
+    },
+    {
+      "objectId": "fireplace",
+      "hash": "6efb7bebdfcb49e44bd08ee4fee24d6dfbe047916ced289ff4005e21f2c1d1be",
+      "byteLength": 1616184
+    }
+  ],
+  "forcedFailure": "AbortController fired after the first successful POST /objects (spawn #1); spawn #2 threw",
+  "publishResult": {
+    "ok": false,
+    "cooked": false,
+    "rolledBack": true,
+    "error": "install failed (scene unchanged): [Errno 13] Permission denied: 'G:\\\\carina-ue\\\\CarinaPS\\\\Packaged\\\\Windows\\\\CarinaPS\\\\Content\\\\Paks\\\\CarinaPS-Windows_bar_front.utoc'",
+    "spawned": [],
+    "uploads": [
+      {
+        "assetId": "f0dde9d3178904c9",
+        "assetHash": "f0dde9d3178904c954010e3f96f222b81940297c167fda592f0238ccafa93623"
+      },
+      {
+        "assetId": "6efb7bebdfcb49e4",
+        "assetHash": "6efb7bebdfcb49e44bd08ee4fee24d6dfbe047916ced289ff4005e21f2c1d1be"
+      }
+    ]
+  },
+  "liveState": {
+    "before": {
+      "appliedRevision": "0",
+      "installedAssets": [],
+      "objects": []
+    },
+    "after": {
+      "appliedRevision": "wr-37771cb5e182",
+      "installedAssets": [],
+      "objects": []
+    }
+  },
+  "protectedWorldsAfter": {
+    "ng1-i23d": {
+      "installedAssets": [
+        "8e9e52a7d38ef05ba0510f4dbeac36f40ab740821614b563384417e5570a5411",
+        "1d66a328841815534be5b287c99205949758068b7ea20b8d08a7d7d59c6402ec",
+        "6149953699316b57ad21210ef1334fa7bb86871c6bb62721b1e13a53e2ab4d70"
+      ],
+      "objects": [
+        "bar-front",
+        "fireplace",
+        "courtyard-feature"
+      ]
+    },
+    "ue02-final": {
+      "installedAssets": [
+        "8dd45448bbac70a031ab5281e2455604cd1beb7bbed10beac54ff287201f6697",
+        "629373db5bc61c4c3beaaa0bf73e2f7baf93921e7a86e9675d2fca1ff4262673"
+      ],
+      "objects": [
+        "avocado",
+        "boombox",
+        "tavern-scaffold-p0",
+        "p1-Bar",
+        "p1-BarFootRest",
+        "p1-Ceiling",
+        "p1-Cup",
+        "p1-Door",
+        "p1-Fireplace",
+        "p1-Floor",
+        "p1-HearthMetal",
+        "p1-WallEast",
+        "p1-WallNorthL",
+        "p1-WallNorthLintel",
+        "p1-WallNorthR",
+        "p1-WallSouth",
+        "p1-WallWest"
+      ]
+    }
+  },
+  "rollbackCalls": {
+    "uninstalls": [],
+    "deletes": []
+  },
+  "verdict": {
+    "spawnedObjectDeleted": true,
+    "newContainersUninstalled": true,
+    "uninstallRemovedFiles": true,
+    "protectedWorldsUntouched": true
+  },
+  "timeline": [
+    {
+      "at": 4,
+      "method": "POST",
+      "path": "/v1/assets/upload",
+      "status": 200,
+      "ms": 68,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 77,
+      "method": "POST",
+      "path": "/v1/assets/upload",
+      "status": 200,
+      "ms": 129,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 207,
+      "method": "GET",
+      "path": "/v1/worlds/a7-rollback-live",
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "at": 215,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/prepare",
+      "status": 200,
+      "ms": 79962,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 80177,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/prepare",
+      "status": 200,
+      "ms": 55488,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 135665,
+      "method": "POST",
+      "path": "/v1/worlds/a7-rollback-live/assets/install",
+      "status": 500,
+      "ms": 330,
+      "body": {
+        "ok": false,
+        "error": "install failed (scene unchanged): [Errno 13] Permission denied: 'G:\\\\carina-ue\\\\CarinaPS\\\\Packaged\\\\Windows\\\\CarinaPS\\\\Content\\\\Paks\\\\CarinaPS-Windows_bar_front.utoc'"
+      }
+    },
+    {
+      "at": 135995,
+      "method": "GET",
+      "path": "/v1/worlds/a7-rollback-live",
+      "status": 200,
+      "ms": 9
+    }
+  ],
+  "totalMs": 136027
+}

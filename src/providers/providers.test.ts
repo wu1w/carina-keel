@@ -7,17 +7,24 @@ import {
   createHttpNativeMeshProvider,
   createLegacyLingBotProvider,
   createMockProvider,
+  createUnsupportedMeshProvider,
 } from "./index.js";
 
 /**
- * zh: Mock 声明原生网格；LingBot 遗留只有视频、无原生网格。
- * en: Mock declares native mesh; LingBot legacy is video-only without native mesh.
+ * zh: 夹具不得标 nativeMesh；LingBot 遗留只有视频；只有 HTTP 适配器声明原生网格。
+ * en: Fixture must not set nativeMesh; LingBot legacy is video-only; only the HTTP adapter declares native mesh.
  */
-test("mock nativeMesh is true and LingBot legacy is videoOnly", () => {
+test("fixture nativeMesh is false and LingBot legacy is videoOnly", () => {
   const mock = createMockProvider();
   const lingbot = createLegacyLingBotProvider();
   const http = createHttpNativeMeshProvider({ url: "http://127.0.0.1:9" });
-  assert.equal(mock.getCapabilities().nativeMesh, true);
+  const unset = createUnsupportedMeshProvider();
+  assert.equal(mock.getCapabilities().nativeMesh, false);
+  assert.equal(mock.getCapabilities().localEdit, false);
+  assert.equal(mock.getCapabilities().cameraControl, false);
+  assert.equal(mock.getCapabilities().actionControl, false);
+  assert.equal(mock.getCapabilities().spatialExport, false);
+  assert.equal(mock.getCapabilities().id, "fixture-primitive-tavern");
   assert.equal(mock.getCapabilities().videoOnly, false);
   assert.equal(mock.getCapabilities().legacy, false);
   assert.equal(lingbot.getCapabilities().videoOnly, true);
@@ -27,6 +34,8 @@ test("mock nativeMesh is true and LingBot legacy is videoOnly", () => {
   assert.equal(http.getCapabilities().nativeMesh, true);
   assert.equal(http.getCapabilities().videoOnly, false);
   assert.equal(http.getCapabilities().id, "http-native-mesh");
+  assert.equal(unset.getCapabilities().nativeMesh, false);
+  assert.equal(unset.getCapabilities().id, "mesh-unset");
 });
 
 /**
@@ -43,10 +52,23 @@ test("LingBot submitGeneration throws UNSUPPORTED", async () => {
 });
 
 /**
- * zh: Mock 提交立即返回带网格候选的酒馆。
- * en: Mock submit immediately returns a tavern mesh candidate.
+ * zh: 未配置网格 URL 时 submitGeneration 必须 UNSUPPORTED，不得交盒子酒馆。
+ * en: Unset mesh URL must UNSUPPORTED on submitGeneration and must not return the box tavern.
  */
-test("mock submitGeneration returns a native mesh tavern candidate", async () => {
+test("unset mesh provider submitGeneration throws UNSUPPORTED", async () => {
+  const unset = createUnsupportedMeshProvider();
+  await assert.rejects(
+    () => unset.submitGeneration(samplePlan()),
+    (error: unknown) =>
+      error instanceof CarinaError && error.code === "UNSUPPORTED",
+  );
+});
+
+/**
+ * zh: 夹具提交仍返回盒子酒馆，供测试显式选用；不是 native mesh。
+ * en: Fixture submit still returns the box tavern for explicit tests; it is not native mesh.
+ */
+test("fixture submitGeneration returns a primitive tavern candidate", async () => {
   const mock = createMockProvider();
   const result = await mock.submitGeneration(samplePlan());
   assert.ok(result.candidate !== undefined);

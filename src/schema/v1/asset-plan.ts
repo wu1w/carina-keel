@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { sceneSpecRouteSchema, sceneSpecSourceSchema } from "./scene-spec.js";
+import { worldModelSourceSchema } from "./world-model.js";
 
 /**
  * zh: AssetPlan 条目状态。generate-complete 只表示包内已有 HTTP 网格 GLB，不是世界模型产物。
@@ -60,22 +61,35 @@ export const assetPlanItemSchema = z
 export type AssetPlanItem = z.infer<typeof assetPlanItemSchema>;
 
 /**
- * zh: SceneSpec → 资产计划。不是世界模型产物。
- * en: SceneSpec to asset plan. Not a world-model product.
+ * zh: SceneSpec → 资产计划。`claimsWorldModelGeneration` 只在 `worldModel` 记录了白名单 provider
+ *     且空间壳 GLB 已在包内（有 assetHash）时才能为 true；物件级 TripoSR / 目录 / 夹具不算。
+ * en: SceneSpec to asset plan. `claimsWorldModelGeneration` may only be true when `worldModel`
+ *     names an allowlisted provider and the space-shell GLB is in the pack (assetHash present);
+ *     per-object TripoSR / catalog / fixtures never count.
  */
 export const assetPlanSchema = z
   .object({
     schemaVersion: z.literal(1),
     sceneSpecSource: sceneSpecSourceSchema,
     meshProviderUrlSet: z.boolean(),
-    claimsWorldModelGeneration: z.literal(false),
+    claimsWorldModelGeneration: z.boolean(),
+    worldModel: worldModelSourceSchema.optional(),
     items: z.array(assetPlanItemSchema).min(1),
   })
   .refine(
     (plan) =>
-      plan.items.every((item) => item.status !== undefined) &&
-      plan.claimsWorldModelGeneration === false,
-    { message: "AssetPlan must not claim world-model generation" },
+      plan.claimsWorldModelGeneration === false ||
+      (plan.worldModel !== undefined &&
+        typeof plan.worldModel.assetHash === "string" &&
+        plan.worldModel.assetHash.length > 0),
+    {
+      message:
+        "claimsWorldModelGeneration requires worldModel with an allowlisted provider and a pack assetHash",
+    },
+  )
+  .refine(
+    (plan) => plan.worldModel === undefined || plan.claimsWorldModelGeneration === true || plan.worldModel.assetHash === undefined,
+    { message: "a staged worldModel shell must be claimed; do not hide it" },
   )
   .refine(
     (plan) =>

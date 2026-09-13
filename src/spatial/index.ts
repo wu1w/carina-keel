@@ -3,6 +3,11 @@
  * en: Spatial module exports.
  */
 export { compileWorldRules } from "./compile-world-rules.js";
+export {
+  isObjectLocked,
+  lockedObjectNames,
+  preserveLockedObjects,
+} from "./locked-objects.js";
 export { METRIC_Y_UP } from "./metric-frame.js";
 export {
   aabbOverlaps,
@@ -34,8 +39,12 @@ export {
 } from "./extend-region.js";
 export {
   decideExpansion,
+  evaluateExpansionHit,
   ExpansionTracker,
+  nearExpansionBoundary,
   type ExpansionDecision,
+  type ExpansionHit,
+  type ExpansionHitInput,
   type ExpansionPolicyInput,
 } from "./expansion-scheduler.js";
 export {
@@ -55,6 +64,7 @@ export {
   placeObject,
 } from "./live-objects.js";
 export {
+  deltaToward,
   findLiveObject,
   furnitureKindFromLabel,
   isStructureObject,
@@ -72,6 +82,11 @@ export {
 } from "./gltf-asset-ref.js";
 export { aabbFromGltfBytes } from "./gltf-bounds.js";
 export {
+  fitSpaceShellTransform,
+  IDENTITY_TRANSFORM,
+  SHELL_FIT_RANGE,
+} from "./space-shell-fit.js";
+export {
   buildCommittedMapView,
   encodeCaptureCamera,
   encodeMeshJson,
@@ -87,6 +102,8 @@ export {
   instantiateSceneSpecScaffolds,
   mergeSceneSpecScaffolds,
   objectsForModelExport,
+  dropTwinBar,
+  dropTwinBarRegions,
 } from "./instantiate-scene-spec.js";
-export { composeGeneratedScene } from "./compose-generated-scene.js";
+export { composeGeneratedScene, composeExtendedGarden } from "./compose-generated-scene.js";
 export { buildReferenceBundle } from "./reference-bundle.js";

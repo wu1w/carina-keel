@@ -7,7 +7,7 @@ import { formatUserError } from "../../i18n/user-error.js";
 import { startHttpServer } from "../../server/index.js";
 import { isDaemonHealthy, waitForStopSignal } from "../daemon.js";
 import { postChat } from "../http-chat.js";
-import { requirePackPath, resolveConfig } from "../resolve-config.js";
+import { resolveConfig } from "../resolve-config.js";
 import { printStatus, runSafely } from "../run-safely.js";
 
 const lang = loadConfig().lang;
@@ -31,13 +31,6 @@ export const chatCommand = defineCommand({
   async run({ args }) {
     await runSafely(lang, async () => {
       const config = resolveConfig(args.pack);
-      try {
-        requirePackPath(config);
-      } catch {
-        printStatus("cli.needPack", lang);
-        process.exitCode = 1;
-        return;
-      }
       let close: (() => Promise<void>) | undefined;
       if (!(await isDaemonHealthy(config.port))) {
         const listening = await startHttpServer(config);

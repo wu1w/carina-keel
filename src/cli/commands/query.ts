@@ -3,7 +3,7 @@ import { loadConfig } from "../../config.js";
 import { t } from "../../i18n/index.js";
 import { NodeType } from "../../schema/index.js";
 import type { QueryFilter } from "../../world/index.js";
-import { requirePackPath, resolveConfig } from "../resolve-config.js";
+import { runWithLegacyPack } from "../legacy-pack.js";
 import { printStatus, runSafely } from "../run-safely.js";
 import { createToolContext } from "../tool-session.js";
 
@@ -23,8 +23,8 @@ function parseNodeType(value: string): NodeType | undefined {
 }
 
 /**
- * zh: 查询图谱。直连 world，不经 daemon。
- * en: Query the graph. Calls world directly, no daemon.
+ * zh: 查询图谱。遗留图谱工具，需要世界包。
+ * en: Query the graph. Legacy graph tool; needs a pack.
  */
 export const queryCommand = defineCommand({
   meta: {
@@ -52,37 +52,30 @@ export const queryCommand = defineCommand({
   },
   async run({ args }) {
     await runSafely(lang, async () => {
-      const config = resolveConfig(args.pack);
-      let packDir: string;
-      try {
-        packDir = requirePackPath(config);
-      } catch {
-        printStatus("cli.needPack", lang);
-        process.exitCode = 1;
-        return;
-      }
-      const ctx = await createToolContext(packDir, config.lang);
-      const filter: QueryFilter = {};
-      if (args.id !== undefined) {
-        filter.id = args.id;
-      }
-      if (args.type !== undefined) {
-        const nodeType = parseNodeType(args.type);
-        if (nodeType === undefined) {
+      await runWithLegacyPack(args.pack, async (packDir, config) => {
+        const ctx = await createToolContext(packDir, config.lang);
+        const filter: QueryFilter = {};
+        if (args.id !== undefined) {
+          filter.id = args.id;
+        }
+        if (args.type !== undefined) {
+          const nodeType = parseNodeType(args.type);
+          if (nodeType === undefined) {
+            printStatus("cli.queryNone", lang);
+            return;
+          }
+          filter.type = nodeType;
+        }
+        if (args.name !== undefined) {
+          filter.name = args.name;
+        }
+        const list = ctx.store.query(filter);
+        if (list.length === 0) {
           printStatus("cli.queryNone", lang);
           return;
         }
-        filter.type = nodeType;
-      }
-      if (args.name !== undefined) {
-        filter.name = args.name;
-      }
-      const list = ctx.store.query(filter);
-      if (list.length === 0) {
-        printStatus("cli.queryNone", lang);
-        return;
-      }
-      console.log(JSON.stringify(list, null, 2));
+        console.log(JSON.stringify(list, null, 2));
+      });
     });
   },
 });

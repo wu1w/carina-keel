@@ -1,9 +1,10 @@
 import { defineCommand } from "citty";
 import { loadConfig } from "../../config.js";
 import { t } from "../../i18n/index.js";
-import { requirePackPath, resolveConfig } from "../resolve-config.js";
+import { looksLikePackPath, requirePackPath, resolveConfig } from "../resolve-config.js";
 import { printStatus, runSafely } from "../run-safely.js";
 import { createToolContext, executeTool } from "../tool-session.js";
+import { dispatchSpeakCli } from "../dispatch-speak.js";
 
 const lang = loadConfig().lang;
 
@@ -23,8 +24,8 @@ function parseRelatedIds(raw: string | undefined): string[] | undefined {
 }
 
 /**
- * zh: 把耐久事实写入 MEMORY.md。直连 tools，不经 daemon。
- * en: Promote a durable fact into MEMORY.md. Calls tools directly, no daemon.
+ * zh: 把耐久事实写入 MEMORY.md。有世界包走旧 remember；否则走管家。
+ * en: Promote a durable fact into MEMORY.md. A pack still uses legacy remember; otherwise the steward.
  */
 export const rememberCommand = defineCommand({
   meta: {
@@ -49,28 +50,35 @@ export const rememberCommand = defineCommand({
   },
   async run({ args }) {
     await runSafely(lang, async () => {
-      const config = resolveConfig(args.pack);
-      let packDir: string;
-      try {
-        packDir = requirePackPath(config);
-      } catch {
-        printStatus("cli.needPack", lang);
-        process.exitCode = 1;
+      const packArg = typeof args.pack === "string" ? args.pack : undefined;
+      const config = resolveConfig(
+        packArg !== undefined && looksLikePackPath(packArg) ? packArg : undefined,
+      );
+      if (config.pack !== undefined && config.pack !== "") {
+        let packDir: string;
+        try {
+          packDir = requirePackPath(config);
+        } catch {
+          printStatus("cli.leftoverUseChat", lang);
+          process.exitCode = 1;
+          return;
+        }
+        const ctx = await createToolContext(packDir, config.lang);
+        const relatedNodeIds = parseRelatedIds(args.related);
+        const input: { fact: string; relatedNodeIds?: string[] } = {
+          fact: args.fact,
+        };
+        if (relatedNodeIds !== undefined) {
+          input.relatedNodeIds = relatedNodeIds;
+        }
+        const result = await executeTool("remember", input, ctx);
+        console.log(result.summary);
+        if (result.data !== undefined) {
+          console.log(JSON.stringify(result.data, null, 2));
+        }
         return;
       }
-      const ctx = await createToolContext(packDir, config.lang);
-      const relatedNodeIds = parseRelatedIds(args.related);
-      const input: { fact: string; relatedNodeIds?: string[] } = {
-        fact: args.fact,
-      };
-      if (relatedNodeIds !== undefined) {
-        input.relatedNodeIds = relatedNodeIds;
-      }
-      const result = await executeTool("remember", input, ctx);
-      console.log(result.summary);
-      if (result.data !== undefined) {
-        console.log(JSON.stringify(result.data, null, 2));
-      }
+      await dispatchSpeakCli(config, `记住${args.fact}`);
     });
   },
 });

@@ -6,15 +6,16 @@ import test from "node:test";
 import { runSolarWmExperiment } from "./experiment.js";
 
 /**
- * zh: 未设根目录时 SolarWM 阻塞，且不得把视频写成网格或世界模型。
- * en: Unset root blocks SolarWM and must not label video as a mesh or world model.
+ * zh: 未设根目录 = NG-1 正式关闭（closed-ng1），且不得把视频写成网格或世界模型。
+ * en: Unset root = formally closed for NG-1 (closed-ng1); video is never a mesh or world model.
  */
-test("runSolarWmExperiment stays blocked without a root and never produces a mesh", () => {
+test("runSolarWmExperiment is closed-ng1 without a root and never produces a mesh", () => {
   const row = runSolarWmExperiment({});
   assert.equal(row.claimsWorldModelGeneration, false);
   assert.equal(row.producesMesh, false);
   assert.equal(row.dryRunIsNotEvidence, true);
-  assert.equal(row.status, "blocked-no-runtime");
+  assert.equal(row.status, "closed-ng1");
+  assert.match(row.notes, /SOLARWM_REVIEW\.md/);
 });
 
 /**

@@ -1,0 +1,111 @@
+{
+  "probe": "ng1-catalog-furniture-cook",
+  "at": "2026-09-13T02:58:51.410Z",
+  "honesty": {
+    "note": "TripoSR I23D door/table/cup replace catalog GLBs. Chair stays catalog. Not a world-model tavern.",
+    "claimsWorldModelGeneration": false,
+    "sourceLabel": "http-native-mesh",
+    "provider": "triposr-i23d",
+    "reusedStaged": true
+  },
+  "pack": {
+    "dataDir": "/tmp/carina-ng1",
+    "worldId": "01M2AVSF57227TCNGKZSB6GMEN"
+  },
+  "generated": [
+    {
+      "objectId": "door",
+      "byteLength": 1525240
+    },
+    {
+      "objectId": "table",
+      "byteLength": 1093188
+    },
+    {
+      "objectId": "cup",
+      "byteLength": 1290420
+    }
+  ],
+  "staged": [
+    {
+      "objectId": "door",
+      "hash": "f280071a198dfb4484e78e492289ccc1b4a8305db23f76b2db435e835c9dc806",
+      "posixPath": "assets/f280071a198dfb4484e78e492289ccc1b4a8305db23f76b2db435e835c9dc806.glb"
+    },
+    {
+      "objectId": "table",
+      "hash": "c8f6df0011f13ef055407c4c650ac6abd6e7674655205bc13251e909b1e280e4",
+      "posixPath": "assets/c8f6df0011f13ef055407c4c650ac6abd6e7674655205bc13251e909b1e280e4.glb"
+    },
+    {
+      "objectId": "cup",
+      "hash": "6f5c83c4beb1d198a9e806cb5eaacce455e2abd1f9979bac834fc8a298758b0c",
+      "posixPath": "assets/6f5c83c4beb1d198a9e806cb5eaacce455e2abd1f9979bac834fc8a298758b0c.glb"
+    }
+  ],
+  "sceneSpecRoutes": {
+    "door": "generate",
+    "table": "generate",
+    "chair": "reuse",
+    "cup": "generate",
+    "window": "reuse"
+  },
+  "publishResult": {
+    "ok": true,
+    "cooked": true,
+    "spawned": [
+      "door",
+      "table",
+      "cup"
+    ],
+    "uploads": [
+      {
+        "assetId": "f280071a198dfb44",
+        "assetHash": "f280071a198dfb4484e78e492289ccc1b4a8305db23f76b2db435e835c9dc806",
+        "sourceLabel": "http-native-mesh",
+        "claimsWorldModelGeneration": false
+      },
+      {
+        "assetId": "c8f6df0011f13ef0",
+        "assetHash": "c8f6df0011f13ef055407c4c650ac6abd6e7674655205bc13251e909b1e280e4",
+        "sourceLabel": "http-native-mesh",
+        "claimsWorldModelGeneration": false
+      },
+      {
+        "assetId": "6f5c83c4beb1d198",
+        "assetHash": "6f5c83c4beb1d198a9e806cb5eaacce455e2abd1f9979bac834fc8a298758b0c",
+        "sourceLabel": "http-native-mesh",
+        "claimsWorldModelGeneration": false
+      }
+    ],
+    "ms": 10167
+  },
+  "live": {
+    "objects": [
+      "bar-front",
+      "fireplace",
+      "courtyard-feature",
+      "interior-garden-floor",
+      "interior-garden-wall-west",
+      "interior-garden-wall-east",
+      "interior-garden-wall-south",
+      "ng1-i23d-npc-keeper",
+      "interior-space-shell",
+      "floor",
+      "wall-west",
+      "wall-east",
+      "wall-north",
+      "wall-south-west",
+      "wall-south-east",
+      "wall-south-lintel",
+      "door",
+      "table",
+      "cup"
+    ]
+  },
+  "verdict": {
+    "cookedAndSpawned": true,
+    "neverClaimsWorldModel": true,
+    "chairStaysCatalog": true
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "probe": "constrained-extend",
+  "at": "2026-09-13T00:11:00.664Z",
+  "honesty": {
+    "coverage": "scaffold-garden",
+    "note": "Interior objects stay committed. Garden walk is isolate+box collision, not a reconstructed world-model room.",
+    "claimsWorldModelGeneration": false
+  },
+  "pack": {
+    "dataDir": "/tmp/carina-ng1",
+    "worldId": "01M2AVSF57227TCNGKZSB6GMEN",
+    "revision": "01M2AVT1CFCRSFZ8PYJEH92M4R",
+    "committedObjectIds": [
+      "bar-front",
+      "fireplace",
+      "door",
+      "table",
+      "chair",
+      "cup",
+      "window",
+      "floor",
+      "wall-west",
+      "wall-east",
+      "wall-north",
+      "wall-south-west",
+      "wall-south-east",
+      "wall-south-lintel"
+    ]
+  },
+  "compose": {
+    "gardenObjectIds": [
+      "interior-garden-floor",
+      "interior-garden-wall-west",
+      "interior-garden-wall-east",
+      "interior-garden-wall-south",
+      "courtyard-feature"
+    ],
+    "remadeInteriorIds": [],
+    "interiorObjectRefsUnchanged": true,
+    "seamOk": true,
+    "gardenHasFeature": true
+  },
+  "walk": {
+    "evidence": "docs/benchmarks/windows-rtx5070ti/validation/ng1_garden_shell_stand13/ps_pawn_landed.json",
+    "capsuleOnFloor": true,
+    "possessedWalking": true,
+    "scaffoldPrimitive": true
+  },
+  "verdict": {
+    "committedRegionNotRemade": true,
+    "interiorRefsKept": true,
+    "gardenWalkableScaffold": true
+  }
+}

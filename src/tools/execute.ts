@@ -1,4 +1,7 @@
 import { CarinaError } from "../errors.js";
+import { readMarkdown } from "../pack/index.js";
+import { compileWorldRules } from "../spatial/compile-world-rules.js";
+import { lockedObjectNames } from "../spatial/locked-objects.js";
 import {
   TOOL_NAMES,
   toolInputSchema,
@@ -27,6 +30,7 @@ export async function executeTool(
   if (!isToolName(name)) {
     throw new CarinaError("UNKNOWN_TOOL", "error.unknownTool");
   }
+  await assertLegacyWorldRules(name, input, ctx);
   switch (name) {
     case "look":
       return runLook(parseInput("look", input), ctx);
@@ -50,9 +54,64 @@ export async function executeTool(
 }
 
 /**
- * zh: 运行时工具名守卫。
- * en: Runtime guard for tool names.
+ * zh: legacy 八工具也走 WORLD.md 已抽出条款，不能当后门。
+ * en: The leftover eight tools also honor compiled WORLD.md clauses.
  */
+async function assertLegacyWorldRules(
+  name: ToolName,
+  input: unknown,
+  ctx: ToolContext,
+): Promise<void> {
+  let body = "";
+  try {
+    body = await readMarkdown(ctx.packHandle, "WORLD.md");
+  } catch {
+    return;
+  }
+  const rules = compileWorldRules(body, "legacy", "legacy");
+  const kinds = new Set(rules.clauses.map((clause) => clause.kind));
+  if (name === "go" && kinds.has("no_teleport")) {
+    throw new CarinaError("COMMAND_REJECTED", "error.noTeleport");
+  }
+  if (name === "spawn" && kinds.has("generation_forbid")) {
+    throw new CarinaError("COMMAND_REJECTED", "error.commandRejected");
+  }
+  if ((name === "relate" || name === "attach") && kinds.has("lock_object")) {
+    const names = lockedObjectNames(rules);
+    const blob = JSON.stringify(input).toLowerCase();
+    if (names.some((item) => blob.includes(item.toLowerCase()))) {
+      throw new CarinaError("COMMAND_REJECTED", "error.lockObject");
+    }
+    const ids = collectLegacyNodeIds(input);
+    for (const id of ids) {
+      const node = ctx.packHandle.graph.nodes.find((item) => item.id === id);
+      const nodeName =
+        typeof node?.props["name"] === "string" ? node.props["name"] : "";
+      if (
+        names.some((item) => nodeName.toLowerCase().includes(item.toLowerCase()))
+      ) {
+        throw new CarinaError("COMMAND_REJECTED", "error.lockObject");
+      }
+    }
+  }
+}
+
+function collectLegacyNodeIds(input: unknown): string[] {
+  if (input === null || typeof input !== "object") {
+    return [];
+  }
+  const record = input as Record<string, unknown>;
+  const keys = ["fromId", "toId", "nodeId", "placeId", "parentId"];
+  const ids: string[] = [];
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.length > 0) {
+      ids.push(value);
+    }
+  }
+  return ids;
+}
+
 function isToolName(name: string): name is ToolName {
   return (TOOL_NAMES as readonly string[]).includes(name);
 }

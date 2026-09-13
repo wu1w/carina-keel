@@ -9,24 +9,46 @@ export function makeCheckerPng(
   b: readonly [number, number, number],
 ): Uint8Array {
   const size = 4;
-  const ihdr = new Uint8Array(13);
-  const view = new DataView(ihdr.buffer);
-  view.setUint32(0, size);
-  view.setUint32(4, size);
-  ihdr[8] = 8;
-  ihdr[9] = 2;
-  const raw = new Uint8Array(size * (1 + size * 3));
-  let offset = 0;
+  const rgb = new Uint8Array(size * size * 3);
   for (let y = 0; y < size; y += 1) {
-    raw[offset] = 0;
-    offset += 1;
     for (let x = 0; x < size; x += 1) {
       const color = ((x + y) & 1) === 0 ? a : b;
-      raw[offset] = color[0]!;
-      raw[offset + 1] = color[1]!;
-      raw[offset + 2] = color[2]!;
-      offset += 3;
+      const at = (y * size + x) * 3;
+      rgb[at] = color[0]!;
+      rgb[at + 1] = color[1]!;
+      rgb[at + 2] = color[2]!;
     }
+  }
+  return encodeRgbPng(size, size, rgb);
+}
+
+/**
+ * zh: 把 packed RGB 编成自包含 PNG。
+ * en: Encode packed RGB bytes as a self-contained PNG.
+ */
+export function encodeRgbPng(
+  width: number,
+  height: number,
+  rgb: Uint8Array,
+): Uint8Array {
+  if (width < 1 || height < 1 || rgb.byteLength !== width * height * 3) {
+    throw new Error("invalid rgb png payload");
+  }
+  const ihdr = new Uint8Array(13);
+  const view = new DataView(ihdr.buffer);
+  view.setUint32(0, width);
+  view.setUint32(4, height);
+  ihdr[8] = 8;
+  ihdr[9] = 2;
+  const raw = new Uint8Array(height * (1 + width * 3));
+  let offset = 0;
+  let src = 0;
+  for (let y = 0; y < height; y += 1) {
+    raw[offset] = 0;
+    offset += 1;
+    raw.set(rgb.subarray(src, src + width * 3), offset);
+    offset += width * 3;
+    src += width * 3;
   }
   const idat = deflateSync(raw);
   const sig = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10);

@@ -21,6 +21,18 @@ export {
   vertexCountOf,
 } from "./catalog-glb.js";
 export { validateFactoryGlb, type FactoryGlbReport } from "./validate-factory-glb.js";
+export { finishGeneratedMesh } from "./finish-generated-mesh.js";
+export {
+  SPACE_SHELL_OBJECT_SUFFIX,
+  stampSpaceShellExtras,
+  validateSpaceShellGlb,
+  type SpaceShellReport,
+} from "./space-shell.js";
+export {
+  NPC_PROXY_SOURCE_LABEL,
+  buildNpcProxyGlb,
+  npcProxyAppearance,
+} from "./npc-proxy.js";
 export {
   extractGlbMaterialRefs,
   extractGlbMaterials,
@@ -31,6 +43,12 @@ export {
   applyCatalogToObject,
   type CatalogSceneAsset,
 } from "./apply-catalog.js";
+export {
+  CATALOG_GENERATE_OBJECT_IDS,
+  catalogFurnitureVisualName,
+  isCatalogGenerateObjectId,
+  promoteCatalogFurnitureToGenerate,
+} from "./catalog-generate.js";
 export {
   glbHashesForRoute,
   runAssetFactory,

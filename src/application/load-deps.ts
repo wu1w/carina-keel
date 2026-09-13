@@ -1,4 +1,7 @@
 import { applyCatalogReuse } from "../assets/apply-catalog.js";
+import { catalogFurnitureVisualName } from "../assets/catalog-generate.js";
+import { finishGeneratedMesh } from "../assets/finish-generated-mesh.js";
+import { SPACE_SHELL_OBJECT_SUFFIX } from "../assets/space-shell.js";
 import { validateFactoryGlb } from "../assets/validate-factory-glb.js";
 import type { CarinaConfig } from "../config.js";
 import { CarinaError } from "../errors.js";
@@ -6,6 +9,7 @@ import {
   buildModelExport as buildRealModelExport,
 } from "../exporter/index.js";
 import { createJobQueue as createRealJobQueue } from "../jobs/index.js";
+import path from "node:path";
 import {
   commitRevision,
   ensureV1,
@@ -18,10 +22,16 @@ import {
   updateWorldDocument,
 } from "../pack/index.js";
 import {
+  composeSpaceShellPrompt,
   createHttpNativeMeshProvider,
+  createHttpSpaceShellProvider,
   createMockProvider,
+  createUnsupportedMeshProvider,
+  type SpaceShellProvider,
+  type SpaceShellResult,
 } from "../providers/index.js";
 import type {
+  GeneratedMeshAsset,
   GenerationProvider as SchemaGenerationProvider,
   NativeMeshGenerateTarget,
   NativeMeshSubmitExtras,
@@ -33,7 +43,11 @@ import type { PlayerAction } from "../runtime/index.js";
 import type {
   GenerationPlan,
   JobRecord,
+  RegionRevision,
+  SceneObject,
   SceneSpec,
+  SceneSpecObject,
+  WorldModelSource,
   WorldSnapshot,
 } from "../schema/index.js";
 import {
@@ -47,6 +61,8 @@ import {
   updateGlobalDocument,
 } from "../sessions/index.js";
 import { METRIC_Y_UP, objectsForModelExport } from "../spatial/index.js";
+import { aabbFromGltfBytes } from "../spatial/gltf-bounds.js";
+import { fitSpaceShellTransform, IDENTITY_TRANSFORM } from "../spatial/space-shell-fit.js";
 import { createUlid, nowIsoUtc } from "../world/ids.js";
 import type {
   ApplicationDeps,
@@ -70,7 +86,9 @@ import {
   LocalAppStore,
 } from "./fallback.js";
 import { resolveSpatialApi } from "./primitive-scene.js";
-import { carrySceneSpec, firstGenerateObject } from "../scene-compiler/index.js";
+import {
+  carrySceneSpec, firstExtendGenerateObject, firstGenerateObject, interiorGenerateObjects,
+} from "../scene-compiler/index.js";
 import { composeGeneratedScene } from "../spatial/compose-generated-scene.js";
 
 /**
@@ -84,13 +102,16 @@ export function createProductionDeps(config: CarinaConfig): ApplicationDeps {
   const pack = wrapPack(locator);
   const ueWorldRuntime =
     config.worldRuntimeUrl !== undefined && config.worldRuntimeUrl.length > 0
-      ? createUeWorldRuntimeClient({ url: config.worldRuntimeUrl })
+      ? createUeWorldRuntimeClient({
+          url: config.worldRuntimeUrl,
+          remount: config.worldRuntimeRemount === false ? "none" : "streamer",
+        })
       : undefined;
   return {
     sessions: wrapSessions(config, locator),
     pack,
     runtime: wrapRuntimeApi(),
-    jobs: wrapJobs(),
+    jobs: wrapJobs(config.dataDir),
     provider: wrapProvider(config),
     exporter: wrapExporter(pack),
     spatial,
@@ -120,15 +141,34 @@ export function createFallbackDeps(config: CarinaConfig): ApplicationDeps {
 }
 
 /**
- * zh: 尝试把真实模块叠到依赖上（已静态接入时为 no-op 兼容）。
- * en: Overlay real modules (no-op compatible now that they are statically wired).
+ * zh: 把生产 sessions/pack/runtime/provider 叠到已有依赖上；注入项优先。
+ * en: Overlay production sessions/pack/runtime/provider onto existing deps; injected wins.
  */
-export async function upgradeProductionDeps(
-  _config: CarinaConfig,
-  _deps: ApplicationDeps,
-  _injected?: Partial<ApplicationDeps>,
-): Promise<void> {
-  return;
+export function upgradeProductionDeps(
+  config: CarinaConfig,
+  deps: ApplicationDeps,
+  injected?: Partial<ApplicationDeps>,
+): void {
+  const production = createProductionDeps(config);
+  deps.sessions = injected?.sessions ?? production.sessions;
+  deps.pack = injected?.pack ?? production.pack;
+  deps.runtime = injected?.runtime ?? production.runtime;
+  deps.jobs = injected?.jobs ?? production.jobs;
+  deps.provider = injected?.provider ?? production.provider;
+  deps.exporter = injected?.exporter ?? production.exporter;
+  deps.spatial = injected?.spatial ?? production.spatial;
+  const observe = injected?.observe ?? production.observe;
+  if (observe !== undefined) {
+    deps.observe = observe;
+  }
+  const ueWorldRuntime = injected?.ueWorldRuntime ?? production.ueWorldRuntime;
+  if (ueWorldRuntime !== undefined) {
+    deps.ueWorldRuntime = ueWorldRuntime;
+  }
+  const compileSceneSpec = injected?.compileSceneSpec ?? production.compileSceneSpec;
+  if (compileSceneSpec !== undefined) {
+    deps.compileSceneSpec = compileSceneSpec;
+  }
 }
 
 class PackLocator {
@@ -365,15 +405,12 @@ function decorateWorldRuntime(
       inner.pause();
       return inner.snapshot();
     },
-    executePlayerAction: (action, _rules) => {
+    executePlayerAction: (action, rules) => {
+      inner.applyWorldRules(rules);
       const mapped = toPlayerAction(action.kind, action.arguments, action.text);
       const result = inner.executePlayerAction(mapped);
       if (!result.ok) {
-        return {
-          ok: false,
-          code: "COMMAND_REJECTED",
-          messageKey: "error.commandRejected",
-        };
+        return rejectFromRuntimeReason(result.reason);
       }
       return { ok: true, snapshot: result.snapshot };
     },
@@ -384,6 +421,7 @@ function decorateWorldRuntime(
         snapshot.objects,
         snapshot.revision,
       );
+      inner.applyWorldRules(snapshot.worldRules);
     },
     incrementControlEpoch: () => inner.pause().controlEpoch,
     getControlEpoch: () => inner.getControlEpoch(),
@@ -405,6 +443,9 @@ function toPlayerAction(
     }
     return { kind: "teleport" };
   }
+  if (isMagic(args, text)) {
+    return { kind: "cast" };
+  }
   if (kind === "stopNavigation") {
     return { kind: "stop" };
   }
@@ -414,6 +455,15 @@ function toPlayerAction(
       return { kind: "navigate", position };
     }
     return { kind: "navigate" };
+  }
+  const targetId = stringOf(args["targetId"]);
+  const act = stringOf(args["action"]);
+  if (act === "look") {
+    const yaw = yawOf(args);
+    if (yaw !== undefined) {
+      return { kind: "move", yaw };
+    }
+    return { kind: "move" };
   }
   if (isMove(args)) {
     const position = vec3Of(args);
@@ -429,8 +479,6 @@ function toPlayerAction(
     }
     return { kind: "move" };
   }
-  const targetId = stringOf(args["targetId"]);
-  const act = stringOf(args["action"]);
   if (act === "pickup") {
     return targetId !== undefined ? { kind: "pickup", targetId } : { kind: "pickup" };
   }
@@ -460,12 +508,13 @@ function yawOf(args: Record<string, unknown>): number | undefined {
   return typeof yaw === "number" && Number.isFinite(yaw) ? yaw : undefined;
 }
 
-function wrapJobs(): JobQueueApi {
-  const queue = createRealJobQueue();
-  const byWorld = new Map<string, string[]>();
+function wrapJobs(dataDir: string): JobQueueApi {
+  const queue = createRealJobQueue({
+    persistPath: path.join(dataDir, "jobs.json"),
+  });
   return {
     async enqueue(input) {
-      const record = queue.enqueue({
+      return queue.enqueue({
         worldId: input.worldId,
         kind: input.kind,
         purpose: input.purpose,
@@ -477,20 +526,19 @@ function wrapJobs(): JobQueueApi {
           ? { providerJobId: input.providerJobId }
           : {}),
       });
-      const ids = byWorld.get(input.worldId) ?? [];
-      ids.push(record.jobId);
-      byWorld.set(input.worldId, ids);
-      return record;
     },
     async cancelSimulation(worldId) {
       const cancelled: JobRecord[] = [];
-      for (const jobId of byWorld.get(worldId) ?? []) {
-        const observed = queue.observe(jobId);
+      for (const observed of queue.list(worldId)) {
+        if (observed.purpose !== "simulation") {
+          continue;
+        }
         if (
-          observed !== undefined &&
-          observed.purpose === "simulation"
+          observed.status === "queued" ||
+          observed.status === "running" ||
+          observed.status === "cancelRequested"
         ) {
-          cancelled.push(queue.cancel(jobId));
+          cancelled.push(queue.cancel(observed.jobId));
         }
       }
       return cancelled;
@@ -499,11 +547,7 @@ function wrapJobs(): JobQueueApi {
       return queue.observe(jobId);
     },
     mark(jobId, status, extra) {
-      const current = queue.observe(jobId);
-      if (current === undefined) {
-        return undefined;
-      }
-      return { ...current, ...extra, status };
+      return queue.mark(jobId, status, extra);
     },
   };
 }
@@ -518,11 +562,26 @@ function createObserve(config: CarinaConfig): ObserveScene | undefined {
 }
 
 /**
- * zh: 有网格 URL 走 HTTP 原生网格适配器；否则 mock 酒馆。mock 不是世界模型产物。
- * en: HTTP native-mesh adapter when a mesh URL is set; otherwise the mock tavern. The mock is not a world-model product.
+ * zh: 有网格 URL 走 HTTP 原生网格适配器。未设 URL 时默认 UNSUPPORTED，不得用盒子酒馆假装 nativeMesh。测试可显式打开夹具。
+ * en: HTTP native-mesh adapter when a mesh URL is set. Unset URL is UNSUPPORTED and must not fake nativeMesh with the box tavern. Tests may opt into the fixture.
  */
-export function wrapProvider(config: CarinaConfig): GenerationProvider {
+export function wrapProvider(
+  config: CarinaConfig,
+  injected?: { space?: SpaceShellProvider },
+): GenerationProvider {
   const meshUrl = config.meshProviderUrl;
+  const spaceUrl = config.spaceProviderUrl;
+  const space =
+    injected?.space ??
+    (spaceUrl !== undefined && spaceUrl.length > 0
+      ? createHttpSpaceShellProvider({
+          url: spaceUrl,
+          ...(config.spaceProviderKeyFile !== undefined
+            ? { keyFile: config.spaceProviderKeyFile }
+            : {}),
+        })
+      : undefined);
+  const lang = config.lang;
   if (meshUrl !== undefined && meshUrl.length > 0) {
     return wrapSchemaProvider(
       createHttpNativeMeshProvider({
@@ -531,20 +590,151 @@ export function wrapProvider(config: CarinaConfig): GenerationProvider {
           ? { keyFile: config.meshProviderKeyFile }
           : {}),
       }),
-      { primitiveFallback: false },
+      { primitiveFallback: false, lang, ...(space !== undefined ? { space } : {}) },
     );
   }
-  return wrapSchemaProvider(createMockProvider(), { primitiveFallback: true });
+  if (config.allowPrimitiveFixture === true) {
+    return wrapSchemaProvider(createMockProvider(), { primitiveFallback: true, lang });
+  }
+  return wrapSchemaProvider(createUnsupportedMeshProvider(), {
+    primitiveFallback: false,
+    lang,
+    ...(space !== undefined ? { space } : {}),
+  });
+}
+
+/**
+ * zh: 空间壳 SceneObject：静态、无交互、无碰撞。sidecar 尺度只是先验；SceneSpec 室内盒才是
+ *     尺度真相。拟合只动 transform，GLB 字节与来源戳不变。
+ * en: Space-shell SceneObject: static, non-interactive, no collider. Sidecar scale is a prior;
+ *     the SceneSpec interior box is metric truth. Fit is transform-only.
+ */
+async function spaceShellObject(
+  shell: SpaceShellResult,
+  lang: CarinaConfig["lang"],
+  region?: { regionId: string; bounds?: SceneObject["bounds"] },
+): Promise<{ object: SceneObject; source: WorldModelSource }> {
+  const raw = await aabbFromGltfBytes(shell.bytes, shell.ext, IDENTITY_TRANSFORM);
+  let transform = IDENTITY_TRANSFORM;
+  let source: WorldModelSource = shell.source;
+  const target = region?.bounds;
+  if (region !== undefined && target !== undefined) {
+    const fitted = fitSpaceShellTransform(raw, target);
+    if (fitted !== undefined) {
+      transform = fitted.transform;
+      source = {
+        ...shell.source,
+        regionFit: {
+          regionId: region.regionId,
+          method: "scenespec-aabb",
+          uniformScale: fitted.uniform,
+        },
+      };
+    }
+  }
+  const bounds = await aabbFromGltfBytes(shell.bytes, shell.ext, transform);
+  return {
+    object: {
+      sceneObjectId: shell.objectId,
+      name: lang === "zh" ? "空间壳" : "space shell",
+      assetRefs: [],
+      transform,
+      pivot: { x: 0, y: 0, z: 0 },
+      bounds,
+      mobility: "static",
+      interactionProfile: "none",
+      materialRefs: [],
+    },
+    source,
+  };
+}
+
+function withSpaceShell(
+  result: { regions: RegionRevision[]; objects: SceneObject[]; assets: GeneratedMeshAsset[] },
+  shell: { object: SceneObject; result: SpaceShellResult } | undefined,
+): {
+  regions: RegionRevision[];
+  objects: SceneObject[];
+  assets: GeneratedMeshAsset[];
+  worldModel?: WorldModelSource;
+} {
+  if (shell === undefined) {
+    return result;
+  }
+  const objects = [
+    ...result.objects.filter((item) => item.sceneObjectId !== shell.object.sceneObjectId),
+    shell.object,
+  ];
+  const [first, ...rest] = result.regions;
+  const regions =
+    first === undefined
+      ? result.regions
+      : [
+          {
+            ...first,
+            objectRefs: first.objectRefs.includes(shell.object.sceneObjectId)
+              ? first.objectRefs
+              : [...first.objectRefs, shell.object.sceneObjectId],
+          },
+          ...rest,
+        ];
+  return {
+    regions,
+    objects,
+    assets: [
+      ...result.assets,
+      { bytes: shell.result.bytes, ext: shell.result.ext, objectId: shell.object.sceneObjectId },
+    ],
+    worldModel: shell.result.source,
+  };
 }
 
 function wrapSchemaProvider(
   schema: SchemaGenerationProvider,
-  options: { primitiveFallback: boolean },
+  options: { primitiveFallback: boolean; lang: CarinaConfig["lang"]; space?: SpaceShellProvider },
 ): GenerationProvider {
   return {
+    getCapabilities() {
+      return schema.getCapabilities();
+    },
     async generateScene(input) {
+      /**
+       * zh: 有空间 provider 时，create 先要整空间壳；失败直接抛错，不退回目录/夹具，也不写成世界模型。
+       * en: With a space provider, create asks for the whole-space shell first; failure throws and
+       *     never falls back to catalog/fixture nor pretends to be a world model.
+       */
+      let shell: { object: SceneObject; result: SpaceShellResult } | undefined;
+      if (
+        options.space !== undefined &&
+        input.mode !== "extend" &&
+        !options.primitiveFallback &&
+        input.sceneSpec !== undefined
+      ) {
+        const interior = input.sceneSpec.regions.find((region) => region.kind === "interior");
+        const interiorId = interior?.regionId ?? "interior";
+        const composed = composeSpaceShellPrompt({
+          prompt: input.sceneSpec.prompt.length > 0 ? input.sceneSpec.prompt : input.prompt,
+          sceneSpec: input.sceneSpec,
+        });
+        const shellResult = await options.space.generateSpaceShell({
+          prompt: composed.visual,
+          sceneDescription: composed.sceneDescription,
+          objectId: `${interiorId}${SPACE_SHELL_OBJECT_SUFFIX}`,
+        });
+        const built = await spaceShellObject(
+          shellResult,
+          options.lang,
+          interior !== undefined
+            ? {
+                regionId: interior.regionId,
+                ...(interior.bounds !== undefined ? { bounds: interior.bounds } : {}),
+              }
+            : undefined,
+        );
+        shell = { object: built.object, result: { ...shellResult, source: built.source } };
+      }
       const plan: GenerationPlan = {
-        targetRegion: "interior",
+        targetRegion: input.mode === "extend" ? "courtyard" : "interior",
         baseRevision: "head",
         sceneDescription: input.prompt,
         reference: {
@@ -555,10 +745,91 @@ function wrapSchemaProvider(
         },
         budget: { maxSeconds: 300, maxAttempts: 1 },
       };
-      const extras =
-        input.sceneSpec !== undefined
-          ? extrasFromSceneSpec(input.sceneSpec)
-          : undefined;
+      if (input.mode === "extend") {
+        const extras = extrasFromGenerateInput(input);
+        const result =
+          extras !== undefined
+            ? await schema.submitGeneration(plan, extras)
+            : await schema.submitGeneration(plan);
+        if (result.candidate === undefined) {
+          if (!options.primitiveFallback) {
+            throw new CarinaError("VALIDATION_FAILED", "error.validationFailed");
+          }
+          const spatial = resolveSpatialApi();
+          return spatial.buildPrimitiveTavern(input.name);
+        }
+        const assets = result.assets ?? [];
+        if (!options.primitiveFallback) {
+          if (assets.length === 0) {
+            throw new CarinaError("VALIDATION_FAILED", "error.validationFailed");
+          }
+          await assertFactoryAssets(assets);
+        }
+        if (assets.length > 0) {
+          return {
+            regions: result.candidate.proposedRegions,
+            objects: result.candidate.proposedObjects,
+            assets,
+          };
+        }
+        return {
+          regions: result.candidate.proposedRegions,
+          objects: result.candidate.proposedObjects,
+        };
+      }
+      const featuredList =
+        input.sceneSpec !== undefined && !options.primitiveFallback
+          ? interiorGenerateObjects(input.sceneSpec)
+          : [];
+      if (featuredList.length > 0 && input.sceneSpec !== undefined) {
+        const featuredObjects: SceneObject[] = [];
+        const collected: GeneratedMeshAsset[] = [];
+        let last:
+          | Awaited<ReturnType<SchemaGenerationProvider["submitGeneration"]>>
+          | undefined;
+        for (const featured of featuredList) {
+          const extras: NativeMeshSubmitExtras = {
+            ...extrasFromGenerateInput(input),
+            generateTarget: generateTargetOf(featured),
+            sceneSpec: input.sceneSpec,
+            mode: "create",
+          };
+          last = await schema.submitGeneration(plan, extras);
+          if (last.candidate === undefined || last.assets === undefined || last.assets.length === 0) {
+            throw new CarinaError("VALIDATION_FAILED", "error.validationFailed");
+          }
+          collected.push(...last.assets);
+          const featuredObject = last.candidate.proposedObjects.find(
+            (object) => object.sceneObjectId === featured.objectId,
+          );
+          if (featuredObject !== undefined) {
+            featuredObjects.push(featuredObject);
+          }
+        }
+        if (last?.candidate === undefined) {
+          throw new CarinaError("VALIDATION_FAILED", "error.validationFailed");
+        }
+        const composed = composeGeneratedScene({
+          spec: input.sceneSpec,
+          objects: uniqueSceneObjects([
+            ...featuredObjects,
+            ...last.candidate.proposedObjects,
+          ]),
+          regions: last.candidate.proposedRegions,
+        });
+        const cataloged = await applyCatalogReuse(input.sceneSpec, composed.objects);
+        const assets = [...collected, ...cataloged.assets];
+        await assertFactoryAssets(assets);
+        return withSpaceShell(
+          {
+            regions: composed.regions,
+            objects: cataloged.objects,
+            assets,
+          },
+          shell,
+        );
+      }
+      const extras = extrasFromGenerateInput(input);
       const result =
         extras !== undefined
           ? await schema.submitGeneration(plan, extras)
@@ -569,11 +840,6 @@ function wrapSchemaProvider(
         }
         const spatial = resolveSpatialApi();
         return spatial.buildPrimitiveTavern(input.name);
-      }
-      if (!options.primitiveFallback) {
-        if (result.assets === undefined || result.assets.length === 0) {
-          throw new CarinaError("VALIDATION_FAILED", "error.validationFailed");
-        }
       }
       const composed =
         input.sceneSpec !== undefined && !options.primitiveFallback
@@ -595,19 +861,17 @@ function wrapSchemaProvider(
         if (assets.length === 0) {
           throw new CarinaError("VALIDATION_FAILED", "error.validationFailed");
         }
-        for (const asset of assets) {
-          const report = await validateFactoryGlb(asset.bytes);
-          if (!report.ok) {
-            throw new CarinaError("VALIDATION_FAILED", "error.validationFailed");
-          }
-        }
+        await assertFactoryAssets(assets);
       }
-      if (assets.length > 0) {
-        return {
-          regions: composed.regions,
-          objects: cataloged.objects,
-          assets,
-        };
+      if (assets.length > 0 || shell !== undefined) {
+        return withSpaceShell(
+          {
+            regions: composed.regions,
+            objects: cataloged.objects,
+            assets,
+          },
+          shell,
+        );
       }
       return {
         regions: composed.regions,
@@ -617,21 +881,95 @@ function wrapSchemaProvider(
   };
 }
 
-function extrasFromSceneSpec(spec: SceneSpec): NativeMeshSubmitExtras {
-  const featured = firstGenerateObject(spec);
+async function assertFactoryAssets(
+  assets: { bytes: Uint8Array }[],
+): Promise<void> {
+  for (const asset of assets) {
+    asset.bytes = await finishGeneratedMesh(asset.bytes);
+    const report = await validateFactoryGlb(asset.bytes);
+    if (!report.ok) {
+      throw new CarinaError("VALIDATION_FAILED", "error.validationFailed");
+    }
+  }
+}
+
+function uniqueSceneObjects(objects: SceneObject[]): SceneObject[] {
+  const seen = new Set<string>();
+  const unique: SceneObject[] = [];
+  for (const object of objects) {
+    if (seen.has(object.sceneObjectId)) {
+      continue;
+    }
+    seen.add(object.sceneObjectId);
+    unique.push(object);
+  }
+  return unique;
+}
+
+function extrasFromGenerateInput(input: {
+  sceneSpec?: SceneSpec;
+  mode?: "create" | "extend";
+  camera?: NativeMeshSubmitExtras["camera"];
+  preserve?: NativeMeshSubmitExtras["preserve"];
+  seam?: NativeMeshSubmitExtras["seam"];
+}): NativeMeshSubmitExtras | undefined {
+  const fromSpec =
+    input.sceneSpec !== undefined
+      ? extrasFromSceneSpec(input.sceneSpec, input.mode)
+      : {};
+  const extras: NativeMeshSubmitExtras = { ...fromSpec };
+  if (input.mode !== undefined) {
+    extras.mode = input.mode;
+  }
+  if (input.camera !== undefined) {
+    extras.camera = input.camera;
+  }
+  if (input.preserve !== undefined) {
+    extras.preserve = input.preserve;
+  }
+  if (input.seam !== undefined) {
+    extras.seam = input.seam;
+  }
+  if (
+    extras.sceneSpec === undefined &&
+    extras.generateTarget === undefined &&
+    extras.mode === undefined &&
+    extras.camera === undefined &&
+    extras.preserve === undefined &&
+    extras.seam === undefined
+  ) {
+    return undefined;
+  }
+  return extras;
+}
+
+function extrasFromSceneSpec(
+  spec: SceneSpec,
+  mode?: "create" | "extend",
+): NativeMeshSubmitExtras {
+  const featured =
+    mode === "extend"
+      ? firstExtendGenerateObject(spec)
+      : firstGenerateObject(spec);
   if (featured === undefined) {
     return { sceneSpec: spec };
   }
+  return { sceneSpec: spec, generateTarget: generateTargetOf(featured) };
+}
+
+function generateTargetOf(featured: SceneSpecObject): NativeMeshGenerateTarget {
   const generateTarget: NativeMeshGenerateTarget = {
     objectId: featured.objectId,
-    name: featured.name,
+    name: catalogFurnitureVisualName(featured.objectId, featured.name),
     role: featured.role,
-    ...(featured.dimensions !== undefined
-      ? { dimensions: meshDimensions(featured.dimensions) }
-      : {}),
-    ...(featured.anchor !== undefined ? { anchor: featured.anchor } : {}),
   };
-  return { sceneSpec: spec, generateTarget };
+  if (featured.dimensions !== undefined) {
+    generateTarget.dimensions = meshDimensions(featured.dimensions);
+  }
+  if (featured.anchor !== undefined) {
+    generateTarget.anchor = featured.anchor;
+  }
+  return generateTarget;
 }
 
 /**
@@ -708,6 +1046,38 @@ function isTeleport(
     return true;
   }
   return text !== undefined && /teleport|瞬移/i.test(text);
+}
+
+function isMagic(
+  args: Record<string, unknown>,
+  text?: string,
+): boolean {
+  const keys = ["action", "kind", "type", "verb"];
+  for (const key of keys) {
+    const value = args[key];
+    if (typeof value === "string" && /魔法|施法|spell|\bcast\b/i.test(value)) {
+      return true;
+    }
+  }
+  return text !== undefined && /魔法|施法|\bspell\b|\bcast\b/i.test(text);
+}
+
+function rejectFromRuntimeReason(
+  reason?: string,
+): { ok: false; code: string; messageKey: string } {
+  if (reason === "no_teleport") {
+    return { ok: false, code: "COMMAND_REJECTED", messageKey: "error.noTeleport" };
+  }
+  if (reason === "no_magic") {
+    return { ok: false, code: "COMMAND_REJECTED", messageKey: "error.noMagic" };
+  }
+  if (reason === "lock_after_hour") {
+    return { ok: false, code: "COMMAND_REJECTED", messageKey: "error.lockAfterHour" };
+  }
+  if (reason === "lock_object") {
+    return { ok: false, code: "COMMAND_REJECTED", messageKey: "error.lockObject" };
+  }
+  return { ok: false, code: "COMMAND_REJECTED", messageKey: "error.commandRejected" };
 }
 
 function vec3Of(

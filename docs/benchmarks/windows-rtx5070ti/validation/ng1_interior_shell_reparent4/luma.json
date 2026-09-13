@@ -1,0 +1,65 @@
+{
+  "at": "2026-09-13T11:41:29+0800",
+  "p1Pass": false,
+  "interiorLitVerified": false,
+  "claimsGeneratedLighting": false,
+  "claimsWorldModelGeneration": false,
+  "cameraPoseValid": true,
+  "note": "Posed-inside stills after Unlit→Opaque recook + isolate fill light + lit_interior_execs. luma is Rec.709 mean. Brighter stills are not a P1 pass (no 6-view / 10-min route; lighting is host Opaque MIC + cvars + fill light, not generated lighting). Space shell remains a single-viewpoint overlay.",
+  "lumaMethod": "Rec.709 Y = 0.2126R+0.7152G+0.0722B over 8-bit PNG pixels",
+  "views": {
+    "interior_center": {
+      "dark_ng1_interior_shell": 37.075,
+      "lit_isolate_ng1_interior_shell_lit": 41.306,
+      "reparent4": 50.078,
+      "deltaVsDark": 13.003,
+      "deltaVsLitIsolate": 8.772,
+      "cameraPoseValid": true,
+      "pawnUeCm": [
+        600,
+        500,
+        160
+      ],
+      "stillCamYaw": 0
+    },
+    "door_inside_to_garden": {
+      "dark_ng1_interior_shell": 13.291,
+      "lit_isolate_ng1_interior_shell_lit": 15.798,
+      "reparent4": 27.51,
+      "deltaVsDark": 14.219,
+      "deltaVsLitIsolate": 11.712,
+      "cameraPoseValid": true,
+      "pawnUeCm": [
+        600,
+        500,
+        160
+      ],
+      "stillCamYaw": -90,
+      "note": "Shot from room center looking south at the shell glass doors. Older spec loc [6,1.6,1.2] yaw -90 with a still camera (no spring arm) looked at the I23D door mesh; those frames are in reparent2/3 and are not garden views."
+    },
+    "from_door_looking_in": {
+      "reparent4": 49.919,
+      "cameraPoseValid": true,
+      "pawnUeCm": [
+        600,
+        120,
+        160
+      ],
+      "stillCamYaw": 90,
+      "note": "Standing at the door loc looking north into the WorldGen shell. Rug / in-mesh fireplace / windows visible. Best qualitative interior readability still."
+    }
+  },
+  "invalidFolders": {
+    "ng1_interior_shell_reparent": {
+      "cameraPoseValid": false,
+      "reason": "pawn in the void (~-7099, 8642, -1.05e6); outdoor/sky duplicates, luma ~92.7 is sky not interior"
+    },
+    "ng1_interior_shell_reparent2": {
+      "cameraPoseValid": true,
+      "doorViewValid": false,
+      "reason": "interior_center is a valid inside still; door_inside_to_garden is the I23D door mesh close-up (fireplace-like), not a garden view"
+    }
+  },
+  "wroteBy": "scripts/probes/compare-still-luma.ts",
+  "liveUe": false
+}

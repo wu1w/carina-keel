@@ -1,0 +1,554 @@
+{
+  "probe": "ng1-garden-shell-cook",
+  "at": "2026-09-12T17:25:51.777Z",
+  "notWorldModel": true,
+  "claimsWorldModelGeneration": false,
+  "sourceLabel": "scaffold-primitive",
+  "worldRuntime": {
+    "url": "http://127.0.0.1:18794",
+    "health": {
+      "httpStatus": 200,
+      "ok": true,
+      "live": true,
+      "port": 18794,
+      "hostRemount": true
+    },
+    "worldId": "ng1-i23d"
+  },
+  "pack": {
+    "dataDir": "/tmp/carina-ng1",
+    "worldId": "01M2AVSF57227TCNGKZSB6GMEN"
+  },
+  "shell": {
+    "objectIds": [
+      "interior-garden-floor",
+      "interior-garden-wall-west",
+      "interior-garden-wall-east",
+      "interior-garden-wall-south"
+    ],
+    "pieceIds": [
+      "interior-garden-floor",
+      "interior-garden-wall-west",
+      "interior-garden-wall-east",
+      "interior-garden-wall-south"
+    ],
+    "boundsM": [
+      {
+        "id": "interior-garden-floor",
+        "bounds": {
+          "min": {
+            "x": 0,
+            "y": -0.15,
+            "z": -8
+          },
+          "max": {
+            "x": 12,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "id": "interior-garden-wall-west",
+        "bounds": {
+          "min": {
+            "x": -0.2,
+            "y": 0,
+            "z": -8
+          },
+          "max": {
+            "x": 0,
+            "y": 3,
+            "z": 0
+          }
+        }
+      },
+      {
+        "id": "interior-garden-wall-east",
+        "bounds": {
+          "min": {
+            "x": 12,
+            "y": 0,
+            "z": -8
+          },
+          "max": {
+            "x": 12.2,
+            "y": 3,
+            "z": 0
+          }
+        }
+      },
+      {
+        "id": "interior-garden-wall-south",
+        "bounds": {
+          "min": {
+            "x": 0,
+            "y": 0,
+            "z": -8.2
+          },
+          "max": {
+            "x": 12,
+            "y": 3,
+            "z": -8
+          }
+        }
+      }
+    ],
+    "glbBytes": [
+      {
+        "objectId": "interior-garden-floor",
+        "byteLength": 1564
+      },
+      {
+        "objectId": "interior-garden-wall-west",
+        "byteLength": 1572
+      },
+      {
+        "objectId": "interior-garden-wall-east",
+        "byteLength": 1604
+      },
+      {
+        "objectId": "interior-garden-wall-south",
+        "byteLength": 1604
+      }
+    ],
+    "bakedWorldSpace": false,
+    "spawnTransform": "piece-local"
+  },
+  "seam": {
+    "door": {
+      "sceneObjectId": "door",
+      "bounds": {
+        "min": {
+          "x": 5.45,
+          "y": 0,
+          "z": 0
+        },
+        "max": {
+          "x": 6.55,
+          "y": 2.2,
+          "z": 0.12
+        }
+      }
+    },
+    "interiorBounds": {
+      "min": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "max": {
+        "x": 12,
+        "y": 4,
+        "z": 10
+      }
+    },
+    "gardenBounds": {
+      "min": {
+        "x": 0,
+        "y": 0,
+        "z": -8
+      },
+      "max": {
+        "x": 12,
+        "y": 3,
+        "z": 0
+      }
+    },
+    "sharedFaceZ": 0,
+    "floorTopsLevel": true
+  },
+  "publishResult": {
+    "ok": true,
+    "cooked": true,
+    "spawned": [
+      "interior-garden-floor",
+      "interior-garden-wall-west",
+      "interior-garden-wall-east",
+      "interior-garden-wall-south"
+    ],
+    "uploads": [
+      {
+        "assetId": "02340f5cfe7866a5",
+        "assetHash": "02340f5cfe7866a5a25bd740dd1974dd885305bf26f6d611dcaa3b0c4d34e581",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      },
+      {
+        "assetId": "0264a41f852431dd",
+        "assetHash": "0264a41f852431ddbfc7e8b09f93f7e367c018b016ad9fcae0f934731788a0ef",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      },
+      {
+        "assetId": "99bc6e23c3429a7f",
+        "assetHash": "99bc6e23c3429a7fa7f30615af9bd13fcb9317f197b27ff2e3c99b8c47219f7c",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      },
+      {
+        "assetId": "e425ae22c0e6a31a",
+        "assetHash": "e425ae22c0e6a31aebba61545462581d1c27a78b0a9d16ce31cd54873a68958e",
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false,
+        "notWorldModel": true
+      }
+    ],
+    "ms": 128896
+  },
+  "live": {
+    "before": {
+      "appliedRevision": "wr-f55d3ca97c3d",
+      "installedAssets": [
+        "8e9e52a7d38ef05ba0510f4dbeac36f40ab740821614b563384417e5570a5411",
+        "1d66a328841815534be5b287c99205949758068b7ea20b8d08a7d7d59c6402ec",
+        "6149953699316b57ad21210ef1334fa7bb86871c6bb62721b1e13a53e2ab4d70"
+      ],
+      "objects": [
+        {
+          "objectId": "bar-front",
+          "assetHash": "8e9e52a7d38ef05b",
+          "ueActorId": "StaticMeshActor_2147482376"
+        },
+        {
+          "objectId": "fireplace",
+          "assetHash": "1d66a32884181553",
+          "ueActorId": "StaticMeshActor_2147482375"
+        },
+        {
+          "objectId": "courtyard-feature",
+          "assetHash": "6149953699316b57",
+          "ueActorId": "StaticMeshActor_2147482374"
+        }
+      ]
+    },
+    "after": {
+      "appliedRevision": "wr-619fd68640eb",
+      "installedAssets": [
+        "8e9e52a7d38ef05ba0510f4dbeac36f40ab740821614b563384417e5570a5411",
+        "1d66a328841815534be5b287c99205949758068b7ea20b8d08a7d7d59c6402ec",
+        "6149953699316b57ad21210ef1334fa7bb86871c6bb62721b1e13a53e2ab4d70",
+        "02340f5cfe7866a5a25bd740dd1974dd885305bf26f6d611dcaa3b0c4d34e581",
+        "0264a41f852431ddbfc7e8b09f93f7e367c018b016ad9fcae0f934731788a0ef",
+        "99bc6e23c3429a7fa7f30615af9bd13fcb9317f197b27ff2e3c99b8c47219f7c",
+        "e425ae22c0e6a31aebba61545462581d1c27a78b0a9d16ce31cd54873a68958e"
+      ],
+      "objects": [
+        {
+          "objectId": "bar-front",
+          "assetHash": "8e9e52a7d38ef05b",
+          "ueActorId": "StaticMeshActor_2147482376"
+        },
+        {
+          "objectId": "fireplace",
+          "assetHash": "1d66a32884181553",
+          "ueActorId": "StaticMeshActor_2147482375"
+        },
+        {
+          "objectId": "courtyard-feature",
+          "assetHash": "6149953699316b57",
+          "ueActorId": "StaticMeshActor_2147482374"
+        },
+        {
+          "objectId": "interior-garden-floor",
+          "assetHash": "02340f5cfe7866a5",
+          "ueActorId": "StaticMeshActor_2147482373"
+        },
+        {
+          "objectId": "interior-garden-wall-west",
+          "assetHash": "0264a41f852431dd",
+          "ueActorId": "StaticMeshActor_2147482372"
+        },
+        {
+          "objectId": "interior-garden-wall-east",
+          "assetHash": "99bc6e23c3429a7f",
+          "ueActorId": "StaticMeshActor_2147482371"
+        },
+        {
+          "objectId": "interior-garden-wall-south",
+          "assetHash": "e425ae22c0e6a31a",
+          "ueActorId": "StaticMeshActor_2147482370"
+        }
+      ]
+    }
+  },
+  "verdict": {
+    "shellCookedAndSpawned": true,
+    "remountHappenedOnce": true,
+    "priorObjectsKept": true,
+    "shellNeverClaimsWorldModel": true
+  },
+  "timeline": [
+    {
+      "at": 0,
+      "method": "POST",
+      "path": "/v1/assets/upload",
+      "status": 200,
+      "ms": 13,
+      "body": {
+        "ok": true,
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false
+      }
+    },
+    {
+      "at": 13,
+      "method": "POST",
+      "path": "/v1/assets/upload",
+      "status": 200,
+      "ms": 8,
+      "body": {
+        "ok": true,
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false
+      }
+    },
+    {
+      "at": 21,
+      "method": "POST",
+      "path": "/v1/assets/upload",
+      "status": 200,
+      "ms": 9,
+      "body": {
+        "ok": true,
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false
+      }
+    },
+    {
+      "at": 30,
+      "method": "POST",
+      "path": "/v1/assets/upload",
+      "status": 200,
+      "ms": 8,
+      "body": {
+        "ok": true,
+        "sourceLabel": "scaffold-primitive",
+        "claimsWorldModelGeneration": false,
+        "bakedWorldSpace": false
+      }
+    },
+    {
+      "at": 38,
+      "method": "GET",
+      "path": "/v1/worlds/ng1-i23d",
+      "status": 200,
+      "ms": 5,
+      "body": {}
+    },
+    {
+      "at": 43,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/prepare",
+      "status": 200,
+      "ms": 30987,
+      "body": {
+        "ok": true,
+        "cached": false,
+        "label": "interior_garden_floor_02340f5c"
+      }
+    },
+    {
+      "at": 31030,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/prepare",
+      "status": 200,
+      "ms": 30425,
+      "body": {
+        "ok": true,
+        "cached": false,
+        "label": "interior_garden_wall_west_0264a41f"
+      }
+    },
+    {
+      "at": 61456,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/prepare",
+      "status": 200,
+      "ms": 31336,
+      "body": {
+        "ok": true,
+        "cached": false,
+        "label": "interior_garden_wall_east_99bc6e23"
+      }
+    },
+    {
+      "at": 92792,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/prepare",
+      "status": 200,
+      "ms": 31335,
+      "body": {
+        "ok": true,
+        "cached": false,
+        "label": "interior_garden_wall_south_e425ae22"
+      }
+    },
+    {
+      "at": 124128,
+      "method": "POST",
+      "path": "/v1/host/streamer/stop",
+      "status": 200,
+      "ms": 114,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 124243,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/install",
+      "status": 200,
+      "ms": 413,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 124656,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/install",
+      "status": 200,
+      "ms": 394,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 125050,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/install",
+      "status": 200,
+      "ms": 337,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 125387,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/install",
+      "status": 200,
+      "ms": 334,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 125721,
+      "method": "POST",
+      "path": "/v1/host/streamer/start",
+      "status": 200,
+      "ms": 2543,
+      "body": {
+        "ok": true,
+        "replay": [
+          {
+            "worldId": "ng1-i23d",
+            "replayed": [
+              "bar-front",
+              "fireplace",
+              "courtyard-feature"
+            ],
+            "failed": []
+          }
+        ],
+        "bridge": true
+      }
+    },
+    {
+      "at": 128264,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/activate",
+      "status": 200,
+      "ms": 81,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 128346,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/activate",
+      "status": 200,
+      "ms": 85,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 128431,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/activate",
+      "status": 200,
+      "ms": 76,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 128507,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/assets/activate",
+      "status": 200,
+      "ms": 78,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "at": 128586,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/objects",
+      "status": 200,
+      "ms": 74,
+      "body": {
+        "ok": true,
+        "ueActorId": "StaticMeshActor_2147482373"
+      }
+    },
+    {
+      "at": 128661,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/objects",
+      "status": 200,
+      "ms": 81,
+      "body": {
+        "ok": true,
+        "ueActorId": "StaticMeshActor_2147482372"
+      }
+    },
+    {
+      "at": 128742,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/objects",
+      "status": 200,
+      "ms": 77,
+      "body": {
+        "ok": true,
+        "ueActorId": "StaticMeshActor_2147482371"
+      }
+    },
+    {
+      "at": 128819,
+      "method": "POST",
+      "path": "/v1/worlds/ng1-i23d/objects",
+      "status": 200,
+      "ms": 77,
+      "body": {
+        "ok": true,
+        "ueActorId": "StaticMeshActor_2147482370"
+      }
+    }
+  ]
+}

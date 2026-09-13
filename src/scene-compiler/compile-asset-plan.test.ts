@@ -133,3 +133,39 @@ test("compileAssetPlan records reuse catalog hashes without world-model claims",
   assert.equal(door?.catalogId, "oak-door");
   assert.equal(door?.assetHash, hash);
 });
+
+/**
+ * zh: 白名单空间壳已入包时，计划必须声称世界模型；物件 generate-complete 本身不够。
+ * en: An allowlisted staged space shell must be claimed; per-object generate-complete is not enough.
+ */
+test("compileAssetPlan claims world-model generation only with a staged allowlisted shell", () => {
+  const spec = heuristicSceneSpec({
+    prompt: "湖边酒馆，旧木吧台",
+    name: "酒馆",
+  });
+  const featured = spec.objects.find((item) => item.route === "generate");
+  assert.ok(featured !== undefined);
+  const objectHash = "b".repeat(64);
+  const withoutShell = compileAssetPlan(spec, {
+    meshProviderUrlSet: true,
+    completedGenerate: { [featured.objectId]: objectHash },
+  });
+  assert.equal(withoutShell.claimsWorldModelGeneration, false);
+  const shellHash = "d".repeat(64);
+  const withShell = compileAssetPlan(spec, {
+    meshProviderUrlSet: true,
+    completedGenerate: { [featured.objectId]: objectHash },
+    worldModel: {
+      provider: "worldgen-flux-pano-da2",
+      kind: "space-shell",
+      jobId: "job-shell",
+      objectId: "interior-space-shell",
+      assetHash: shellHash,
+      coverage: "single-viewpoint",
+      scale: { method: "camera-height-prior", factor: 0.2, confidence: "low" },
+    },
+  });
+  assert.equal(withShell.claimsWorldModelGeneration, true);
+  assert.equal(withShell.worldModel?.assetHash, shellHash);
+  assert.equal(withShell.items.find((item) => item.objectId === featured.objectId)?.status, "generate-complete");
+});

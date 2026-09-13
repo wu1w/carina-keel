@@ -15,6 +15,7 @@ import {
   type Application,
 } from "../server/bind-application.js";
 import { createUlid } from "../world/ids.js";
+import { dispatchSpeak } from "./dispatch-speak.js";
 import { graphSummary } from "./graph-summary.js";
 import { createToolContext, executeTool } from "./tool-context.js";
 
@@ -30,25 +31,74 @@ const MCP_DESCRIPTION_KEY = {
 } as const satisfies Record<ToolName, MessageKey>;
 
 /**
- * zh: 以 stdio 启动 MCP。工具走 executeTool；资源只读包内文件。
- * en: Start MCP over stdio. Tools go through executeTool; resources are pack-local and read-only.
+ * zh: 以 stdio 启动 MCP。有 application 时说话走 WorldCommand；八工具只在 application 加载失败时注册。
+ * en: Start MCP over stdio. With an application, speak uses WorldCommand; the eight tools register only if application failed to load.
  */
 export async function startMcpServer(
   config: CarinaConfig = loadConfig(),
 ): Promise<void> {
-  if (config.pack === undefined || config.pack === "") {
-    throw new CarinaError("CONFIG", "error.config");
-  }
-  const ctx = await createToolContext(config.pack, config.lang);
+  const application = await tryCreateApplication(config);
+  const packCtx =
+    config.pack !== undefined && config.pack !== ""
+      ? await createToolContext(config.pack, config.lang)
+      : undefined;
   const mcp = new McpServer({
     name: "carina",
     version: "0.1.0",
   });
-  registerWorldTools(mcp, ctx, config.lang);
-  registerPackResources(mcp, ctx, config.lang);
-  await registerRuleWriteTools(mcp, config);
+  if (application !== undefined) {
+    registerSpeakTool(mcp, application, config.lang);
+    registerRuleWriteTools(mcp, application, config.lang);
+  } else if (packCtx !== undefined) {
+    registerWorldTools(mcp, packCtx, config.lang);
+  } else {
+    throw new CarinaError("CONFIG", "error.config");
+  }
+  if (packCtx !== undefined) {
+    registerPackResources(mcp, packCtx, config.lang);
+  }
   const transport = new StdioServerTransport();
   await mcp.connect(transport);
+}
+
+const speakInput = z.object({
+  text: z.string().min(1),
+});
+
+/**
+ * zh: 自然语言入口。与 HTTP 聊天同一套 interpretAndDispatch。
+ * en: Natural-language entry. Same interpretAndDispatch as HTTP chat.
+ */
+function registerSpeakTool(
+  mcp: McpServer,
+  application: Application,
+  lang: CarinaConfig["lang"],
+): void {
+  const handler = async (
+    args: Record<string, unknown>,
+  ): Promise<CallToolResult> => {
+    try {
+      const parsed = speakInput.parse(args);
+      const spoken = await dispatchSpeak(application, parsed.text);
+      return {
+        content: [{ type: "text", text: JSON.stringify(spoken.results) }],
+        isError: spoken.isError,
+      };
+    } catch (err) {
+      return {
+        content: [{ type: "text", text: formatUserError(err, lang) }],
+        isError: true,
+      };
+    }
+  };
+  mcp.registerTool(
+    "speak",
+    {
+      description: t("mcp.speak", lang),
+      inputSchema: speakInput,
+    },
+    handler as never,
+  );
 }
 
 /**
@@ -195,16 +245,13 @@ const ruleWriteInput = z.object({
  * zh: 经 application rules.update 写 WORLD.md / MEMORY.md。旧只读资源仍可用。
  * en: Write WORLD.md / MEMORY.md via application rules.update. Old read resources stay.
  */
-async function registerRuleWriteTools(
+function registerRuleWriteTools(
   mcp: McpServer,
-  config: CarinaConfig,
-): Promise<void> {
-  const application = await tryCreateApplication(config);
-  if (application === undefined) {
-    return;
-  }
-  registerOneWrite(mcp, application, config.lang, "update_world_md", "WORLD.md");
-  registerOneWrite(mcp, application, config.lang, "update_memory_md", "MEMORY.md");
+  application: Application,
+  lang: CarinaConfig["lang"],
+): void {
+  registerOneWrite(mcp, application, lang, "update_world_md", "WORLD.md");
+  registerOneWrite(mcp, application, lang, "update_memory_md", "MEMORY.md");
 }
 
 /**

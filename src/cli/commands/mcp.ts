@@ -2,8 +2,8 @@ import { defineCommand } from "citty";
 import { loadConfig } from "../../config.js";
 import { t } from "../../i18n/index.js";
 import { startMcpServer } from "../../mcp/index.js";
-import { requirePackPath, resolveConfig } from "../resolve-config.js";
-import { printStatus, runSafely } from "../run-safely.js";
+import { resolveConfig } from "../resolve-config.js";
+import { runSafely } from "../run-safely.js";
 
 const lang = loadConfig().lang;
 
@@ -26,13 +26,6 @@ export const mcpCommand = defineCommand({
   async run({ args }) {
     await runSafely(lang, async () => {
       const config = resolveConfig(args.pack);
-      try {
-        requirePackPath(config);
-      } catch {
-        printStatus("cli.needPack", lang);
-        process.exitCode = 1;
-        return;
-      }
       await startMcpServer(config);
     });
   },

@@ -82,6 +82,15 @@ test("interpretFast recognizes garden extend and does not treat walk-in as look"
   assert.ok(extended !== undefined);
   assert.equal(extended[0]?.intentKind, "generation.extend");
 
+  const adjacent = interpretFast({
+    text: "生成相邻区域",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(adjacent !== undefined);
+  assert.equal(adjacent[0]?.intentKind, "generation.extend");
+
   const walkIn = interpretFast({
     text: "走进花园",
     worldId: "01WORLD",
@@ -190,6 +199,49 @@ test("interpretFast recognizes tavern bar calibrate as spatial.calibrate", () =>
 });
 
 /**
+ * zh: 门高两米是米制高度校准，不是看一眼。
+ * en: Door-two-meters-high is metric height calibrate, not a look.
+ */
+test("interpretFast recognizes door height as spatial.calibrate", () => {
+  const door = interpretFast({
+    text: "门高两米",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(door !== undefined);
+  assert.equal(door[0]?.intentKind, "spatial.calibrate");
+  assert.equal(door[0]?.arguments["objectId"], "door");
+  assert.equal(door[0]?.arguments["heightMeters"], 2);
+
+  const raised = interpretFast({
+    text: "把门加高到两米",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(raised !== undefined);
+  assert.equal(raised[0]?.intentKind, "spatial.calibrate");
+  assert.equal(raised[0]?.arguments["heightMeters"], 2);
+});
+
+/**
+ * zh: 运行十秒再暂停是步进，不是生成。
+ * en: Run ten seconds then pause is a step, not generation.
+ */
+test("interpretFast recognizes run-ten-seconds as world.step", () => {
+  const stepped = interpretFast({
+    text: "运行10秒再暂停",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(stepped !== undefined);
+  assert.equal(stepped[0]?.intentKind, "world.step");
+  assert.equal(stepped[0]?.arguments["seconds"], 10);
+});
+
+/**
  * zh: 看向吧台仍是镜头，不是校准。
  * en: Looking at the bar is still a camera shot, not calibrate.
  */
@@ -231,6 +283,48 @@ test("interpretFast compiles walk-to-bar as player.navigate", () => {
   assert.ok(door !== undefined);
   assert.equal(door[0]?.intentKind, "player.navigate");
   assert.equal(door[0]?.arguments["name"], "门");
+});
+
+/**
+ * zh: 可走网格上「看向门」是运行时转向，不是 I2V 镜头。
+ * en: On a walkable mesh, 看向门 is a runtime turn, not an I2V camera shot.
+ */
+test("interpretFast compiles look-at-door as player.act look when walkable", () => {
+  const looked = interpretFast({
+    text: "看向门",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+    canNavigate: true,
+  });
+  assert.ok(looked !== undefined);
+  assert.equal(looked[0]?.intentKind, "player.act");
+  assert.equal(looked[0]?.arguments["action"], "look");
+  assert.equal(looked[0]?.arguments["name"], "门");
+
+  const turned = interpretFast({
+    text: "转向门",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+    canNavigate: true,
+  });
+  assert.ok(turned !== undefined);
+  assert.equal(turned[0]?.intentKind, "player.act");
+  assert.equal(turned[0]?.arguments["action"], "look");
+  assert.equal(turned[0]?.arguments["name"], "门");
+
+  const english = interpretFast({
+    text: "look at the door",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+    canNavigate: true,
+  });
+  assert.ok(english !== undefined);
+  assert.equal(english[0]?.intentKind, "player.act");
+  assert.equal(english[0]?.arguments["action"], "look");
+  assert.equal(english[0]?.arguments["name"], "门");
 });
 
 /**
@@ -287,6 +381,20 @@ test("interpretFast recognizes furniture calibrate besides the bar", () => {
   assert.equal(table[0]?.intentKind, "spatial.calibrate");
   assert.equal(table[0]?.arguments["objectId"], "table");
   assert.deepEqual(table[0]?.arguments["delta"], { x: -1, y: 0, z: 0 });
+
+  const toward = interpretFast({
+    text: "把桌子向窗边移动一米，其他东西别动",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+    planObjectIds: ["bar-front", "table", "chair", "cup", "door", "window"],
+  });
+  assert.ok(toward !== undefined);
+  assert.equal(toward[0]?.intentKind, "spatial.calibrate");
+  assert.equal(toward[0]?.arguments["objectId"], "table");
+  assert.equal(toward[0]?.arguments["towardObjectId"], "window");
+  assert.equal(toward[0]?.arguments["meters"], 1);
+  assert.equal(toward[0]?.arguments["delta"], undefined);
 
   const chair = interpretFast({
     text: "把椅子往右移半米",
@@ -385,4 +493,32 @@ test("interpretFast does not treat world-rules append as session.switch", () => 
   assert.ok(rules !== undefined);
   assert.equal(rules[0]?.intentKind, "rules.update");
   assert.notEqual(rules[0]?.intentKind, "session.switch");
+
+  const forbid = interpretFast({
+    text: "打开世界规则，写上禁止生成",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(forbid !== undefined);
+  assert.equal(forbid[0]?.intentKind, "rules.update");
+  assert.equal(forbid[0]?.arguments["append"], "禁止生成");
+  assert.notEqual(forbid[0]?.intentKind, "generation.start");
+});
+
+/**
+ * zh: 记住写入 MEMORY.md，不是镜头。
+ * en: Remember writes MEMORY.md, not a camera shot.
+ */
+test("interpretFast recognizes remember as MEMORY.md rules.update", () => {
+  const remembered = interpretFast({
+    text: "记住客人叫威廉",
+    worldId: "01WORLD",
+    origin: "natural_language",
+    requestedBy: "user",
+  });
+  assert.ok(remembered !== undefined);
+  assert.equal(remembered[0]?.intentKind, "rules.update");
+  assert.equal(remembered[0]?.arguments["documentId"], "MEMORY.md");
+  assert.equal(remembered[0]?.arguments["append"], "客人叫威廉");
 });

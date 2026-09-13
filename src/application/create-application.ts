@@ -3,6 +3,7 @@ import { CarinaError } from "../errors.js";
 import {
   GLOBAL_DOCUMENT_IDS,
   WORLD_DOCUMENT_IDS,
+  commandResultSchema,
   sceneSpecSchema,
   type CandidateRevision,
   type CommandResult,
@@ -15,14 +16,28 @@ import {
   type Transform,
   type WorldCommand,
   type WorldEvent,
+  type WorldModelSource,
   type WorldSessionRecord,
   type WorldSnapshot,
   type AssetPlan,
   type FactoryManifest,
   type ExpansionLog,
 } from "../schema/index.js";
+import { SPACE_SHELL_OBJECT_SUFFIX, validateSpaceShellGlb } from "../assets/space-shell.js";
+import { buildGardenShellPublish } from "../runtime/garden-shell-publish.js";
+import { buildInteriorShellPublish } from "../runtime/interior-shell-publish.js";
+import type { UePublishAsset } from "../runtime/ue-world-runtime-client.js";
 import { compileWorldRules } from "../spatial/compile-world-rules.js";
-import { applyCatalogToObject, runAssetFactory, glbHashesForRoute } from "../assets/index.js";
+import {
+  isObjectLocked,
+  preserveLockedObjects,
+} from "../spatial/locked-objects.js";
+import {
+  applyCatalogToObject,
+  glbHashesForRoute,
+  promoteCatalogFurnitureToGenerate,
+  runAssetFactory,
+} from "../assets/index.js";
 import { extractGlbMaterialRefs } from "../assets/bind-glb-materials.js";
 import { interpretCommand } from "../steward/interpret-command.js";
 import { proposeRulePatch } from "../steward/propose-rule-patch.js";
@@ -38,10 +53,12 @@ import {
   type ShotKind,
   type WorldModelBrief,
 } from "../steward/world-model-brief.js";
-import { zipPackBytes } from "../pack/index.js";
+import { zipPackBytes, writeFileAtomic } from "../pack/index.js";
 import { isUnsafeAssetRef } from "../exporter/asset-ref.js";
 import { t, isMessageKey } from "../i18n/index.js";
 import { createUlid, nowIsoUtc } from "../world/ids.js";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import type {
   ApplicationDeps,
   GeneratedSceneAsset,
@@ -49,7 +66,7 @@ import type {
 } from "./deps.js";
 import { WorldEventLog } from "./event-log.js";
 import { interpretFast, type FastInterpretInput } from "./interpret-fast.js";
-import { createProductionDeps } from "./load-deps.js";
+import { createProductionDeps, upgradeProductionDeps } from "./load-deps.js";
 import {
   readCandidateObservation,
   writeCandidateObservation,
@@ -67,14 +84,19 @@ import {
   bakeMapAssets,
   buildCommittedMapView,
   captureCameraFromPlayer,
+  composeExtendedGarden,
+  dropTwinBar,
+  dropTwinBarRegions,
   parseCaptureCamera,
   textureHashFromSnapshot,
   applyRuntimeToObjects,
   decideExpansion,
   ExpansionTracker,
   extendPrimitiveGarden,
+  deltaToward,
   findLiveObject,
   approachingDoor,
+  doorOf,
   hasAdjacentExtension,
   hasCommittedGltfAsset,
   interiorRegion,
@@ -96,6 +118,8 @@ import {
   compileSceneSpec as defaultCompileSceneSpec,
   encodeSceneSpecBytes,
   findSceneSpecObject,
+  firstExtendGenerateObject,
+  interiorGenerateObjects,
   sceneSpecFromSnapshot,
   SCENE_SPEC_ASSET_EXT,
 } from "../scene-compiler/index.js";
@@ -195,47 +219,20 @@ export function createApplication(
 ): Application {
   const deps = createProductionDeps(config);
   if (injected !== undefined) {
-    if (injected.sessions !== undefined) {
-      deps.sessions = injected.sessions;
-    }
-    if (injected.pack !== undefined) {
-      deps.pack = injected.pack;
-    }
-    if (injected.runtime !== undefined) {
-      deps.runtime = injected.runtime;
-    }
-    if (injected.jobs !== undefined) {
-      deps.jobs = injected.jobs;
-    }
-    if (injected.provider !== undefined) {
-      deps.provider = injected.provider;
-    }
-    if (injected.exporter !== undefined) {
-      deps.exporter = injected.exporter;
-    }
-    if (injected.spatial !== undefined) {
-      deps.spatial = injected.spatial;
-    }
-    if (injected.observe !== undefined) {
-      deps.observe = injected.observe;
-    }
-    if (injected.ueWorldRuntime !== undefined) {
-      deps.ueWorldRuntime = injected.ueWorldRuntime;
-    }
-    if (injected.compileSceneSpec !== undefined) {
-      deps.compileSceneSpec = injected.compileSceneSpec;
-    }
+    upgradeProductionDeps(config, deps, injected);
   }
   return new CarinaApplication(config, deps);
 }
 
 class CarinaApplication implements Application {
-  ready: Promise<void> = Promise.resolve();
+  ready: Promise<void>;
   private closed = false;
   private readonly events = new WorldEventLog();
   private readonly registryQueue = new SerialQueue();
   private readonly worldQueues = new Map<string, SerialQueue>();
   private readonly results = new Map<string, Promise<CommandResult>>();
+  private readonly settledResults = new Map<string, CommandResult>();
+  private persistResultsChain = Promise.resolve();
   private readonly runtimes = new Map<string, RuntimeHandle>();
   private readonly observations = new Map<string, WorldObservation>();
   private readonly liveWorlds = new Map<string, LiveWorld>();
@@ -243,12 +240,75 @@ class CarinaApplication implements Application {
   private readonly observeBusy = new Set<string>();
   private readonly observeTasks = new Set<Promise<void>>();
   private readonly extending = new Set<string>();
+  /** zh: 空间壳来源按 GLB 哈希缓存。 en: Space-shell provenance cached by GLB hash. */
+  private readonly worldModelCache = new Map<string, WorldModelSource>();
   private readonly expansion = new ExpansionTracker();
+  private readonly worldRuntimeAborts = new Map<string, Set<AbortController>>();
 
   constructor(
     private readonly config: CarinaConfig,
     private readonly deps: ApplicationDeps,
-  ) {}
+  ) {
+    this.ready = this.loadCommandResults();
+  }
+
+  /**
+   * zh: 读已落盘的 commandId 结果。未完成的不会出现在文件里。
+   * en: Load settled commandId results. In-flight commands are not in the file.
+   */
+  private async loadCommandResults(): Promise<void> {
+    let raw: string;
+    try {
+      raw = await readFile(this.commandResultsPath(), "utf8");
+    } catch {
+      return;
+    }
+    let json: unknown;
+    try {
+      json = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    if (typeof json !== "object" || json === null || Array.isArray(json)) {
+      return;
+    }
+    for (const [commandId, row] of Object.entries(
+      json as Record<string, unknown>,
+    )) {
+      const parsed = commandResultSchema.safeParse(row);
+      if (!parsed.success) {
+        continue;
+      }
+      this.settledResults.set(commandId, parsed.data);
+      this.results.set(commandId, Promise.resolve(parsed.data));
+    }
+  }
+
+  private commandResultsPath(): string {
+    return path.join(this.config.dataDir, "command-results.json");
+  }
+
+  /**
+   * zh: 把已完成命令记到 dataDir。崩溃后同一 commandId 不得再执行一遍。
+   * en: Persist settled commands. A crash must not re-run the same commandId.
+   */
+  private persistCommandResults(): Promise<void> {
+    this.persistResultsChain = this.persistResultsChain
+      .then(async () => {
+        const record: Record<string, CommandResult> = {};
+        for (const [commandId, result] of this.settledResults) {
+          record[commandId] = result;
+        }
+        await writeFileAtomic(
+          this.commandResultsPath(),
+          `${JSON.stringify(record)}\n`,
+        );
+      })
+      .catch(() => {
+        return;
+      });
+    return this.persistResultsChain;
+  }
 
   private meshProviderConfigured(): boolean {
     const url = this.config.meshProviderUrl;
@@ -256,11 +316,76 @@ class CarinaApplication implements Application {
   }
 
   /**
-   * zh: 有网格 URL 就走三维生成；无 URL 且接了世界模型则不提交 mock 酒馆。
-   * en: Run 3D generate when a mesh URL is set; with a world model and no URL, skip the mock tavern.
+   * zh: 整空间世界模型 provider（空间壳）是否配置。只表示合同已接，不表示这一轮已生成。
+   * en: Whether the whole-space world-model provider (space shell) is configured. Means the contract is
+   *     wired, not that this run generated anything.
+   */
+  private spaceProviderConfigured(): boolean {
+    const url = this.config.spaceProviderUrl;
+    return typeof url === "string" && url.length > 0;
+  }
+
+  /**
+   * zh: 从快照里找已提交的空间壳并读回 GLB extras 里的来源。没有壳或壳未声明白名单 provider → undefined。
+   * en: Find the committed space shell in a snapshot and read its provenance back from the GLB extras.
+   *     No shell, or a shell without an allowlisted provider → undefined.
+   */
+  private async committedWorldModel(
+    snapshot: WorldSnapshot,
+  ): Promise<WorldModelSource | undefined> {
+    const shell = snapshot.objects.find((object) =>
+      object.sceneObjectId.endsWith(SPACE_SHELL_OBJECT_SUFFIX),
+    );
+    if (shell === undefined) {
+      return undefined;
+    }
+    const ref = shell.assetRefs.find((item) => /\.glb$/i.test(item));
+    const hash = ref?.match(/([0-9a-f]{64})\.glb$/i)?.[1];
+    if (hash === undefined) {
+      return undefined;
+    }
+    const cached = this.worldModelCache.get(hash);
+    if (cached !== undefined) {
+      return cached;
+    }
+    let bytes: Uint8Array;
+    try {
+      bytes = await this.deps.pack.readAsset(snapshot.worldId, hash, "glb");
+    } catch {
+      return undefined;
+    }
+    const report = await validateSpaceShellGlb(bytes);
+    if (!report.ok || report.source === undefined) {
+      return undefined;
+    }
+    // The Carina-side region fit lives in the object transform, not in the GLB stamp.
+    const uniform = shell.transform.scale.x;
+    const regionId = snapshot.regions.find((region) =>
+      region.objectRefs.includes(shell.sceneObjectId),
+    )?.regionId;
+    const source: WorldModelSource = {
+      ...report.source,
+      assetHash: hash,
+      ...(regionId !== undefined && Number.isFinite(uniform) && uniform > 0 && uniform !== 1
+        ? { regionFit: { regionId, method: "scenespec-aabb", uniformScale: uniform } }
+        : {}),
+    };
+    this.worldModelCache.set(hash, source);
+    return source;
+  }
+
+  /**
+   * zh: 有网格 URL 才走三维生成。夹具只在测试显式打开且未接静帧观察时提交，不能盖过世界模型路径。
+   * en: Run 3D generate only when a mesh URL is set. The fixture submits only when tests opt in and no still observer is wired; it must not cover the world-model path.
    */
   private shouldRunGeneration(): boolean {
-    return this.meshProviderConfigured() || this.deps.observe === undefined;
+    if (this.meshProviderConfigured()) {
+      return true;
+    }
+    return (
+      this.config.allowPrimitiveFixture === true &&
+      this.deps.observe === undefined
+    );
   }
 
   private async collectStagedMeshAssets(
@@ -269,19 +394,40 @@ class CarinaApplication implements Application {
     staged: Array<{ posixPath: string; hash: string }>,
   ) {
     const assets = [];
+    const seenPaths = new Set<string>();
     for (const entry of staged) {
+      if (seenPaths.has(entry.posixPath)) {
+        continue;
+      }
+      seenPaths.add(entry.posixPath);
       const ext = entry.posixPath.endsWith(".gltf") ? "gltf" : "glb";
       const bytes = await this.deps.pack.readAsset(worldId, entry.hash, ext);
-      const object = objects.find((item) =>
+      const holders = objects.filter((item) =>
         item.assetRefs.includes(entry.posixPath),
       );
-      const name = object?.name ?? "generated";
-      assets.push({
-        bytes,
-        originalFilename: `${name}.${ext}`,
-        ...(object !== undefined ? { objectId: object.sceneObjectId } : {}),
-        bakedWorldSpace: false,
-      });
+      const targets = holders.length > 0 ? holders : [undefined];
+      for (const object of targets) {
+        const stem = object?.sceneObjectId ?? "generated";
+        // Space shells carry their own stamped provenance; only a validated shell may
+        // claim world-model generation towards WorldRuntime. Everything else stays I23D.
+        let provenance: { sourceLabel: string; claimsWorldModelGeneration: boolean } | undefined;
+        if (ext === "glb" && stem.endsWith(SPACE_SHELL_OBJECT_SUFFIX)) {
+          const report = await validateSpaceShellGlb(bytes);
+          if (report.ok && report.source !== undefined) {
+            provenance = {
+              sourceLabel: report.source.provider,
+              claimsWorldModelGeneration: true,
+            };
+          }
+        }
+        assets.push({
+          bytes,
+          originalFilename: `${stem}.${ext}`,
+          ...(object !== undefined ? { objectId: object.sceneObjectId } : {}),
+          bakedWorldSpace: false,
+          ...(provenance ?? {}),
+        });
+      }
     }
     return assets;
   }
@@ -290,15 +436,30 @@ class CarinaApplication implements Application {
    * zh: 网格已提交后再后台传 WorldRuntime。失败不影响已提交包，也不挡游玩。
    * en: Upload to WorldRuntime after the pack commit. Failures keep the pack and do not block play.
    */
+  private abortWorldRuntimePublishes(worldId?: string): void {
+    if (worldId === undefined) {
+      for (const controllers of this.worldRuntimeAborts.values()) {
+        for (const controller of controllers) {
+          controller.abort();
+        }
+      }
+      this.worldRuntimeAborts.clear();
+      return;
+    }
+    const controllers = this.worldRuntimeAborts.get(worldId);
+    if (controllers === undefined) {
+      return;
+    }
+    for (const controller of controllers) {
+      controller.abort();
+    }
+    this.worldRuntimeAborts.delete(worldId);
+  }
+
   private startWorldRuntimePublish(
     worldId: string,
-    objects: SceneObject[],
-    assets: Array<{
-      bytes: Uint8Array;
-      originalFilename: string;
-      objectId?: string;
-      bakedWorldSpace: boolean;
-    }>,
+    committedObjects: SceneObject[],
+    committedAssets: UePublishAsset[],
     command: WorldCommand,
     jobId: string,
     revision: string,
@@ -307,14 +468,32 @@ class CarinaApplication implements Application {
     if (client === undefined) {
       return;
     }
+    // Garden + interior floor/walls are scaffold boxes. Each piece is a local-space GLB so
+    // Interchange can emit simple box collision. Labelled scaffold-primitive; never world-model.
+    const gardenShell = buildGardenShellPublish(committedObjects);
+    const interiorShell = buildInteriorShellPublish(committedObjects);
+    const objects = committedObjects;
+    const assets = [
+      ...committedAssets,
+      ...(gardenShell?.assets ?? []),
+      ...(interiorShell?.assets ?? []),
+    ];
+    const abort = new AbortController();
+    let tracked = this.worldRuntimeAborts.get(worldId);
+    if (tracked === undefined) {
+      tracked = new Set();
+      this.worldRuntimeAborts.set(worldId, tracked);
+    }
+    tracked.add(abort);
     void client
       .publishGenerated({
-        worldId,
+        worldId: this.config.worldRuntimeWorldId ?? worldId,
         objects,
         assets,
         cook: this.config.worldRuntimeCook === true,
         sourceLabel: "http-native-mesh",
         claimsWorldModelGeneration: false,
+        signal: abort.signal,
       })
       .then((published) => {
         if (this.closed) {
@@ -343,7 +522,22 @@ class CarinaApplication implements Application {
             worldRuntime: { ok: false, error: String(error) },
           },
         });
+      })
+      .finally(() => {
+        this.worldRuntimeAborts.get(worldId)?.delete(abort);
       });
+  }
+
+  /**
+   * zh: 「看向门」把进程内 yaw 转到 PS2 占有 pawn。失败不影响命令。不是 P1。
+   * en: Look-at-door forwards in-process yaw to the possessed PS2 pawn. Failures do not reject. Not a P1 pass.
+   */
+  private syncViewportLook(yawRad: number): void {
+    const client = this.deps.ueWorldRuntime;
+    if (client === undefined || typeof client.playerLook !== "function") {
+      return;
+    }
+    void client.playerLook({ yawRad }).catch(() => undefined);
   }
 
   /**
@@ -391,7 +585,12 @@ class CarinaApplication implements Application {
     if (existing !== undefined) {
       return existing;
     }
-    const run = this.enqueue(command, () => this.execute(command));
+    const run = this.enqueue(command, async () => {
+      const result = await this.execute(command);
+      this.settledResults.set(command.commandId, result);
+      await this.persistCommandResults();
+      return result;
+    });
     this.results.set(command.commandId, run);
     return run;
   }
@@ -483,6 +682,8 @@ class CarinaApplication implements Application {
     const worldDocuments = await this.deps.pack.readWorldDocuments(worldId);
     const global = await this.deps.sessions.readGlobalProfile();
     const spec = sceneSpecFromSnapshot(mergedSnapshot);
+    const worldModel =
+      spec !== undefined ? await this.committedWorldModel(mergedSnapshot) : undefined;
     return {
       session: mergedSession,
       snapshot: mergedSnapshot,
@@ -503,6 +704,7 @@ class CarinaApplication implements Application {
                 mergedSnapshot.objects,
                 "reuse",
               ),
+              ...(worldModel !== undefined ? { worldModel } : {}),
             }),
             factoryManifest: runAssetFactory({
               spec,
@@ -580,6 +782,7 @@ class CarinaApplication implements Application {
 
   async close(): Promise<void> {
     this.closed = true;
+    this.abortWorldRuntimePublishes();
     for (const token of this.liveWorlds.values()) {
       token.cancelled = true;
     }
@@ -757,11 +960,13 @@ class CarinaApplication implements Application {
     const worldId = record.sessionId;
     await this.ensureRuntime(worldId);
     const sceneSpec = await this.persistSceneSpec(command, worldId, name);
+    let generationControl: unknown;
     if (this.shouldRunGeneration()) {
       const generated = await this.runGeneration(command, worldId, "edit", name);
       if (!generated.accepted) {
         return { ...generated, worldId };
       }
+      generationControl = generated.payload?.["generationControl"];
     }
     /**
      * zh: 有网格 URL 时建世界不阻塞 LingBot 13 帧短片。看一眼才打 I2V。
@@ -799,25 +1004,38 @@ class CarinaApplication implements Application {
     if (this.meshProviderConfigured()) {
       payload["text"] =
         `${t("ui.ackCreatedWithMesh", this.config.lang)}${t("ui.observationReadyWithMesh", this.config.lang)}`;
+    } else if (this.shouldRunGeneration()) {
+      payload["text"] = t("ui.ackCreatedFixture", this.config.lang);
     } else {
       const lookText =
         typeof payload["text"] === "string" ? payload["text"] : "";
       payload["text"] =
         lookText.length > 0
-          ? `${t("ui.ackCreated", this.config.lang)}${lookText}`
-          : t("ui.ackCreated", this.config.lang);
+          ? `${t("ui.ackCreatedNoMesh", this.config.lang)}${lookText}`
+          : t("ui.ackCreatedNoMesh", this.config.lang);
     }
+    const controlWorldModel =
+      typeof generationControl === "object" && generationControl !== null
+        ? (generationControl as { worldModel?: WorldModelSource }).worldModel
+        : undefined;
     payload["source"] = {
       nativeMesh: this.meshProviderConfigured()
         ? "http"
-        : this.deps.observe === undefined
-          ? "mock-scaffold"
+        : this.shouldRunGeneration()
+          ? "fixture"
           : "none",
-      worldModel:
-        this.deps.observe !== undefined
-          ? "lingbot-still-observation"
-          : "none",
+      /**
+       * zh: 只有这一轮真的提交了空间壳才写 provider id；配置了 URL 但没生成仍是 "none"。
+       * en: Provider id only when this run actually committed a shell; a configured URL alone stays "none".
+       */
+      worldModel: controlWorldModel?.provider ?? "none",
+      ...(this.spaceProviderConfigured() ? { spaceProvider: "http" } : {}),
+      observation:
+        this.deps.observe !== undefined ? "lingbot-still" : "none",
     };
+    if (generationControl !== undefined) {
+      payload["generationControl"] = generationControl;
+    }
     return acceptResult(command, {
       worldId,
       revision: sealed.snapshot.revision,
@@ -964,6 +1182,19 @@ class CarinaApplication implements Application {
         runtime.snapshot().player.position,
       );
     }
+    const looking =
+      command.intentKind === "player.act" &&
+      stringArg(argumentsWithTarget["action"]) === "look";
+    if (looking) {
+      argumentsWithTarget = withLookYaw(
+        argumentsWithTarget,
+        snapshot,
+        runtime.snapshot().player.position,
+      );
+      if (typeof argumentsWithTarget["yaw"] !== "number") {
+        return rejectResult(command, "NOT_FOUND", "error.noReferent");
+      }
+    }
     const destination = vec3Arg(argumentsWithTarget["position"]);
     const usingDoor = isDoorAction(argumentsWithTarget, snapshot);
     const pausedNavigate =
@@ -974,7 +1205,7 @@ class CarinaApplication implements Application {
         stringArg(argumentsWithTarget["action"]) === "move") ||
       pausedNavigate;
     let extended: CommandResult | undefined;
-    if (!moving) {
+    if (!moving && !looking) {
       extended = await this.maybeExtendNearDoor(command, worldId, {
         usingDoor,
         ...(destination !== undefined ? { destination } : {}),
@@ -1015,6 +1246,19 @@ class CarinaApplication implements Application {
         payload: {
           simTime: runtime.getSimTime(),
           ...(walkText !== undefined ? { text: walkText } : {}),
+        },
+      });
+    }
+    if (looking) {
+      this.syncViewportLook(runtime.snapshot().player.yaw);
+      return acceptResult(command, {
+        worldId,
+        revision: snapshot.revision,
+        controlEpoch: runtime.getControlEpoch(),
+        payload: {
+          simTime: runtime.getSimTime(),
+          yaw: runtime.snapshot().player.yaw,
+          look: true,
         },
       });
     }
@@ -1076,6 +1320,13 @@ class CarinaApplication implements Application {
   ): Promise<CommandResult> {
     const worldId = await this.resolveWorldId(command);
     await this.assertRevision(command, worldId);
+    const snapshot = await this.deps.pack.readSnapshot(worldId);
+    if (
+      forbidsGeneration(snapshot.worldRules) &&
+      command.arguments["observeOnly"] !== true
+    ) {
+      return rejectResult(command, "COMMAND_REJECTED", "error.generationForbid");
+    }
     const session = await this.deps.sessions.openSession(worldId);
     const purpose: JobPurpose =
       typeof command.arguments["purpose"] === "string" &&
@@ -1132,6 +1383,10 @@ class CarinaApplication implements Application {
   ): Promise<CommandResult> {
     const worldId = await this.resolveWorldId(command);
     await this.assertRevision(command, worldId);
+    const current = await this.deps.pack.readSnapshot(worldId);
+    if (forbidsGeneration(current.worldRules)) {
+      return rejectResult(command, "COMMAND_REJECTED", "error.generationForbid");
+    }
     const plan = await this.persistExtendedSceneSpec(command, worldId);
     if (!plan.ok) {
       return plan.result;
@@ -1161,6 +1416,7 @@ class CarinaApplication implements Application {
   ): Promise<CommandResult> {
     const worldId = await this.resolveWorldId(command);
     this.expansion.stopAuto(worldId);
+    this.abortWorldRuntimePublishes(worldId);
     const cancelled = await this.deps.jobs.cancelSimulation(worldId);
     return acceptResult(command, {
       worldId,
@@ -1199,16 +1455,52 @@ class CarinaApplication implements Application {
     if (planObject === undefined && target === undefined) {
       return rejectResult(command, "NOT_FOUND", "error.notFound");
     }
-    const delta = vec3Arg(command.arguments["delta"]);
+    if (target !== undefined && isObjectLocked(snapshot.worldRules, target)) {
+      return rejectResult(command, "COMMAND_REJECTED", "error.lockObject");
+    }
+    const deltaArg = vec3Arg(command.arguments["delta"]);
     const catalogId = stringArg(command.arguments["catalogId"]);
     const heightRaw = command.arguments["heightMeters"];
     const height =
       typeof heightRaw === "number" && Number.isFinite(heightRaw)
         ? heightRaw
         : undefined;
+    const towardObjectId = stringArg(command.arguments["towardObjectId"]);
+    const meters = numberArg(command.arguments["meters"]);
+    let delta = deltaArg;
+    if (delta === undefined && towardObjectId !== undefined) {
+      if (meters === undefined || meters <= 0) {
+        return rejectResult(command, "COMMAND_REJECTED", "error.commandRejected");
+      }
+      const towardLive = findLiveObject(objects, towardObjectId);
+      const towardPlan =
+        spec !== undefined
+          ? findSceneSpecObject(spec, towardObjectId)
+          : undefined;
+      const fromPos =
+        target?.transform.position ?? planObject?.anchor;
+      const toPos =
+        towardLive?.transform.position ?? towardPlan?.anchor;
+      if (fromPos === undefined || toPos === undefined) {
+        return rejectResult(command, "NOT_FOUND", "error.noReferent");
+      }
+      const computed = deltaToward(fromPos, toPos, meters);
+      if (computed === undefined) {
+        return rejectResult(command, "COMMAND_REJECTED", "error.commandRejected");
+      }
+      delta = computed;
+    }
     if (delta === undefined && height === undefined && catalogId === undefined) {
       return rejectResult(command, "COMMAND_REJECTED", "error.commandRejected");
     }
+    const expectedPosition =
+      target !== undefined && delta !== undefined
+        ? {
+            x: target.transform.position.x + delta.x,
+            y: target.transform.position.y + delta.y,
+            z: target.transform.position.z + delta.z,
+          }
+        : undefined;
     if (target !== undefined && delta !== undefined) {
       for (let index = 0; index < objects.length; index += 1) {
         const item = objects[index];
@@ -1238,6 +1530,19 @@ class CarinaApplication implements Application {
         min: { ...live.bounds.min },
         max: { ...live.bounds.max, y: live.bounds.min.y + height },
       };
+    }
+    if (
+      expectedPosition !== undefined &&
+      live !== undefined &&
+      !withinMetricTolerance(live.transform.position, expectedPosition)
+    ) {
+      return rejectResult(command, "VALIDATION_FAILED", "error.calibrationMissed");
+    }
+    if (live !== undefined && height !== undefined) {
+      const actualHeight = live.bounds.max.y - live.bounds.min.y;
+      if (Math.abs(actualHeight - height) > METRIC_TOLERANCE_M) {
+        return rejectResult(command, "VALIDATION_FAILED", "error.calibrationMissed");
+      }
     }
     let nextSnapshot: WorldSnapshot = {
       ...snapshot,
@@ -1324,6 +1629,11 @@ class CarinaApplication implements Application {
       worldId,
       revision: next.revision,
       controlEpoch: next.controlEpoch,
+      payload: {
+        metricCheck: "committed-bounds",
+        toleranceMeters: METRIC_TOLERANCE_M,
+        ...(towardObjectId !== undefined ? { towardObjectId } : {}),
+      },
     });
   }
 
@@ -1595,39 +1905,8 @@ class CarinaApplication implements Application {
     if (documentId === WORLD_DOCUMENT_IDS.world) {
       worldRules = compileWorldRules(nextBody, snapshot.revision, hashed.hash);
     }
-    const needsCommit =
-      documentId === WORLD_DOCUMENT_IDS.world &&
-      !worldRules.clauses.some((clause) =>
-        snapshot.worldRules.clauses.some((existing) => existing.kind === clause.kind),
-      );
     let next = snapshot;
-    if (
-      documentId === WORLD_DOCUMENT_IDS.world &&
-      !snapshot.worldRules.clauses.some((clause) => clause.kind === "no_teleport") &&
-      worldRules.clauses.some((clause) => clause.kind === "no_teleport")
-    ) {
-      next = await this.commitSnapshot(
-        command,
-        worldId,
-        {
-          ...snapshot,
-          worldRules,
-          session: {
-            ...snapshot.session,
-            runState: "paused",
-            worldRulesRef: worldRules.sourceHash,
-            ruleDocumentRefs: {
-              ...snapshot.session.ruleDocumentRefs,
-              [documentId]: hashed.hash,
-            },
-          },
-          simTime: runtime.getSimTime(),
-          controlEpoch: runtime.getControlEpoch(),
-        },
-        "rules.update",
-        { [documentId]: nextBody },
-      );
-    } else if (needsCommit) {
+    if (documentId === WORLD_DOCUMENT_IDS.world) {
       next = await this.commitSnapshot(
         command,
         worldId,
@@ -1846,6 +2125,9 @@ class CarinaApplication implements Application {
       return undefined;
     }
     const snapshot = await this.deps.pack.readSnapshot(worldId);
+    if (forbidsGeneration(snapshot.worldRules)) {
+      return undefined;
+    }
     const runtime = await this.ensureRuntime(worldId);
     const player = runtime.snapshot().player.position;
     const nearDoor =
@@ -1941,6 +2223,9 @@ class CarinaApplication implements Application {
           text: t("ui.ackExtended", this.config.lang),
         },
       });
+    }
+    if (this.meshProviderConfigured()) {
+      return this.runConstrainedMeshExtension(command, worldId);
     }
     const interior = interiorRegion(snapshot);
     if (interior === undefined) {
@@ -2053,6 +2338,240 @@ class CarinaApplication implements Application {
         ...(committed.payload ?? {}),
         extended: true,
         text: t("ui.ackExtended", this.config.lang),
+        generationControl: {
+          mode: "extend",
+          source: "fixture",
+          claimsWorldModelGeneration: false,
+        },
+      },
+    };
+  }
+
+  /**
+   * zh: 有网格 URL 时门外扩展 POST preserve+seam，不重提吧台，失败不退回盒子花园。
+   * en: With a mesh URL, outdoor extend POSTs preserve+seam, does not resubmit the bar, and must not fall back to a box garden.
+   */
+  private async runConstrainedMeshExtension(
+    command: WorldCommand,
+    worldId: string,
+  ): Promise<CommandResult> {
+    const snapshot = await this.deps.pack.readSnapshot(worldId);
+    const spec = sceneSpecFromSnapshot(snapshot);
+    const interior = interiorRegion(snapshot);
+    if (interior === undefined || spec === undefined) {
+      return rejectResult(command, "NOT_FOUND", "error.notFound");
+    }
+    const featured = firstExtendGenerateObject(spec);
+    if (featured === undefined) {
+      return rejectResult(command, "VALIDATION_FAILED", "error.validationFailed");
+    }
+    const runtime = await this.ensureRuntime(worldId);
+    const session = await this.deps.sessions.openSession(worldId);
+    const pose = runtime.snapshot().player;
+    const camera = captureCameraFromPlayer(pose.position, pose.yaw);
+    const preserve = preserveRefs(snapshot, interior).map((item) => ({
+      posixPath: item.ref,
+      hash: item.hash,
+    }));
+    const door = doorOf(snapshot.objects);
+    const gardenId = `${spatialWorldId(interior)}-garden`;
+    const seam = {
+      position: {
+        x: door?.transform.position.x ?? (interior.bounds.min.x + interior.bounds.max.x) / 2,
+        y: 0,
+        z: door?.transform.position.z ?? interior.bounds.min.z,
+      },
+      fromRegionId: interior.regionId,
+      toRegionId: gardenId,
+    };
+    const job = await this.deps.jobs.enqueue({
+      worldId,
+      kind: "generation",
+      purpose: "edit",
+      baseRevision: snapshot.revision,
+      readSet: {
+        regionRevisions: Object.fromEntries(
+          snapshot.regions.map((region) => [region.regionId, region.revision]),
+        ),
+        objectVersions: Object.fromEntries(
+          snapshot.objects.map((item) => [item.sceneObjectId, snapshot.revision]),
+        ),
+      },
+      controlEpoch: runtime.getControlEpoch(),
+      status: "running",
+      progress: 0,
+      cancelCapability: "stop_commit",
+      attempt: 1,
+      budgetUsed: { seconds: 0, attempts: 1 },
+      resultRefs: [],
+    });
+    let scene;
+    try {
+      scene = await this.deps.provider.generateScene({
+        worldId,
+        prompt: command.text ?? "courtyard garden",
+        name: session.name,
+        purpose: "edit",
+        sceneSpec: spec,
+        mode: "extend",
+        camera: { position: camera.position, yaw: camera.yaw },
+        preserve,
+        seam,
+      });
+    } catch (error) {
+      const failed = errorResult(command, error);
+      this.deps.jobs.mark(job.jobId, "failed", {
+        errorKey: failed.messageKey ?? "error.internal",
+      });
+      return failed;
+    }
+    const composed = composeExtendedGarden({
+      spec,
+      interior,
+      committedObjects: snapshot.objects,
+      generatedObjects: scene.objects,
+      generateObjectId: featured.objectId,
+    });
+    if (composed === undefined) {
+      this.deps.jobs.mark(job.jobId, "failed", { errorKey: "error.validationFailed" });
+      return rejectResult(command, "VALIDATION_FAILED", "error.validationFailed");
+    }
+    let gardenObjects = composed.objects;
+    let stagedMeshes: Array<{ posixPath: string; hash: string }> = [];
+    if (scene.assets !== undefined && scene.assets.length > 0) {
+      try {
+        const attached = await attachGeneratedMeshAssets(
+          this.deps.pack,
+          worldId,
+          composed.objects,
+          scene.assets,
+        );
+        gardenObjects = attached.objects.filter((object) =>
+          composed.garden.objectRefs.includes(object.sceneObjectId),
+        );
+        stagedMeshes = attached.staged;
+      } catch (error) {
+        const failed = errorResult(command, error);
+        this.deps.jobs.mark(job.jobId, "failed", {
+          errorKey: failed.messageKey ?? "error.validationFailed",
+        });
+        return failed;
+      }
+    }
+    const baked = bakeMapAssets({
+      objects: gardenObjects,
+      regions: [{ ...composed.garden, objectRefs: gardenObjects.map((item) => item.sceneObjectId) }],
+      freeze: true,
+      captureCamera: camera,
+    });
+    const garden = baked.regions[0];
+    if (garden === undefined) {
+      this.deps.jobs.mark(job.jobId, "failed", { errorKey: "error.validationFailed" });
+      return rejectResult(command, "VALIDATION_FAILED", "error.validationFailed");
+    }
+    for (const asset of baked.assets) {
+      await this.deps.pack.stageAsset(worldId, asset.bytes, asset.ext);
+    }
+    const gardenIds = new Set(baked.objects.map((item) => item.sceneObjectId));
+    const keptObjects = snapshot.objects.filter(
+      (item) => !gardenIds.has(item.sceneObjectId),
+    );
+    const proposedObjects = preserveLockedObjects(
+      [...keptObjects, ...baked.objects],
+      snapshot.objects,
+      snapshot.worldRules,
+    );
+    const proposedRegions = [composed.interior, garden];
+    const proposedAssets = mergeAssetManifest(
+      [...snapshot.assetManifest, ...stagedMeshes],
+      baked.assets.map((asset) => ({
+        posixPath: asset.posixPath,
+        hash: asset.hash,
+      })),
+    );
+    const candidate: CandidateRevision = {
+      candidateId: createUlid(),
+      baseRevision: snapshot.revision,
+      sourceJobId: job.jobId,
+      readSet: job.readSet,
+      writeSet: {
+        regionIds: [composed.interior.regionId, garden.regionId],
+        objectIds: baked.objects.map((item) => item.sceneObjectId),
+      },
+      proposedRegions,
+      proposedObjects,
+      proposedSemanticEffects: [],
+      proposedAssets,
+    };
+    const report = validateSpatialCandidate(candidate, {
+      quality: "playable",
+      preserve: preserveRefs(snapshot, interior),
+    });
+    if (
+      report.quality !== "playable" ||
+      report.checks.some((check) => check.result === "fail")
+    ) {
+      this.deps.jobs.mark(job.jobId, "failed", { errorKey: "error.validationFailed" });
+      return rejectResult(command, "VALIDATION_FAILED", "error.validationFailed");
+    }
+    const withJob: CandidateRevision = {
+      ...candidate,
+      sourceJobId: job.jobId,
+    };
+    this.events.emit({
+      worldId,
+      type: "candidate.ready",
+      commandId: command.commandId,
+      jobId: job.jobId,
+      revision: snapshot.revision,
+      payload: { candidateId: withJob.candidateId, purpose: "extend" },
+    });
+    const committed = await this.commitJobResult(job, withJob, command);
+    if (!committed.accepted) {
+      return committed;
+    }
+    if (
+      this.meshProviderConfigured() &&
+      this.deps.ueWorldRuntime !== undefined &&
+      stagedMeshes.length > 0
+    ) {
+      const assets = await this.collectStagedMeshAssets(
+        worldId,
+        baked.objects,
+        stagedMeshes,
+      );
+      this.startWorldRuntimePublish(
+        worldId,
+        baked.objects,
+        assets,
+        command,
+        job.jobId,
+        committed.revision ?? snapshot.revision,
+      );
+    }
+    return {
+      ...committed,
+      payload: {
+        ...(committed.payload ?? {}),
+        extended: true,
+        text: t("ui.ackExtended", this.config.lang),
+        ...(this.deps.ueWorldRuntime !== undefined && stagedMeshes.length > 0
+          ? { worldRuntime: { pending: true, cooked: false } }
+          : {}),
+        generationControl: {
+          ...generationControlPayload({
+            mode: "extend",
+            objectId: featured.objectId,
+            objectIds: [featured.objectId],
+            camera: { position: camera.position, yaw: camera.yaw },
+          }),
+          preserveCount: preserve.length,
+          seam,
+          gardenScaffold: true,
+          // Scaffold shell rides along to WorldRuntime as one baked GLB (label scaffold-primitive).
+          gardenShellToWorldRuntime:
+            this.deps.ueWorldRuntime !== undefined && stagedMeshes.length > 0,
+        },
       },
     };
   }
@@ -2064,6 +2583,9 @@ class CarinaApplication implements Application {
     name: string,
   ): Promise<CommandResult> {
     const snapshot = await this.deps.pack.readSnapshot(worldId);
+    if (forbidsGeneration(snapshot.worldRules)) {
+      return rejectResult(command, "COMMAND_REJECTED", "error.generationForbid");
+    }
     const runtime = await this.ensureRuntime(worldId);
     const job = await this.deps.jobs.enqueue({
       worldId,
@@ -2091,6 +2613,11 @@ class CarinaApplication implements Application {
         ? command.arguments["prompt"]
         : (command.text ?? name);
     const sceneSpec = sceneSpecFromSnapshot(snapshot);
+    const runtimePose = runtime.snapshot().player;
+    const camera = captureCameraFromPlayer(
+      runtimePose.position,
+      runtimePose.yaw,
+    );
     let scene;
     try {
       scene = await this.deps.provider.generateScene({
@@ -2098,6 +2625,8 @@ class CarinaApplication implements Application {
         prompt,
         name,
         purpose,
+        mode: "create",
+        camera: { position: camera.position, yaw: camera.yaw },
         ...(sceneSpec !== undefined ? { sceneSpec } : {}),
       });
     } catch (error) {
@@ -2127,15 +2656,16 @@ class CarinaApplication implements Application {
         return failed;
       }
     }
-    const runtimePose = runtime.snapshot().player;
+    objects = preserveLockedObjects(
+      objects,
+      snapshot.objects,
+      snapshot.worldRules,
+    );
     const baked = bakeMapAssets({
       objects,
       regions: scene.regions,
       freeze: true,
-      captureCamera: captureCameraFromPlayer(
-        runtimePose.position,
-        runtimePose.yaw,
-      ),
+      captureCamera: camera,
     });
     for (const asset of baked.assets) {
       await this.deps.pack.stageAsset(worldId, asset.bytes, asset.ext);
@@ -2178,6 +2708,30 @@ class CarinaApplication implements Application {
       payload: { candidateId: candidate.candidateId },
     });
     const committed = await this.commitJobResult(job, candidate, command);
+    const featuredIds =
+      sceneSpec !== undefined
+        ? interiorGenerateObjects(sceneSpec).map((item) => item.objectId)
+        : [];
+    /**
+     * zh: 空间壳的包内哈希来自 stage 结果；有它 generationControl 才能声称世界模型生成。
+     * en: The shell's pack hash comes from staging; only with it may generationControl claim
+     *     world-model generation.
+     */
+    const shellHash =
+      scene.worldModel !== undefined
+        ? shellHashFromStaged(scene.worldModel.objectId, objects, stagedMeshes)
+        : undefined;
+    const worldModel: WorldModelSource | undefined =
+      scene.worldModel !== undefined && shellHash !== undefined
+        ? { ...scene.worldModel, assetHash: shellHash }
+        : undefined;
+    const control = generationControlPayload({
+      mode: "create",
+      camera,
+      ...(featuredIds[0] !== undefined ? { objectId: featuredIds[0] } : {}),
+      ...(featuredIds.length > 0 ? { objectIds: featuredIds } : {}),
+      ...(worldModel !== undefined ? { worldModel } : {}),
+    });
     if (
       this.meshProviderConfigured() &&
       this.deps.ueWorldRuntime !== undefined &&
@@ -2201,10 +2755,17 @@ class CarinaApplication implements Application {
         payload: {
           ...(committed.payload ?? {}),
           worldRuntime: { pending: true, cooked: false },
+          generationControl: control,
         },
       };
     }
-    return committed;
+    return {
+      ...committed,
+      payload: {
+        ...(committed.payload ?? {}),
+        generationControl: control,
+      },
+    };
   }
 
   /**
@@ -2796,7 +3357,9 @@ class CarinaApplication implements Application {
         parsed.error,
       );
     }
-    const spec = parsed.data;
+    const spec = this.meshProviderConfigured()
+      ? promoteCatalogFurnitureToGenerate(parsed.data)
+      : parsed.data;
     const staged = await this.deps.pack.stageAsset(
       worldId,
       encodeSceneSpecBytes(spec),
@@ -3012,6 +3575,9 @@ class CarinaApplication implements Application {
     options: { suspend: boolean },
   ): Promise<number> {
     this.stopLiveWorld(worldId);
+    if (options.suspend) {
+      this.abortWorldRuntimePublishes(worldId);
+    }
     const runtime = await this.ensureRuntime(worldId);
     const epoch = runtime.incrementControlEpoch();
     await this.deps.sessions.touchSession(worldId, {
@@ -3382,7 +3948,12 @@ function mergeCandidate(
       objects.push(item);
     }
   }
-  return { ...snapshot, regions, objects };
+  const nextObjects = dropTwinBar(objects);
+  return {
+    ...snapshot,
+    regions: dropTwinBarRegions(regions, nextObjects),
+    objects: nextObjects,
+  };
 }
 
 function acceptResult(
@@ -3408,6 +3979,23 @@ function rejectResult(
     messageKey,
     ...(command.worldId !== undefined ? { worldId: command.worldId } : {}),
   };
+}
+
+function forbidsGeneration(rules: WorldSnapshot["worldRules"]): boolean {
+  return rules.clauses.some((clause) => clause.kind === "generation_forbid");
+}
+
+/** zh: 米制校准容差（米）。 en: Metric calibrate tolerance in meters. */
+const METRIC_TOLERANCE_M = 0.05;
+
+function withinMetricTolerance(
+  actual: { x: number; y: number; z: number },
+  expected: { x: number; y: number; z: number },
+): boolean {
+  const dx = actual.x - expected.x;
+  const dy = actual.y - expected.y;
+  const dz = actual.z - expected.z;
+  return Math.hypot(dx, dy, dz) <= METRIC_TOLERANCE_M;
 }
 
 async function attachGeneratedMeshAssets(
@@ -3554,6 +4142,13 @@ function stringArg(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
+function numberArg(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  return undefined;
+}
+
 function vec3Arg(
   value: unknown,
 ): { x: number; y: number; z: number } | undefined {
@@ -3633,6 +4228,78 @@ function withResolvedTarget(
     args["targetId"] = found.sceneObjectId;
   }
   return args;
+}
+
+function withLookYaw(
+  args: Record<string, unknown>,
+  snapshot: WorldSnapshot,
+  player: { x: number; y: number; z: number },
+): Record<string, unknown> {
+  const targetId = stringArg(args["targetId"]);
+  const object =
+    targetId !== undefined
+      ? snapshot.objects.find((item) => item.sceneObjectId === targetId)
+      : findNamedObject(snapshot, stringArg(args["name"]) ?? "");
+  if (object === undefined) {
+    return args;
+  }
+  return {
+    ...args,
+    targetId: object.sceneObjectId,
+    yaw: yawToward(player, object.transform.position),
+  };
+}
+
+function yawToward(
+  from: { x: number; z: number },
+  to: { x: number; z: number },
+): number {
+  return Math.atan2(to.x - from.x, to.z - from.z);
+}
+
+/**
+ * zh: 只有带包内 assetHash 的空间壳来源才能把 claimsWorldModelGeneration 置 true；物件 TripoSR 永远是 false。
+ * en: Only a space-shell provenance with a pack assetHash may set claimsWorldModelGeneration true;
+ *     per-object TripoSR is always false.
+ */
+function generationControlPayload(input: {
+  mode: "create" | "extend";
+  objectId?: string;
+  objectIds?: string[];
+  camera: { position: { x: number; y: number; z: number }; yaw: number };
+  worldModel?: WorldModelSource;
+}): Record<string, unknown> {
+  const claims =
+    input.worldModel !== undefined &&
+    typeof input.worldModel.assetHash === "string" &&
+    input.worldModel.assetHash.length > 0;
+  return {
+    mode: input.mode,
+    ...(input.objectId !== undefined ? { objectId: input.objectId } : {}),
+    ...(input.objectIds !== undefined && input.objectIds.length > 0
+      ? { objectIds: input.objectIds }
+      : {}),
+    camera: input.camera,
+    backend: claims ? "http-space-shell+http-native-mesh" : "http-native-mesh",
+    claimsWorldModelGeneration: claims,
+    ...(claims ? { worldModel: input.worldModel } : {}),
+  };
+}
+
+function shellHashFromStaged(
+  shellObjectId: string,
+  objects: SceneObject[],
+  staged: Array<{ posixPath: string; hash: string }>,
+): string | undefined {
+  const shell = objects.find((object) => object.sceneObjectId === shellObjectId);
+  if (shell === undefined) {
+    return undefined;
+  }
+  const ref = shell.assetRefs.find((item) => /\.glb$/i.test(item));
+  if (ref === undefined) {
+    return undefined;
+  }
+  return staged.find((item) => item.posixPath === ref)?.hash;
 }
 
 function withNavigateDestination(

@@ -3,26 +3,20 @@ import { resolve } from "node:path";
 import { defineCommand, runMain } from "citty";
 import { loadConfig } from "../config.js";
 import { t } from "../i18n/index.js";
-import { attachCommand } from "./commands/attach.js";
 import { chatCommand } from "./commands/chat.js";
-import { exportCommand } from "./commands/export.js";
-import { goCommand } from "./commands/go.js";
+import { legacyCommand } from "./commands/legacy.js";
 import { lookCommand } from "./commands/look.js";
 import { mcpCommand } from "./commands/mcp.js";
 import { newCommand } from "./commands/new.js";
-import { queryCommand } from "./commands/query.js";
-import { relateCommand } from "./commands/relate.js";
 import { rememberCommand } from "./commands/remember.js";
-import { sayCommand } from "./commands/say.js";
 import { serveCommand } from "./commands/serve.js";
 import { sessionsCommand } from "./commands/sessions.js";
-import { spawnCommand } from "./commands/spawn.js";
 
 const lang = loadConfig().lang;
 
 /**
- * zh: 龙骨 CLI 根命令。
- * en: Carina CLI root command.
+ * zh: 龙骨 CLI 根命令。产品入口是 new / serve / chat；图谱工具在 legacy 下。
+ * en: Carina CLI root. Product path is new / serve / chat; graph tools live under legacy.
  */
 export const main = defineCommand({
   meta: {
@@ -35,16 +29,10 @@ export const main = defineCommand({
     serve: serveCommand,
     sessions: sessionsCommand,
     chat: chatCommand,
-    query: queryCommand,
-    spawn: spawnCommand,
-    relate: relateCommand,
     look: lookCommand,
-    go: goCommand,
-    say: sayCommand,
     remember: rememberCommand,
-    attach: attachCommand,
-    export: exportCommand,
     mcp: mcpCommand,
+    legacy: legacyCommand,
   },
 });
 

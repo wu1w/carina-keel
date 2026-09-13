@@ -1,15 +1,15 @@
 import { defineCommand } from "citty";
 import { loadConfig } from "../../config.js";
 import { t } from "../../i18n/index.js";
-import { requirePackPath, resolveConfig } from "../resolve-config.js";
-import { printStatus, runSafely } from "../run-safely.js";
+import { runSafely } from "../run-safely.js";
 import { createToolContext, executeTool } from "../tool-session.js";
+import { runWithLegacyPack } from "../legacy-pack.js";
 
 const lang = loadConfig().lang;
 
 /**
- * zh: 把包内文件绑到节点。直连 tools，不经 daemon。
- * en: Attach a pack file to a node. Calls tools directly, no daemon.
+ * zh: 把包内文件绑到节点。遗留图谱工具，需要世界包。
+ * en: Attach a pack file to a node. Legacy graph tool; needs a pack.
  */
 export const attachCommand = defineCommand({
   meta: {
@@ -39,32 +39,25 @@ export const attachCommand = defineCommand({
   },
   async run({ args }) {
     await runSafely(lang, async () => {
-      const config = resolveConfig(args.pack);
-      let packDir: string;
-      try {
-        packDir = requirePackPath(config);
-      } catch {
-        printStatus("cli.needPack", lang);
-        process.exitCode = 1;
-        return;
-      }
-      const ctx = await createToolContext(packDir, config.lang);
-      const input: {
-        nodeId: string;
-        posixPath: string;
-        kind?: string;
-      } = {
-        nodeId: args.nodeId,
-        posixPath: args.posixPath,
-      };
-      if (args.kind !== undefined && args.kind !== "") {
-        input.kind = args.kind;
-      }
-      const result = await executeTool("attach", input, ctx);
-      console.log(result.summary);
-      if (result.data !== undefined) {
-        console.log(JSON.stringify(result.data, null, 2));
-      }
+      await runWithLegacyPack(args.pack, async (packDir, config) => {
+        const ctx = await createToolContext(packDir, config.lang);
+        const input: {
+          nodeId: string;
+          posixPath: string;
+          kind?: string;
+        } = {
+          nodeId: args.nodeId,
+          posixPath: args.posixPath,
+        };
+        if (args.kind !== undefined && args.kind !== "") {
+          input.kind = args.kind;
+        }
+        const result = await executeTool("attach", input, ctx);
+        console.log(result.summary);
+        if (result.data !== undefined) {
+          console.log(JSON.stringify(result.data, null, 2));
+        }
+      });
     });
   },
 });

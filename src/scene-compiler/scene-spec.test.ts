@@ -6,8 +6,10 @@ import {
   applySceneSpecCalibrate,
   applySceneSpecExtend,
   compileSceneSpec,
+  firstExtendGenerateObject,
   firstGenerateObject,
   heuristicSceneSpec,
+  interiorGenerateObjects,
 } from "./compile-scene-spec.js";
 
 function testConfig(extra: Partial<CarinaConfig> = {}): CarinaConfig {
@@ -40,17 +42,47 @@ test("heuristic tavern prompt has interior, generate route, heuristic-plan", () 
     spec.objects.some((object) => object.objectId === "bar-front"),
     true,
   );
+  assert.equal(
+    spec.objects.some((object) => object.objectId === "window"),
+    true,
+  );
   assert.equal(firstGenerateObject(spec)?.objectId, "bar-front");
   const width = spec.bounds.max.x - spec.bounds.min.x;
   const depth = spec.bounds.max.z - spec.bounds.min.z;
   assert.equal(width, 12);
   assert.equal(depth, 10);
   assert.equal(spec.coordinateFrame.units, "meters");
+  assert.equal(
+    spec.objects.some((object) => object.objectId === "fireplace"),
+    false,
+  );
+  assert.deepEqual(
+    interiorGenerateObjects(spec).map((object) => object.objectId),
+    ["bar-front"],
+  );
   const again = heuristicSceneSpec({
     prompt: "雨夜湖边酒馆，旧木吧台",
     name: "酒馆",
   });
   assert.deepEqual(again, spec);
+});
+
+/**
+ * zh: NG-1 提示里的壁炉是第二个室内 generate，不是目录件。
+ * en: A fireplace in the NG-1 prompt is a second interior generate, not a catalog piece.
+ */
+test("heuristic fireplace prompt plans a generate fireplace behind the bar", () => {
+  const spec = heuristicSceneSpec({
+    prompt: "雨夜湖边酒馆，暖色壁炉、旧木吧台",
+    name: "酒馆",
+  });
+  const fire = spec.objects.find((object) => object.objectId === "fireplace");
+  assert.ok(fire !== undefined);
+  assert.equal(fire!.route, "generate");
+  assert.deepEqual(
+    interiorGenerateObjects(spec).map((object) => object.objectId),
+    ["bar-front", "fireplace"],
+  );
 });
 
 /**
@@ -201,9 +233,9 @@ test("applySceneSpecExtend adds courtyard beside interior and keeps bar-front", 
   const courtyard = patched.regions.find((region) => region.kind === "courtyard");
   assert.ok(courtyard !== undefined);
   assert.ok(courtyard.bounds !== undefined);
-  assert.equal(courtyard.bounds.min.x, interior.bounds?.max.x);
-  assert.equal(courtyard.bounds.min.z, interior.bounds?.min.z);
-  assert.equal(courtyard.bounds.max.z, interior.bounds?.max.z);
+  assert.equal(courtyard.bounds.max.z, interior.bounds?.min.z);
+  assert.equal(courtyard.bounds.min.x, interior.bounds?.min.x);
+  assert.equal(courtyard.bounds.max.x, interior.bounds?.max.x);
   for (const id of beforeIds) {
     const original = spec.objects.find((object) => object.objectId === id);
     const kept = patched.objects.find((object) => object.objectId === id);
@@ -218,6 +250,11 @@ test("applySceneSpecExtend adds courtyard beside interior and keeps bar-front", 
   const gate = patched.objects.find((object) => object.objectId === "garden-gate");
   assert.ok(gate !== undefined);
   assert.equal(gate.route === "scaffold" || gate.route === "generate", true);
+  const feature = firstExtendGenerateObject(patched);
+  assert.ok(feature !== undefined);
+  assert.equal(feature.objectId, "courtyard-feature");
+  assert.equal(feature.route, "generate");
+  assert.notEqual(firstGenerateObject(patched)?.objectId, "courtyard-feature");
   const again = applySceneSpecExtend(patched);
   assert.equal(again, patched);
 });

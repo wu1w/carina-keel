@@ -1,0 +1,46 @@
+{
+  "probe": "play-look",
+  "at": "2026-09-13T04:04:12.000Z",
+  "honesty": {
+    "note": "POST /v1/host/look rotates the possessed pawn in place. No teleport, not Cheat Walk, not a P1 pass, not a reconstructed room.",
+    "p1Pass": false,
+    "claimsGeneratedLighting": false,
+    "claimsWorldModelGeneration": false
+  },
+  "lookYawRad0": {
+    "ok": true,
+    "hidePawn": false,
+    "yawUeDeg": 90.0,
+    "pawn": {
+      "x": 600,
+      "y": 500,
+      "z": 99.65000149268896,
+      "yaw": 89.99999999999999,
+      "possessed": true,
+      "movementMode": 1
+    }
+  },
+  "restoreDoorYaw": {
+    "ok": true,
+    "yawUeDeg": -90.0,
+    "pawn": {
+      "x": 600,
+      "y": 500,
+      "z": 99.65000149268896,
+      "yaw": -90.00000000000001,
+      "name": "BP_ThirdPersonCharacter_C_2147482384",
+      "possessed": true,
+      "collision": true,
+      "movementMode": 1,
+      "cheatFlying": false,
+      "gravityScale": 1
+    }
+  },
+  "verdict": {
+    "rotatedInPlace": true,
+    "stayedOnScaffold": true,
+    "stayedWalking": true,
+    "neverClaimsP1": true,
+    "p1Pass": false
+  }
+}

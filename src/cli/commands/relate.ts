@@ -2,9 +2,9 @@ import { defineCommand } from "citty";
 import { loadConfig } from "../../config.js";
 import { t } from "../../i18n/index.js";
 import { EdgeType } from "../../schema/index.js";
-import { requirePackPath, resolveConfig } from "../resolve-config.js";
-import { printStatus, runSafely } from "../run-safely.js";
+import { runSafely } from "../run-safely.js";
 import { createToolContext, executeTool } from "../tool-session.js";
+import { runWithLegacyPack } from "../legacy-pack.js";
 
 const lang = loadConfig().lang;
 
@@ -19,8 +19,8 @@ const EDGE_OPTIONS = [
 ] as const;
 
 /**
- * zh: 添加或撤销边。直连 tools。
- * en: Add or retract an edge. Calls tools directly.
+ * zh: 添加或撤销边。遗留图谱工具，需要世界包。
+ * en: Add or retract an edge. Legacy graph tool; needs a pack.
  */
 export const relateCommand = defineCommand({
   meta: {
@@ -56,34 +56,27 @@ export const relateCommand = defineCommand({
   },
   async run({ args }) {
     await runSafely(lang, async () => {
-      const config = resolveConfig(args.pack);
-      let packDir: string;
-      try {
-        packDir = requirePackPath(config);
-      } catch {
-        printStatus("cli.needPack", lang);
-        process.exitCode = 1;
-        return;
-      }
-      const ctx = await createToolContext(packDir, config.lang);
-      const input: {
-        fromId: string;
-        toId: string;
-        type: (typeof EDGE_OPTIONS)[number];
-        retract?: boolean;
-      } = {
-        fromId: args.from,
-        toId: args.to,
-        type: args.type,
-      };
-      if (args.retract === true) {
-        input.retract = true;
-      }
-      const result = await executeTool("relate", input, ctx);
-      console.log(result.summary);
-      if (result.data !== undefined) {
-        console.log(JSON.stringify(result.data, null, 2));
-      }
+      await runWithLegacyPack(args.pack, async (packDir, config) => {
+        const ctx = await createToolContext(packDir, config.lang);
+        const input: {
+          fromId: string;
+          toId: string;
+          type: (typeof EDGE_OPTIONS)[number];
+          retract?: boolean;
+        } = {
+          fromId: args.from,
+          toId: args.to,
+          type: args.type,
+        };
+        if (args.retract === true) {
+          input.retract = true;
+        }
+        const result = await executeTool("relate", input, ctx);
+        console.log(result.summary);
+        if (result.data !== undefined) {
+          console.log(JSON.stringify(result.data, null, 2));
+        }
+      });
     });
   },
 });

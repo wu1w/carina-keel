@@ -80,9 +80,19 @@ export function createHttpApp(
           config.meshProviderUrl !== undefined && config.meshProviderUrl.length > 0
             ? "http"
             : "unset",
+        /**
+         * zh: 只报合同是否接上（http-space-shell），不报「已生成」。每个世界是否真有壳看 create 回执与 assetPlan.worldModel。
+         * en: Reports only whether the contract is wired (http-space-shell), never "generated". Per-world
+         *     truth lives in the create receipt and assetPlan.worldModel.
+         */
         worldModel:
+          config.spaceProviderUrl !== undefined && config.spaceProviderUrl.length > 0
+            ? "http-space-shell"
+            : "unset",
+        spaceProvider: Boolean(config.spaceProviderUrl),
+        observation:
           config.rendererUrl !== undefined && config.rendererUrl.length > 0
-            ? "lingbot-still-observation"
+            ? "lingbot-still"
             : "unset",
       },
     }),

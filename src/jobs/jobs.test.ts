@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { createJobQueue } from "./queue.js";
 
 /**
@@ -81,4 +84,55 @@ test("cancel queued jobs and stop-commit succeeded jobs", () => {
   const stopCommit = queue.cancel(done.jobId);
   assert.equal(stopCommit.status, "succeeded");
   assert.equal(stopCommit.cancelCapability, "stop_commit");
+});
+
+/**
+ * zh: mark 写回队列；落盘后新队列能读到已成功任务，运行中任务不得再提交。
+ * en: mark writes through; a new queue reloads successes and must not commit in-flight jobs.
+ */
+test("persisted jobs reload; in-flight jobs fail and are not applicable", async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "carina-jobs-"));
+  const persistPath = path.join(dataDir, "jobs.json");
+  const readSet = { regionRevisions: { interior: "rev1" }, objectVersions: {} };
+  try {
+    const live = createJobQueue({ persistPath });
+    const queued = live.enqueue({
+      worldId: "w1",
+      purpose: "edit",
+      baseRevision: "rev1",
+      readSet,
+      controlEpoch: 0,
+      autoComplete: false,
+    });
+    assert.equal(queued.status, "queued");
+    const marked = live.mark(queued.jobId, "succeeded", { progress: 1 });
+    assert.equal(marked?.status, "succeeded");
+    assert.equal(live.observe(queued.jobId)?.status, "succeeded");
+
+    const stillRunning = live.enqueue({
+      worldId: "w1",
+      purpose: "edit",
+      baseRevision: "rev1",
+      readSet,
+      controlEpoch: 0,
+      autoComplete: false,
+    });
+    live.mark(stillRunning.jobId, "running");
+
+    const reloaded = createJobQueue({ persistPath });
+    assert.equal(reloaded.observe(queued.jobId)?.status, "succeeded");
+    const interrupted = reloaded.observe(stillRunning.jobId);
+    assert.equal(interrupted?.status, "failed");
+    assert.equal(interrupted?.errorKey, "error.jobInterrupted");
+    assert.equal(
+      reloaded.isResultApplicable(interrupted!, {
+        controlEpoch: 0,
+        headRevision: "rev1",
+        readSet,
+      }),
+      false,
+    );
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
 });

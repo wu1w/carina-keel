@@ -1,0 +1,151 @@
+{
+  "probe": "ng1-space-shell-refit",
+  "at": "2026-09-13T03:02:13.195Z",
+  "honesty": {
+    "coverage": "single-viewpoint",
+    "note": "Same WorldGen GLB, new scenespec-aabb transform. Not a new generate, not a walkable reconstructed room, not an A3 story pass.",
+    "sameAssetHash": true,
+    "newWorldGenRun": false,
+    "claimsWorldModelGeneration": true,
+    "a3Pass": false
+  },
+  "pack": {
+    "dataDir": "/tmp/carina-ng1-space",
+    "worldId": "01M2B71PMCBJP585C4F4Z2N400",
+    "objectId": "interior-space-shell",
+    "assetHash": "2cbef0554ec45f73b9a0df2b8f953f466aba31917ea85b728b6fb06ab2d60c87",
+    "byteLength": 16188080
+  },
+  "region": {
+    "regionId": "interior",
+    "bounds": {
+      "min": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "max": {
+        "x": 12,
+        "y": 4,
+        "z": 10
+      }
+    }
+  },
+  "before": {
+    "pack": {
+      "transform": {
+        "position": {
+          "x": 6.009665404305971,
+          "y": 0.061443669473822744,
+          "z": 2.0221917537407403
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 2.178906449283946,
+          "y": 2.178906449283946,
+          "z": 2.178906449283946
+        }
+      },
+      "bounds": {
+        "min": {
+          "x": 0.7690983068191439,
+          "y": 0,
+          "z": 4.440892098500626e-16
+        },
+        "max": {
+          "x": 11.230901693180854,
+          "y": 7.384327590165558,
+          "z": 10
+        }
+      }
+    },
+    "live": {
+      "transform": {
+        "position": {
+          "x": 6.009665404305971,
+          "y": 0.061443669473822744,
+          "z": 2.0221917537407403
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "scale": {
+          "x": 2.178906449283946,
+          "y": 2.178906449283946,
+          "z": 2.178906449283946
+        }
+      }
+    }
+  },
+  "fit": {
+    "method": "scenespec-aabb",
+    "uniformScale": 1.1802869917016205,
+    "transform": {
+      "position": {
+        "x": 6.005235631376292,
+        "y": 0.03328328475332182,
+        "z": 3.386957669524249
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": {
+        "x": 1.1802869917016205,
+        "y": 1.1802869917016205,
+        "z": 1.1802869917016205
+      }
+    },
+    "bounds": {
+      "min": {
+        "x": 3.1664844879594094,
+        "y": 0,
+        "z": 2.2915611129392497
+      },
+      "max": {
+        "x": 8.833515512040591,
+        "y": 3.9999999999999996,
+        "z": 7.70843888706075
+      }
+    }
+  },
+  "live": {
+    "ok": true,
+    "httpStatus": 200,
+    "appliedRevision": "wr-01m2cbe7rdah",
+    "transform": {
+      "position": {
+        "x": 6.005235631376292,
+        "y": 0.03328328475332182,
+        "z": 3.386957669524249
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": {
+        "x": 1.1802869917016205,
+        "y": 1.1802869917016205,
+        "z": 1.1802869917016205
+      }
+    },
+    "moveMs": 0.019800005247816443,
+    "ms": 191
+  },
+  "verdict": {
+    "sameAssetHash": true,
+    "methodIsAabb": true,
+    "liveScaleMatchesFit": true,
+    "heightInsideRegion": true,
+    "a3Pass": false,
+    "claimsWorldModelGeneration": true
+  }
+}

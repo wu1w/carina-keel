@@ -18,8 +18,8 @@ const outDir = path.join(
   "docs/benchmarks/windows-rtx5070ti/validation/blender-export",
 );
 
-function config(dataDir: string): CarinaConfig {
-  return {
+function config(dataDir: string, meshProviderUrl: string): CarinaConfig {
+  const base: CarinaConfig = {
     apiKey: undefined,
     model: "gpt-4o-mini",
     modelBaseUrl: "https://api.openai.com/v1",
@@ -29,6 +29,10 @@ function config(dataDir: string): CarinaConfig {
     lang: "zh",
     dataDir,
   };
+  if (meshProviderUrl.length > 0) {
+    return { ...base, meshProviderUrl };
+  }
+  return base;
 }
 
 function command(
@@ -64,7 +68,7 @@ async function main(): Promise<void> {
   const dataDir = path.join(outDir, "data");
   await mkdir(dataDir, { recursive: true });
   const meshProviderUrl = process.env["CARINA_MESH_PROVIDER_URL"]?.trim() ?? "";
-  const app = createApplication(config(dataDir));
+  const app = createApplication(config(dataDir, meshProviderUrl));
   try {
     const created = await app.interpretAndDispatch(
       "新建一个湖边酒馆，旧木吧台",

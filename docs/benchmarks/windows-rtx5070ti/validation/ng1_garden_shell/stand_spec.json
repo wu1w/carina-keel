@@ -1,0 +1,34 @@
+{
+  "views": [
+    {
+      "name": "door_inside_to_garden",
+      "loc": [6, 1.6, 1.2],
+      "rot": { "pitch": -8, "yaw": -90, "roll": 0 }
+    },
+    {
+      "name": "seam_at_door",
+      "loc": [6, 1.6, 0.2],
+      "rot": { "pitch": -10, "yaw": -90, "roll": 0 }
+    },
+    {
+      "name": "garden_back_to_door",
+      "loc": [6, 1.6, -6.5],
+      "rot": { "pitch": -6, "yaw": 90, "roll": 0 }
+    }
+  ],
+  "standTests": [
+    {
+      "name": "garden_floor_drop",
+      "drop": [3, 3, -5],
+      "rot": { "pitch": -20, "yaw": 90, "roll": 0 },
+      "springArmLength": 350
+    },
+    {
+      "name": "seam_drop",
+      "drop": [6, 2.5, -0.6],
+      "rot": { "pitch": -15, "yaw": 0, "roll": 0 },
+      "springArmLength": 280
+    }
+  ],
+  "wireOverhead": { "loc": [6, 14, -1], "pitch": -89 }
+}

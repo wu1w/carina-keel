@@ -30,6 +30,7 @@ function testConfig(dataDir: string): CarinaConfig {
     pack: undefined,
     lang: "zh",
     dataDir,
+    allowPrimitiveFixture: true,
   };
 }
 

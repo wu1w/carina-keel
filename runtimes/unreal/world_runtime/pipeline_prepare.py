@@ -3,13 +3,23 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import time
 from pathlib import Path
 from typing import Any
 
-from . import config
-from .asset_registry import load_registry, save_registry, safe_label_from_meta, verify_upload
+try:
+    from . import config
+    from .asset_registry import load_registry, save_registry, safe_label_from_meta, verify_upload
+except ImportError:  # script tests run from this directory
+    import config  # type: ignore
+    from asset_registry import (  # type: ignore
+        load_registry,
+        save_registry,
+        safe_label_from_meta,
+        verify_upload,
+    )
 
 
 def _run(cmd: list[str], log_path: Path, timeout: int = 600) -> tuple[int, float]:
@@ -30,7 +40,25 @@ def _sha256_file(p: Path) -> str:
     return h.hexdigest()
 
 
-def prepare_asset(asset_id: str, asset_hash: str) -> dict[str, Any]:
+def _preferred_mesh(label: str, meshes: list[dict[str, str]]) -> dict[str, str]:
+    """Prefer the uniquely named StaticMesh; leftover Interchange `asset` collides in IoStore."""
+    labeled = next((m for m in meshes if m.get("name") == label), None)
+    if labeled is not None:
+        return labeled
+    unique = next(
+        (
+            m
+            for m in meshes
+            if m.get("name") != "asset" and "StaticMeshes" in m["softObjectPath"]
+        ),
+        None,
+    )
+    if unique is not None:
+        return unique
+    return next((m for m in meshes if "StaticMeshes" in m["softObjectPath"]), meshes[0])
+
+
+def prepare_asset(asset_id: str, asset_hash: str, *, force: bool = False) -> dict[str, Any]:
     config.ensure_dirs()
     verified = verify_upload(asset_id, asset_hash)
     meta = verified["meta"]
@@ -38,15 +66,27 @@ def prepare_asset(asset_id: str, asset_hash: str) -> dict[str, Any]:
     label = safe_label_from_meta(meta, asset_id)
     dest_content = f"/Game/Imported/Dynamic/{label}"
     soft_mesh = f"/Game/Imported/Dynamic/{label}/{label}/StaticMeshes/{label}"
+    # Interchange names the mesh from the source filename. Keep asset.glb on disk;
+    # import a uniquely named copy so two featured GLBs do not both become `asset`.
+    import_glb = glb_path.with_name(f"{label}.glb")
+    if import_glb.resolve() != glb_path.resolve():
+        shutil.copy2(glb_path, import_glb)
+        glb_path = import_glb
     # Interchange often nests as Dest/Stem/...
     art = config.ARTIFACTS_DIR / asset_hash
     art.mkdir(parents=True, exist_ok=True)
     timings: dict[str, float] = {}
 
-    # Skip re-import if registry already has successful prepare for this hash
+    # Skip re-import if registry already has successful prepare for this hash.
+    # force=True re-runs Interchange + Unlit→Opaque reparent (same GLB, not a new generate).
     reg = load_registry()
     existing = reg.get("byHash", {}).get(asset_hash)
-    if existing and existing.get("prepareOk") and (art / "iostore" / f"CarinaPS-Windows_{label}.utoc").is_file():
+    if (
+        not force
+        and existing
+        and existing.get("prepareOk")
+        and (art / "iostore" / f"CarinaPS-Windows_{label}.utoc").is_file()
+    ):
         return {
             "assetId": asset_id,
             "assetHash": asset_hash,
@@ -129,7 +169,7 @@ def prepare_asset(asset_id: str, asset_hash: str) -> dict[str, Any]:
     if not meshes:
         raise RuntimeError(f"No imported uasset under {content_fs}; import log {import_log}")
 
-    preferred = next((m for m in meshes if "StaticMeshes" in m["softObjectPath"]), meshes[0])
+    preferred = _preferred_mesh(label, meshes)
     soft_mesh = preferred["softObjectPath"]
 
     cook_log = config.LOGS_DIR / f"ue02_prepare_cook_{label}.log"
@@ -183,6 +223,10 @@ def prepare_asset(asset_id: str, asset_hash: str) -> dict[str, Any]:
     classic_list = resp_dir / f"PakList_{label}.txt"
     classic_list.write_text("\n".join(lines) + "\n", encoding="utf-8")
     classic_pak = out_paks / f"z_{container_name}.pak"
+    ucas_out = out_paks / f"{container_name}.ucas"
+    for stale in (classic_pak, utoc_out, ucas_out):
+        if stale.is_file():
+            stale.unlink()
     pak_log = config.LOGS_DIR / f"ue02_prepare_pak_{label}.log"
     pak_cmd = [
         str(config.UE_PAK),

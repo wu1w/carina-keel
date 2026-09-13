@@ -119,7 +119,19 @@ def verify_upload(asset_id: str, asset_hash: str) -> dict[str, Any]:
 
 
 def safe_label_from_meta(meta: dict[str, Any], asset_id: str) -> str:
+    """Label drives /Game/Imported/Dynamic/{label} and the CarinaPS-Windows_{label} side container.
+
+    It must be unique per *content*, not per filename: two bar-front GLBs with different hashes
+    used to share `bar_front`, so the second prepare overwrote the first's cooked packages and
+    install overwrote a live container's .pak while its .utoc/.ucas stayed locked by the streamer
+    (observed 2026-09-13, a7_live_rollback.json). Suffix the stem with the assetId prefix.
+    """
     name = meta.get("originalFilename") or asset_id
     stem = Path(str(name)).stem
-    stem = re.sub(r"[^A-Za-z0-9_]", "_", stem)[:48]
-    return stem or asset_id
+    stem = re.sub(r"[^A-Za-z0-9_]", "_", stem)[:40]
+    suffix = re.sub(r"[^A-Za-z0-9_]", "_", str(asset_id))[:8]
+    if not stem:
+        return str(asset_id)
+    if not suffix:
+        return stem
+    return f"{stem}_{suffix}"

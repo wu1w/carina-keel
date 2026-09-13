@@ -7,26 +7,26 @@ import {
 import type { GenerationProvider } from "./types.js";
 
 /**
- * zh: Mock 原生网格提供者：立即返回可玩酒馆候选。
- * en: Mock native-mesh provider: immediately returns a playable tavern candidate.
+ * zh: 程序酒馆夹具。忽略计划文本，立刻返回同一座盒子酒馆。不是世界模型，不得标 nativeMesh。
+ * en: Primitive tavern fixture. Ignores plan text and returns the same box tavern. Not a world model; must not set nativeMesh.
  */
 export function createMockProvider(): GenerationProvider {
   return {
     getCapabilities() {
       return {
-        id: "mock-native-mesh",
-        name: "Mock native mesh",
-        text: true,
-        imageReference: true,
-        depthReference: true,
-        cameraControl: true,
-        actionControl: true,
+        id: "fixture-primitive-tavern",
+        name: "Primitive tavern fixture (not a world model)",
+        text: false,
+        imageReference: false,
+        depthReference: false,
+        cameraControl: false,
+        actionControl: false,
         continuous: false,
         cancel: true,
-        localEdit: true,
-        nativeMesh: true,
+        localEdit: false,
+        nativeMesh: false,
         videoOnly: false,
-        spatialExport: true,
+        spatialExport: false,
         resume: false,
         legacy: false,
       };

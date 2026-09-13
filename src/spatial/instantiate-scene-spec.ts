@@ -23,7 +23,7 @@ export function instantiateSceneSpecScaffolds(
     if (existingIds.has(item.objectId) || existingNames.has(item.name)) {
       continue;
     }
-    if (!shouldInstantiate(item, spec)) {
+    if (!shouldInstantiate(item, spec, existingIds)) {
       continue;
     }
     const object = sceneObjectFromPlan(item);
@@ -77,15 +77,51 @@ export function mergeSceneSpecScaffolds(
 export function objectsForModelExport(snapshot: WorldSnapshot): SceneObject[] {
   const spec = snapshot.sceneSpec;
   if (spec === undefined) {
-    return snapshot.objects;
+    return dropTwinBar(snapshot.objects);
   }
-  return [
+  return dropTwinBar([
     ...snapshot.objects,
     ...instantiateSceneSpecScaffolds(spec, snapshot.objects),
-  ];
+  ]);
 }
 
-function shouldInstantiate(item: SceneSpecObject, spec: SceneSpec): boolean {
+/**
+ * zh: 已有吧台正面生成网格时丢掉 reuse 吧台双胞胎。不是世界模型。
+ * en: Drop the reuse bar twin when bar-front already has a generated mesh. Not a world model.
+ */
+export function dropTwinBar(objects: SceneObject[]): SceneObject[] {
+  const featured = objects.find((object) => object.sceneObjectId === "bar-front");
+  if (featured === undefined) {
+    return objects;
+  }
+  return objects.filter((object) => object.sceneObjectId !== "bar");
+}
+
+/**
+ * zh: 已有吧台正面时从区域引用里去掉 reuse 吧台。
+ * en: Drop the reuse bar from region refs when bar-front exists.
+ */
+export function dropTwinBarRegions(
+  regions: RegionRevision[],
+  objects: SceneObject[],
+): RegionRevision[] {
+  if (!objects.some((object) => object.sceneObjectId === "bar-front")) {
+    return regions;
+  }
+  return regions.map((region) => ({
+    ...region,
+    objectRefs: region.objectRefs.filter((id) => id !== "bar"),
+  }));
+}
+
+function shouldInstantiate(
+  item: SceneSpecObject,
+  spec: SceneSpec,
+  existingIds: ReadonlySet<string>,
+): boolean {
+  if (item.objectId === "bar" && existingIds.has("bar-front")) {
+    return false;
+  }
   if (item.objectId === "garden-gate") {
     return spec.regions.some((region) => region.kind === "courtyard");
   }

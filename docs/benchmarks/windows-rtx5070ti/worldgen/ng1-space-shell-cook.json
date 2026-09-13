@@ -1,0 +1,66 @@
+{
+  "probe": "ng1-space-shell-cook",
+  "at": "2026-09-13T00:12:12.472Z",
+  "honesty": {
+    "coverage": "single-viewpoint",
+    "note": "Cooked the committed WorldGen shell as a visual overlay. Not a walkable multi-view reconstruction."
+  },
+  "pack": {
+    "dataDir": "/tmp/carina-ng1-space",
+    "worldId": "01M2B71PMCBJP585C4F4Z2N400",
+    "objectId": "interior-space-shell",
+    "assetHash": "2cbef0554ec45f73b9a0df2b8f953f466aba31917ea85b728b6fb06ab2d60c87",
+    "byteLength": 16188080
+  },
+  "source": {
+    "provider": "worldgen-flux-pano-da2",
+    "kind": "space-shell",
+    "jobId": "57b4c8c43f4a4c2fa1395bf4f006b023",
+    "objectId": "interior-space-shell",
+    "coverage": "single-viewpoint",
+    "scale": {
+      "method": "camera-height-prior",
+      "factor": 0.20643210382083346,
+      "confidence": "low"
+    },
+    "panorama": "FLUX.1-dev (nunchaku-tech/nunchaku-flux.1-dev svdq-fp4) + LeoXie/WorldGen/models--WorldGen-Flux-Lora/worldgen_text2scene.safetensors",
+    "depth": "haodongli/DA-2 (SphereViT, 360 depth)",
+    "prompt": "interior of a old tavern, first-person eye-level view standing inside the room, lakeside, view of a lake through the windows, rainy night, rain on the windows, warm glowing stone fireplace, old wooden bar counter with space to walk behind it, worn old wood, wooden beams, warm lighting, windows, wooden tables, wooden chairs",
+    "sceneDescription": "新建一个雨夜湖边酒馆，暖色壁炉、旧木吧台，能走到吧台后面",
+    "seed": 42
+  },
+  "publishResult": {
+    "ok": true,
+    "cooked": true,
+    "spawned": [
+      "interior-space-shell"
+    ],
+    "uploads": [
+      {
+        "assetId": "2cbef0554ec45f73",
+        "assetHash": "2cbef0554ec45f73b9a0df2b8f953f466aba31917ea85b728b6fb06ab2d60c87",
+        "sourceLabel": "worldgen-flux-pano-da2",
+        "claimsWorldModelGeneration": true
+      }
+    ],
+    "ms": 92796
+  },
+  "live": {
+    "appliedRevision": "wr-7ede727f7925",
+    "objects": [
+      "bar-front",
+      "fireplace",
+      "courtyard-feature",
+      "interior-garden-floor",
+      "interior-garden-wall-west",
+      "interior-garden-wall-east",
+      "interior-garden-wall-south",
+      "ng1-i23d-npc-keeper",
+      "interior-space-shell"
+    ]
+  },
+  "verdict": {
+    "cookedAndSpawned": true,
+    "claimsWorldModelGeneration": true
+  }
+}

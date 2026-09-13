@@ -9,7 +9,7 @@ import { loadConfig } from "../config.js";
 import { CarinaError } from "../errors.js";
 import { wrapProvider } from "../application/load-deps.js";
 import { METRIC_Y_UP } from "../spatial/metric-frame.js";
-import { heuristicSceneSpec } from "../scene-compiler/index.js";
+import { applySceneSpecExtend, heuristicSceneSpec } from "../scene-compiler/index.js";
 import type { GenerationPlan } from "../schema/index.js";
 import {
   BAR_COUNTER_SOURCE,
@@ -32,10 +32,11 @@ test("HTTP adapter nativeMesh is true and LingBot stays false", () => {
   assert.equal(http.getCapabilities().nativeMesh, true);
   assert.equal(http.getCapabilities().videoOnly, false);
   assert.equal(http.getCapabilities().id, "http-native-mesh");
-  assert.equal(http.getCapabilities().cameraControl, false);
+  assert.equal(http.getCapabilities().cameraControl, true);
   assert.equal(lingbot.getCapabilities().nativeMesh, false);
   assert.equal(lingbot.getCapabilities().videoOnly, true);
-  assert.equal(mock.getCapabilities().nativeMesh, true);
+  assert.equal(mock.getCapabilities().nativeMesh, false);
+  assert.equal(mock.getCapabilities().id, "fixture-primitive-tavern");
 });
 
 /**
@@ -203,11 +204,33 @@ test("HTTP adapter rejects corrupt and empty GLB", async () => {
 });
 
 /**
- * zh: 未设 URL 时 wrapProvider 仍走 mock。
- * en: wrapProvider still uses the mock when no URL is set.
+ * zh: 未设 URL 且未开夹具时 wrapProvider 不得交酒馆。
+ * en: wrapProvider without a URL or fixture must not return the tavern.
  */
-test("wrapProvider uses mock when mesh provider URL is unset", async () => {
+test("wrapProvider is UNSUPPORTED when mesh provider URL is unset", async () => {
   const provider = wrapProvider(loadConfig({}));
+  await assert.rejects(
+    () =>
+      provider.generateScene({
+        worldId: "w",
+        prompt: "tavern",
+        name: "酒馆",
+        purpose: "edit",
+      }),
+    (error: unknown) =>
+      error instanceof CarinaError && error.code === "UNSUPPORTED",
+  );
+});
+
+/**
+ * zh: 测试夹具仍可交程序酒馆，但不是 native-mesh 资产。
+ * en: The test fixture may still return the procedural tavern; it is not a native-mesh asset.
+ */
+test("wrapProvider uses fixture tavern only when opted in", async () => {
+  const provider = wrapProvider({
+    ...loadConfig({}),
+    allowPrimitiveFixture: true,
+  });
   const scene = await provider.generateScene({
     worldId: "w",
     prompt: "tavern",
@@ -329,6 +352,75 @@ test("HTTP POST includes SceneSpec generate target when extras are provided", as
       ),
       false,
     );
+  } finally {
+    await server.close();
+  }
+});
+
+/**
+ * zh: 扩展 POST 带 mode/camera/preserve/seam，物件是 courtyard-feature 不是 bar-front。
+ * en: Extend POST includes mode/camera/preserve/seam; the object is courtyard-feature, not the bar.
+ */
+test("HTTP POST extend extras target courtyard-feature not bar-front", async () => {
+  const glb = await makeBarCounterGlb();
+  const spec = applySceneSpecExtend(
+    heuristicSceneSpec({
+      prompt: "湖边酒馆，旧木吧台",
+      name: "酒馆",
+    }),
+  );
+  assert.ok(spec !== undefined);
+  const featured = spec.objects.find(
+    (object) => object.objectId === "courtyard-feature",
+  );
+  assert.ok(featured !== undefined);
+  let posted = "";
+  const server = await listenJson((req, res, body) => {
+    posted = body;
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(
+      JSON.stringify({
+        jobId: "job-extend",
+        source: BAR_COUNTER_SOURCE,
+        glbBase64: Buffer.from(glb).toString("base64"),
+      }),
+    );
+  });
+  try {
+    const provider = createHttpNativeMeshProvider({ url: server.url });
+    await provider.submitGeneration(samplePlan("courtyard garden"), {
+      sceneSpec: spec,
+      generateTarget: {
+        objectId: featured.objectId,
+        name: featured.name,
+        role: featured.role,
+        ...(featured.dimensions !== undefined
+          ? { dimensions: featured.dimensions }
+          : {}),
+        ...(featured.anchor !== undefined ? { anchor: featured.anchor } : {}),
+      },
+      mode: "extend",
+      camera: { position: { x: 6, y: 1.6, z: 2 }, yaw: 0 },
+      preserve: [{ posixPath: "assets/aaaa.glb", hash: "b".repeat(64) }],
+      seam: {
+        position: { x: 6, y: 0, z: 0 },
+        fromRegionId: "interior",
+        toRegionId: "interior-garden",
+      },
+    });
+    const parsed = JSON.parse(posted) as {
+      mode?: string;
+      objectId?: string;
+      camera?: { yaw?: number };
+      preserve?: Array<{ posixPath?: string }>;
+      seam?: { fromRegionId?: string };
+    };
+    assert.equal(parsed.mode, "extend");
+    assert.equal(parsed.objectId, "courtyard-feature");
+    assert.notEqual(parsed.objectId, "bar-front");
+    assert.equal(parsed.camera?.yaw, 0);
+    assert.equal(parsed.preserve?.[0]?.posixPath, "assets/aaaa.glb");
+    assert.equal(parsed.seam?.fromRegionId, "interior");
   } finally {
     await server.close();
   }

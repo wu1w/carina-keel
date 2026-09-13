@@ -38,6 +38,7 @@ function testConfig(
     pack: undefined,
     lang: "zh",
     dataDir,
+    allowPrimitiveFixture: true,
   };
   if (extra.meshProviderUrl !== undefined) {
     return { ...config, meshProviderUrl: extra.meshProviderUrl };
@@ -130,7 +131,7 @@ test("persisted SceneSpec drives native-mesh POST and attaches GLB to bar-front"
     assert.equal(created.accepted, true);
     const worldId = created.worldId;
     assert.ok(worldId !== undefined);
-    assert.equal(posts.length, 1);
+    assert.equal(posts.length, 4);
     const posted = JSON.parse(posts[0] ?? "{}") as {
       prompt?: string;
       sceneDescription?: string;
@@ -257,6 +258,91 @@ test("persisted SceneSpec drives native-mesh POST and attaches GLB to bar-front"
     } finally {
       await reopened.close();
     }
+  } finally {
+    await server.close();
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
+/**
+ * zh: 暖色壁炉计划要 POST bar-front 和 fireplace，GLB 挂到各自 objectId。
+ * en: A warm-fireplace plan POSTs bar-front and fireplace; each GLB attaches to its objectId.
+ */
+test("fireplace generate route POSTs a second featured mesh", async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "carina-fireplace-"));
+  const fixture = await makeBarCounterGlb();
+  const objectIds: string[] = [];
+  const server = await listenCapture((_req, res, body) => {
+    const posted = JSON.parse(body) as { objectId?: string };
+    if (typeof posted.objectId === "string") {
+      objectIds.push(posted.objectId);
+    }
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(
+      JSON.stringify({
+        jobId: `job-${String(objectIds.length)}`,
+        source: BAR_COUNTER_SOURCE,
+        glbBase64: Buffer.from(fixture).toString("base64"),
+      }),
+    );
+  });
+  try {
+    const app = createApplication(
+      testConfig(dataDir, { meshProviderUrl: server.url }),
+    );
+    const created = await app.dispatchCommand(
+      baseCommand("session.create", {
+        arguments: { name: "酒馆", prompt: "雨夜湖边酒馆，暖色壁炉、旧木吧台" },
+      }),
+    );
+    assert.equal(created.accepted, true);
+    const worldId = created.worldId;
+    assert.ok(worldId !== undefined);
+    assert.deepEqual(objectIds, [
+      "bar-front",
+      "fireplace",
+      "door",
+      "table",
+      "cup",
+    ]);
+    const view = await app.getSessionView(worldId);
+    const control = created.payload?.["generationControl"] as
+      | { objectIds?: string[] }
+      | undefined;
+    assert.deepEqual(control?.objectIds, [
+      "bar-front",
+      "fireplace",
+      "door",
+      "table",
+      "cup",
+    ]);
+    assert.equal(
+      view.snapshot.objects.some((item) => item.sceneObjectId === "bar"),
+      false,
+    );
+    assert.equal(
+      view.snapshot.objects.filter((item) => item.sceneObjectId === "fireplace")
+        .length,
+      1,
+    );
+    for (const objectId of ["bar-front", "fireplace"]) {
+      const object = view.snapshot.objects.find(
+        (item) => item.sceneObjectId === objectId,
+      );
+      assert.ok(object !== undefined);
+      assert.equal(
+        object.assetRefs.some((ref) => ref.endsWith(".glb")),
+        true,
+      );
+    }
+    const exported = await app.exportGlb(worldId);
+    const doc = await io.readBinary(exported.glb);
+    const names = doc.getRoot().listNodes().map((node) => node.getName());
+    assert.equal(names.includes("吧台"), false);
+    assert.equal(names.includes("壁炉"), true);
+    assert.equal(names.includes("吧台正面"), true);
+    assert.equal(names.includes("geometry_0"), false);
+    await app.close();
   } finally {
     await server.close();
     await rm(dataDir, { recursive: true, force: true });

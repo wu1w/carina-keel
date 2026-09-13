@@ -1,0 +1,23 @@
+{
+  "notWorldModel": true,
+  "claimsWorldModelGeneration": false,
+  "claimsGeneratedLighting": false,
+  "p1Pass": false,
+  "interiorLitVerified": false,
+  "liveUe": false,
+  "scp": false,
+  "kind": "visibility-cvars",
+  "engine": "UE5.8",
+  "wiredAfterIsolate": true,
+  "execs": [
+    "viewmode Lit",
+    "r.AmbientOcclusionLevels 1",
+    "r.SkylightIntensityMultiplier 2",
+    "r.TonemapperGamma 2.2",
+    "r.EyeAdaptationQuality 2",
+    "r.DefaultFeature.AutoExposure 1",
+    "ShowFlag.Tonemapper 1"
+  ],
+  "note": "Control-plane visibility cvars. isolate/shoot paths exec these via IPC highresshot after isolate_carina. Not generated lighting. Not world-model lighting. Not a P1 pass. This dump did not run live UE.",
+  "wroteBy": "scripts/probes/p1-interior-lit.ts"
+}

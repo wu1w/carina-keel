@@ -132,6 +132,14 @@ export {
   type FactoryValidation,
 } from "./factory-manifest.js";
 export {
+  WORLD_MODEL_SPACE_PROVIDERS,
+  isWorldModelSpaceProvider,
+  worldModelSourceSchema,
+  worldModelSpaceProviderSchema,
+  type WorldModelSource,
+  type WorldModelSpaceProvider,
+} from "./world-model.js";
+export {
   solarWmExperimentSchema,
   visualAcceptanceSchema,
   type SolarWmExperiment,

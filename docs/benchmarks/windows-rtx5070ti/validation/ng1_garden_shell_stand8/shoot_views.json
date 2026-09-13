@@ -1,0 +1,273 @@
+{
+  "at": "2026-09-13T07:56:28+0800",
+  "shots": {
+    "door_inside_to_garden": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ng1_garden_shell_stand8\\door_inside_to_garden.png",
+    "seam_at_door": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ng1_garden_shell_stand8\\seam_at_door.png",
+    "garden_back_to_door": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ng1_garden_shell_stand8\\garden_back_to_door.png",
+    "overhead_wire": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ng1_garden_shell_stand8\\overhead_wire.png",
+    "overhead_lit": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ng1_garden_shell_stand8\\overhead_lit.png"
+  },
+  "poses": {
+    "door_inside_to_garden": {
+      "ok": true,
+      "error": null,
+      "pawnX": 600,
+      "pawnY": 120,
+      "pawnZ": 160
+    },
+    "seam_at_door": {
+      "ok": true,
+      "error": null,
+      "pawnX": 600,
+      "pawnY": 20,
+      "pawnZ": 160
+    },
+    "garden_back_to_door": {
+      "ok": true,
+      "error": null,
+      "pawnX": 600,
+      "pawnY": -650,
+      "pawnZ": 160
+    }
+  },
+  "standTests": {
+    "garden_floor_drop": {
+      "pose": {
+        "ok": true,
+        "error": null,
+        "pawnX": 300,
+        "pawnY": -500,
+        "pawnZ": 300,
+        "pawnName": "BP_ThirdPersonCharacter_C_2147482384"
+      },
+      "dropFromCarina": [
+        3,
+        3,
+        -5
+      ],
+      "expectedUeCm": {
+        "x": 300.0,
+        "y": -500.0,
+        "z": 300.0
+      },
+      "standPawnAfterSettle": {
+        "x": 300,
+        "y": -500,
+        "z": 300,
+        "name": "BP_ThirdPersonCharacter_C_2147482360",
+        "movementMode": 3,
+        "cheatFlying": false,
+        "gravityScale": 1
+      },
+      "psPawnAfterSettle": {
+        "x": -2.269335640083661,
+        "y": 4747.5499367585735,
+        "z": 5380.757105141111,
+        "name": "BP_ThirdPersonCharacter_C_2147482384",
+        "possessed": true,
+        "collision": true,
+        "movementMode": 3,
+        "cheatFlying": false,
+        "gravityScale": 1
+      },
+      "shot": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ng1_garden_shell_stand8\\stand_garden_floor_drop.png"
+    },
+    "seam_drop": {
+      "pose": {
+        "ok": true,
+        "error": null,
+        "pawnX": 600,
+        "pawnY": -60,
+        "pawnZ": 250,
+        "pawnName": "BP_ThirdPersonCharacter_C_2147482384"
+      },
+      "dropFromCarina": [
+        6,
+        2.5,
+        -0.6
+      ],
+      "expectedUeCm": {
+        "x": 600.0,
+        "y": -60.0,
+        "z": 250.0
+      },
+      "standPawnAfterSettle": {
+        "x": 600,
+        "y": -60,
+        "z": 250,
+        "name": "BP_ThirdPersonCharacter_C_2147482356",
+        "movementMode": 3,
+        "cheatFlying": false,
+        "gravityScale": 1
+      },
+      "psPawnAfterSettle": {
+        "x": 139.3879412566197,
+        "y": 5130.989444088585,
+        "z": 4999.071047846158,
+        "name": "BP_ThirdPersonCharacter_C_2147482384",
+        "possessed": true,
+        "collision": true,
+        "movementMode": 3,
+        "cheatFlying": false,
+        "gravityScale": 1
+      },
+      "shot": "C:\\Users\\wuyw\\carina-rtx-validation\\logs\\ng1_garden_shell_stand8\\stand_seam_drop.png"
+    }
+  },
+  "spawned": [
+    {
+      "objectId": "bar-front",
+      "hasComp": true,
+      "hasMesh": true,
+      "mesh": "/Game/Imported/Dynamic/bar_front/asset/StaticMeshes/asset.Asset",
+      "alive": true,
+      "actor": "StaticMeshActor_2147482376",
+      "x": 120.00000000000001,
+      "y": 705,
+      "z": 0,
+      "sx": 1,
+      "sy": 1,
+      "sz": 1,
+      "localRadius": 166.4275665283203,
+      "minX": -44.7276153564453,
+      "minY": 674.8225383758545,
+      "minZ": 0,
+      "maxX": 275.2723846435547,
+      "maxY": 734.8225402832031,
+      "maxZ": 110,
+      "boxComponents": 0
+    },
+    {
+      "objectId": "fireplace",
+      "hasComp": true,
+      "hasMesh": true,
+      "mesh": "/Game/Imported/Dynamic/fireplace/fireplace/StaticMeshes/fireplace.fireplace",
+      "alive": true,
+      "actor": "StaticMeshActor_2147482375",
+      "x": 940,
+      "y": 955.0000000000001,
+      "z": 0,
+      "sx": 1,
+      "sy": 1,
+      "sz": 1,
+      "localRadius": 110.40925598144531,
+      "minX": 875.3347320556641,
+      "minY": 913.2847595214845,
+      "minZ": 0,
+      "maxX": 1015.3347320556641,
+      "maxY": 983.2847576141359,
+      "maxZ": 180,
+      "boxComponents": 0
+    },
+    {
+      "objectId": "courtyard-feature",
+      "hasComp": true,
+      "hasMesh": true,
+      "mesh": "/Game/Imported/Dynamic/courtyard_feature/courtyard_feature/StaticMeshes/courtyard_feature.courtyard_feature",
+      "alive": true,
+      "actor": "StaticMeshActor_2147482374",
+      "x": 600,
+      "y": -400,
+      "z": 0,
+      "sx": 1,
+      "sy": 1,
+      "sz": 1,
+      "localRadius": 79.94481658935547,
+      "minX": 537.70166015625,
+      "minY": -464.5522155761719,
+      "minZ": 0,
+      "maxX": 657.70166015625,
+      "maxY": -344.55221939086914,
+      "maxZ": 120.00000762939453,
+      "boxComponents": 0
+    },
+    {
+      "objectId": "interior-garden-floor",
+      "hasComp": true,
+      "hasMesh": true,
+      "mesh": "/Game/Imported/Dynamic/interior_garden_floor_02340f5c/interior_garden_floor_02340f5c/StaticMeshes/interior_garden_floor_02340f5c.interior_garden_floor_02340f5c",
+      "alive": true,
+      "actor": "StaticMeshActor_2147482373",
+      "x": 600,
+      "y": -400,
+      "z": -15,
+      "sx": 1,
+      "sy": 1,
+      "sz": 1,
+      "localRadius": 721.1492309570312,
+      "minX": 0,
+      "minY": -800,
+      "minZ": -15,
+      "maxX": 1200,
+      "maxY": 0,
+      "maxZ": 9.5367431640625e-07,
+      "boxComponents": 0
+    },
+    {
+      "objectId": "interior-garden-wall-west",
+      "hasComp": true,
+      "hasMesh": true,
+      "mesh": "/Game/Imported/Dynamic/interior_garden_wall_west_0264a41f/interior_garden_wall_west_0264a41f/StaticMeshes/interior_garden_wall_west_0264a41f.interior_garden_wall_west_0264a41f",
+      "alive": true,
+      "actor": "StaticMeshActor_2147482369",
+      "x": -10,
+      "y": -400,
+      "z": 0,
+      "sx": 1,
+      "sy": 1,
+      "sz": 1,
+      "localRadius": 427.31719970703125,
+      "minX": -20,
+      "minY": -800,
+      "minZ": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "maxZ": 300,
+      "boxComponents": 0
+    },
+    {
+      "objectId": "interior-garden-wall-east",
+      "hasComp": true,
+      "hasMesh": true,
+      "mesh": "/Game/Imported/Dynamic/interior_garden_wall_east_99bc6e23/interior_garden_wall_east_99bc6e23/StaticMeshes/interior_garden_wall_east_99bc6e23.interior_garden_wall_east_99bc6e23",
+      "alive": true,
+      "actor": "StaticMeshActor_2147482366",
+      "x": 1210,
+      "y": -400,
+      "z": 0,
+      "sx": 1,
+      "sy": 1,
+      "sz": 1,
+      "localRadius": 427.31719970703125,
+      "minX": 1200,
+      "minY": -800,
+      "minZ": 0,
+      "maxX": 1220,
+      "maxY": 0,
+      "maxZ": 300,
+      "boxComponents": 0
+    },
+    {
+      "objectId": "interior-garden-wall-south",
+      "hasComp": true,
+      "hasMesh": true,
+      "mesh": "/Game/Imported/Dynamic/interior_garden_wall_south_e425ae22/interior_garden_wall_south_e425ae22/StaticMeshes/interior_garden_wall_south_e425ae22.interior_garden_wall_south_e425ae22",
+      "alive": true,
+      "actor": "StaticMeshActor_2147482363",
+      "x": 600,
+      "y": -810,
+      "z": 0,
+      "sx": 1,
+      "sy": 1,
+      "sz": 1,
+      "localRadius": 618.5466918945312,
+      "minX": 0,
+      "minY": -820,
+      "minZ": 0,
+      "maxX": 1200,
+      "maxY": -800,
+      "maxZ": 300,
+      "boxComponents": 0
+    }
+  ]
+}

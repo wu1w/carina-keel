@@ -1,0 +1,298 @@
+{
+  "glb": "C:\\Users\\wuyw\\carina-rtx-validation\\blender-verify\\ng1-tavern.glb",
+  "objectCount": 25,
+  "meshCount": 15,
+  "selectableMeshNames": [
+    "ceramic-cup",
+    "geometry_0",
+    "geometry_0.001",
+    "oak-chair",
+    "oak-door",
+    "oak-table",
+    "\u4e1c\u4fa7\u5899",
+    "\u5317\u4fa7\u5899",
+    "\u5357\u4fa7\u5899\u53f3",
+    "\u5357\u4fa7\u5899\u5de6",
+    "\u5357\u4fa7\u5899\u6963",
+    "\u5427\u53f0",
+    "\u5730\u677f",
+    "\u7a97",
+    "\u897f\u4fa7\u5899"
+  ],
+  "objects": [
+    {
+      "name": "asset-root",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "asset-root.001",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "asset-root.002",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "asset-root.003",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "ceramic-cup",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 16,
+      "materials": [
+        "ceramic-cup-pbr"
+      ]
+    },
+    {
+      "name": "geometry_0",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 22343,
+      "materials": [
+        "Material_0"
+      ]
+    },
+    {
+      "name": "geometry_0.001",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 22127,
+      "materials": [
+        "Material_1"
+      ]
+    },
+    {
+      "name": "oak-chair",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 18,
+      "materials": [
+        "oak-chair-pbr"
+      ]
+    },
+    {
+      "name": "oak-door",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 16,
+      "materials": [
+        "oak-door-pbr"
+      ]
+    },
+    {
+      "name": "oak-table",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 20,
+      "materials": [
+        "oak-table-pbr"
+      ]
+    },
+    {
+      "name": "\u4e1c\u4fa7\u5899",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u4e1c\u4fa7\u5899"
+      ]
+    },
+    {
+      "name": "\u5317\u4fa7\u5899",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5317\u4fa7\u5899"
+      ]
+    },
+    {
+      "name": "\u5357\u4fa7\u5899\u53f3",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5357\u4fa7\u5899\u53f3"
+      ]
+    },
+    {
+      "name": "\u5357\u4fa7\u5899\u5de6",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5357\u4fa7\u5899\u5de6"
+      ]
+    },
+    {
+      "name": "\u5357\u4fa7\u5899\u6963",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5357\u4fa7\u5899\u6963"
+      ]
+    },
+    {
+      "name": "\u5427\u53f0",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5427\u53f0"
+      ]
+    },
+    {
+      "name": "\u5427\u53f0\u6b63\u9762",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "\u5730\u677f",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u5730\u677f"
+      ]
+    },
+    {
+      "name": "\u58c1\u7089",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "\u676f\u5b50",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "\u684c\u5b50",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "\u6905\u5b50",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    },
+    {
+      "name": "\u7a97",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u7a97"
+      ]
+    },
+    {
+      "name": "\u897f\u4fa7\u5899",
+      "type": "MESH",
+      "hide_select": false,
+      "verts": 24,
+      "materials": [
+        "\u897f\u4fa7\u5899"
+      ]
+    },
+    {
+      "name": "\u95e8",
+      "type": "EMPTY",
+      "hide_select": false,
+      "verts": 0,
+      "materials": []
+    }
+  ],
+  "materials": [
+    "ceramic-cup-pbr",
+    "Material_0",
+    "Material_1",
+    "oak-chair-pbr",
+    "oak-door-pbr",
+    "oak-table-pbr",
+    "\u4e1c\u4fa7\u5899",
+    "\u5317\u4fa7\u5899",
+    "\u5357\u4fa7\u5899\u53f3",
+    "\u5357\u4fa7\u5899\u5de6",
+    "\u5357\u4fa7\u5899\u6963",
+    "\u5427\u53f0",
+    "\u5730\u677f",
+    "\u7a97",
+    "\u897f\u4fa7\u5899"
+  ],
+  "images": [
+    {
+      "name": "ceramic-cup-albedo",
+      "size": [
+        4,
+        4
+      ],
+      "packed": true
+    },
+    {
+      "name": "Image_0",
+      "size": [
+        512,
+        512
+      ],
+      "packed": true
+    },
+    {
+      "name": "Image_1",
+      "size": [
+        512,
+        512
+      ],
+      "packed": true
+    },
+    {
+      "name": "oak-chair-albedo",
+      "size": [
+        4,
+        4
+      ],
+      "packed": true
+    },
+    {
+      "name": "oak-door-albedo",
+      "size": [
+        4,
+        4
+      ],
+      "packed": true
+    },
+    {
+      "name": "oak-table-albedo",
+      "size": [
+        4,
+        4
+      ],
+      "packed": true
+    }
+  ],
+  "claimsWorldModelGeneration": false,
+  "note": "Blender import of Carina export; object names come from GLB nodes."
+}

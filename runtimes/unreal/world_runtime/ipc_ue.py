@@ -31,6 +31,14 @@ def ue_bridge_available() -> bool:
     return False
 
 
+def _decode_host_text(raw: bytes) -> str:
+    """UE's FFileHelper writes UTF-16 LE (BOM FF FE) when a string has non-ASCII chars (e.g. an
+    error message with an em dash) and UTF-8 otherwise. Honour the BOM instead of assuming UTF-8."""
+    if raw.startswith(b"\xff\xfe") or raw.startswith(b"\xfe\xff"):
+        return raw.decode("utf-16")
+    return raw.decode("utf-8-sig")
+
+
 def send_command(cmd: dict[str, Any], timeout_s: float = 15.0) -> dict[str, Any]:
     config.ensure_dirs()
     command_id = cmd.get("ipcId") or str(uuid.uuid4())
@@ -46,13 +54,13 @@ def send_command(cmd: dict[str, Any], timeout_s: float = 15.0) -> dict[str, Any]
             p = outbox / f"{command_id}.json"
             if p.is_file():
                 try:
-                    data = json.loads(p.read_text(encoding="utf-8"))
+                    data = json.loads(_decode_host_text(p.read_bytes()))
                     try:
                         p.unlink()
                     except OSError:
                         pass
                     return data
-                except json.JSONDecodeError:
-                    pass
+                except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+                    pass  # partial write; poll again
         time.sleep(0.05)
     return {"ok": False, "error": "UE IPC timeout — host spawn bridge not responding", "status": 501, "ipcId": command_id}

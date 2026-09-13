@@ -129,4 +129,9 @@ test("app.html product viewport is PS2 with extracted stream helpers", () => {
     helpers.streamOverlayKey("live", false, true),
     "ui.runtimeDisconnected",
   );
+  assert.doesNotMatch(
+    html,
+    /const runtimeDown = streamPhase === ["']disconnected["']/,
+  );
+  assert.match(html, /const runtimeDown = !runtime;/);
 });

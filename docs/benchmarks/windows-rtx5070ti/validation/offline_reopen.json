@@ -1,0 +1,62 @@
+{
+  "probe": "offline-reopen",
+  "at": "2026-09-12T23:45:37.169Z",
+  "generationUrlsUnset": {
+    "meshProviderUrl": false,
+    "spaceProviderUrl": false
+  },
+  "pack": {
+    "dataDir": "/tmp/carina-ng1-space",
+    "worldId": "01M2B71PMCBJP585C4F4Z2N400",
+    "revision": "01M2C04ZQR1EP0P1484VPZKJZS"
+  },
+  "committed": {
+    "objectIds": [
+      "bar-front",
+      "chair",
+      "cup",
+      "door",
+      "fireplace",
+      "floor",
+      "interior-space-shell",
+      "table",
+      "wall-east",
+      "wall-north",
+      "wall-south-east",
+      "wall-south-lintel",
+      "wall-south-west",
+      "wall-west",
+      "window"
+    ],
+    "shellObjectId": "interior-space-shell",
+    "shellHash": "2cbef0554ec45f73b9a0df2b8f953f466aba31917ea85b728b6fb06ab2d60c87",
+    "claimsWorldModelGeneration": true,
+    "npcAppearance": null
+  },
+  "play": {
+    "runAccepted": true,
+    "pauseAccepted": true,
+    "simTimeRan": true,
+    "simTimeFrozen": true,
+    "npcFrozen": false,
+    "walkAccepted": true,
+    "walked": true
+  },
+  "freezeRestore": {
+    "freezeAccepted": true,
+    "restoreAccepted": true,
+    "shellHashUnchanged": true,
+    "objectsUnchanged": true,
+    "historyKept": true
+  },
+  "honesty": {
+    "note": "Offline walk of a committed pack. 3D still mixes catalog/CC0 structure with the WorldGen shell and TripoSR featured objects. Not a generation-off walk of a multi-view reconstructed tavern.",
+    "claimsWorldModelGeneration": true
+  },
+  "verdict": {
+    "openedWithoutGenerationUrls": true,
+    "pauseFreezesNpc": true,
+    "walkWhilePaused": true,
+    "shellHashStable": true
+  }
+}

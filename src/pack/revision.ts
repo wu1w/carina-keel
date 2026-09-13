@@ -6,6 +6,7 @@ import {
   headFileSchema,
   WORLD_DOCUMENT_IDS,
   worldSnapshotSchema,
+  type CommitRecord,
   type HeadFile,
   type SessionFile,
   type WorldSnapshot,
@@ -14,6 +15,7 @@ import { compileWorldRules } from "../spatial/compile-world-rules.js";
 import { createUlid, nowIsoUtc } from "../world/ids.js";
 import { sha256Hex } from "./hash.js";
 import {
+  commitPosix,
   ensureV1Directories,
   headFileExists,
   LOGICAL_PROJECTION_FILES,
@@ -110,6 +112,67 @@ export async function readSnapshot(
     throw new CarinaError("PACK_INVALID", "error.packInvalid", parsed.error);
   }
   return parsed.data;
+}
+
+/**
+ * zh: 检查点列表的一行：HEAD 到根的 revision 链。
+ * en: One checkpoint row: HEAD-to-root revision chain.
+ */
+export type CheckpointRow = {
+  revision: string;
+  parentRevision: string | null;
+  createdAt: string;
+  summary: string;
+  current: boolean;
+};
+
+/**
+ * zh: 读一次提交记录。文件缺失或损坏则 undefined。
+ * en: Read one commit record. Undefined when the file is missing or invalid.
+ */
+export async function readCommit(
+  packDir: string,
+  revision: string,
+): Promise<CommitRecord | undefined> {
+  const filePath = resolvePosix(path.resolve(packDir), commitPosix(revision));
+  let text: string;
+  try {
+    text = await readFile(filePath, "utf8");
+  } catch {
+    return undefined;
+  }
+  try {
+    const parsed = commitRecordSchema.safeParse(JSON.parse(text) as unknown);
+    return parsed.success ? parsed.data : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * zh: 从 HEAD 沿 parentRevision 列出检查点。当前 HEAD 标 current。
+ * en: List checkpoints from HEAD along parentRevision. The current HEAD is marked current.
+ */
+export async function listCheckpoints(packDir: string): Promise<CheckpointRow[]> {
+  await ensureV1(packDir);
+  const head = await readHead(packDir);
+  const rows: CheckpointRow[] = [];
+  const seen = new Set<string>();
+  let revision: string | null = head.revision;
+  while (revision !== null && !seen.has(revision)) {
+    seen.add(revision);
+    const snapshot = await readSnapshot(packDir, revision);
+    const commit = await readCommit(packDir, revision);
+    rows.push({
+      revision,
+      parentRevision: snapshot.parentRevision,
+      createdAt: snapshot.createdAt,
+      summary: commit?.summary ?? "",
+      current: revision === head.revision,
+    });
+    revision = snapshot.parentRevision;
+  }
+  return rows;
 }
 
 /**

@@ -23,6 +23,7 @@ const METRIC_FRAME = {
 const TAVERN_RE = /酒馆|客栈|酒吧|吧台|tavern|inn|pub|\bbar\b/i;
 const COURTYARD_RE = /庭院|院子|花园|露台|courtyard|garden|terrace/i;
 const SIGN_RE = /招牌|匾|signboard|\bsign\b/i;
+const FIREPLACE_RE = /壁炉|fireplace|hearth/i;
 const STATION_RE = /空间站|station|科幻|spacecraft/i;
 
 export type CompileSceneSpecInput = {
@@ -85,14 +86,17 @@ export function heuristicSceneSpec(input: {
   const tavern = TAVERN_RE.test(haystack);
   const courtyard = COURTYARD_RE.test(haystack);
   const station = STATION_RE.test(haystack) && !tavern;
-  const wantSign = SIGN_RE.test(haystack) || tavern;
+  const wantSign = SIGN_RE.test(haystack);
+  const wantFireplace = FIREPLACE_RE.test(haystack);
   if (station) {
     return sceneSpecSchema.parse(
       stationSpec(prompt, name, courtyard),
     );
   }
   if (tavern) {
-    return sceneSpecSchema.parse(tavernSpec(prompt, name, courtyard, wantSign));
+    return sceneSpecSchema.parse(
+      tavernSpec(prompt, name, courtyard, wantSign, wantFireplace),
+    );
   }
   return sceneSpecSchema.parse(genericSpec(prompt, name, courtyard));
 }
@@ -119,13 +123,73 @@ export function sceneSpecFromSnapshot(
 }
 
 /**
+ * zh: 室内特色网格先于升成 generate 的目录家具。酒馆 featured 仍是 bar-front。
+ * en: Featured interior meshes stay ahead of catalog furniture promoted to generate.
+ */
+const FEATURED_INTERIOR_GENERATE = ["bar-front", "fireplace"] as const;
+
+function interiorGeneratePriority(objectId: string): number {
+  const featured = (FEATURED_INTERIOR_GENERATE as readonly string[]).indexOf(
+    objectId,
+  );
+  if (featured >= 0) {
+    return featured;
+  }
+  if (isCourtyardObjectId(objectId)) {
+    return 100;
+  }
+  return 10 + FEATURED_INTERIOR_GENERATE.length;
+}
+
+/**
  * zh: 第一个 route: generate 物件。酒馆 heuristic 是 bar-front。不是已生成网格。
  * en: First route: generate object. Tavern heuristic is bar-front. Not a generated mesh.
  */
 export function firstGenerateObject(
   spec: SceneSpec,
 ): SceneSpecObject | undefined {
-  return spec.objects.find((object) => object.route === "generate");
+  const generate = spec.objects.filter((object) => object.route === "generate");
+  if (generate.length === 0) {
+    return undefined;
+  }
+  return [...generate].sort(
+    (left, right) =>
+      interiorGeneratePriority(left.objectId) -
+      interiorGeneratePriority(right.objectId),
+  )[0];
+}
+
+/**
+ * zh: 创建时要 POST 的室内 generate 物件。庭院 generate 留给 extend。
+ *     特色件（吧台/壁炉）排在升成 generate 的门/桌/杯前面。
+ * en: Interior generate objects to POST on create. Courtyard generate waits for extend.
+ *     Featured bar/fireplace stay ahead of door/table/cup promoted to generate.
+ */
+export function interiorGenerateObjects(spec: SceneSpec): SceneSpecObject[] {
+  return spec.objects
+    .filter(
+      (object) =>
+        object.route === "generate" && !isCourtyardObjectId(object.objectId),
+    )
+    .slice()
+    .sort(
+      (left, right) =>
+        interiorGeneratePriority(left.objectId) -
+        interiorGeneratePriority(right.objectId),
+    );
+}
+
+/**
+ * zh: 扩展要生成的是庭院物件，不是室内吧台。
+ * en: Extend generates a courtyard object, not the interior bar.
+ */
+export function firstExtendGenerateObject(
+  spec: SceneSpec,
+): SceneSpecObject | undefined {
+  return spec.objects.find(
+    (object) =>
+      object.route === "generate" && isCourtyardObjectId(object.objectId),
+  );
 }
 
 /**
@@ -183,6 +247,7 @@ const FURNITURE_PLAN_IDS = {
   chair: ["chair"],
   cup: ["cup"],
   door: ["door"],
+  window: ["window"],
 } as const;
 
 /**
@@ -267,7 +332,7 @@ export function resolveFurniturePlanObjectId(
 
 function furnitureKindOf(
   label: string,
-): "bar" | "table" | "chair" | "cup" | "door" | undefined {
+): "bar" | "table" | "chair" | "cup" | "door" | "window" | undefined {
   const raw = label.trim();
   const lower = raw.toLowerCase();
   if (isBarAlias(raw)) {
@@ -285,10 +350,15 @@ function furnitureKindOf(
   if (lower === "door" || raw === "门") {
     return "door";
   }
+  if (lower === "window" || raw === "窗" || raw === "窗边" || raw === "窗口") {
+    return "window";
+  }
   return undefined;
 }
 
-function furnitureNameOf(kind: "table" | "chair" | "cup" | "door"): string {
+function furnitureNameOf(
+  kind: "table" | "chair" | "cup" | "door" | "window",
+): string {
   if (kind === "table") {
     return "桌子";
   }
@@ -298,10 +368,19 @@ function furnitureNameOf(kind: "table" | "chair" | "cup" | "door"): string {
   if (kind === "cup") {
     return "杯子";
   }
+  if (kind === "window") {
+    return "窗";
+  }
   return "门";
 }
 
-const COURTYARD_OBJECT_IDS = ["garden-gate", "courtyard-tree"] as const;
+const COURTYARD_OBJECT_IDS = [
+  "garden-gate",
+  "courtyard-tree",
+  "courtyard-feature",
+] as const;
+const COURTYARD_DEPTH_M = 8;
+const COURTYARD_HEIGHT_M = 3;
 
 /**
  * zh: 给已有计划补 courtyard 与至少 1 个相邻物件。不换 interior / 已有 objectId / source。
@@ -314,33 +393,34 @@ export function applySceneSpecExtend(spec: SceneSpec): SceneSpec | undefined {
   }
   const interiorBounds = interior.bounds ?? spec.bounds;
   const hasCourtyard = spec.regions.some((region) => region.kind === "courtyard");
-  const hasAdjacentObject = spec.objects.some((item) =>
-    isCourtyardObjectId(item.objectId),
+  const hasGate = spec.objects.some((item) => item.objectId === "garden-gate");
+  const hasFeature = spec.objects.some(
+    (item) => item.objectId === "courtyard-feature",
   );
-  if (hasCourtyard && hasAdjacentObject) {
+  if (hasCourtyard && hasGate && hasFeature) {
     return spec;
   }
-  const yardBounds = courtyardAdjacentTo(interiorBounds);
+  const yardBounds = hasCourtyard
+    ? (spec.regions.find((region) => region.kind === "courtyard")?.bounds ??
+      courtyardBeyondDoor(spec, interiorBounds))
+    : courtyardBeyondDoor(spec, interiorBounds);
   const regions = hasCourtyard
     ? spec.regions
     : [...spec.regions, region("courtyard", "庭院", "courtyard", yardBounds)];
-  const objects = hasAdjacentObject
-    ? spec.objects
-    : [
-        ...spec.objects,
-        object(
-          "garden-gate",
-          "园门",
-          "door",
-          "scaffold",
-          dim(0.12, 2.2, 1.2),
-          anchor(
-            interiorBounds.max.x,
-            1.1,
-            (interiorBounds.min.z + interiorBounds.max.z) / 2,
-          ),
-        ),
-      ];
+  let objects = spec.objects;
+  const planned = courtyardPlanObjects(interiorBounds, yardBounds, spec);
+  if (!hasGate) {
+    const gate = planned.find((item) => item.objectId === "garden-gate");
+    if (gate !== undefined) {
+      objects = [...objects, gate];
+    }
+  }
+  if (!hasFeature) {
+    const feature = planned.find((item) => item.objectId === "courtyard-feature");
+    if (feature !== undefined) {
+      objects = [...objects, feature];
+    }
+  }
   const courtyard = regions.find((region) => region.kind === "courtyard");
   const bounds =
     courtyard?.bounds !== undefined
@@ -418,14 +498,144 @@ function isCourtyardObjectId(objectId: string): boolean {
 }
 
 function courtyardAdjacentTo(interior: SceneSpec["bounds"]): SceneSpec["bounds"] {
+  return courtyardBeyondDoor({ objects: [] }, interior);
+}
+
+/**
+ * zh: 庭院贴在门的外侧，接缝可走。不是贴在室内 +X 的无门那面。
+ * en: Place the courtyard outside the door so the seam is walkable, not on the doorless +X face.
+ */
+function courtyardBeyondDoor(
+  spec: Pick<SceneSpec, "objects">,
+  interior: SceneSpec["bounds"],
+): SceneSpec["bounds"] {
+  const door = planDoor(spec);
+  const depth = COURTYARD_DEPTH_M;
+  const height = COURTYARD_HEIGHT_M;
+  if (door?.anchor === undefined) {
+    return aabb(
+      interior.min.x,
+      interior.min.y,
+      interior.min.z - depth,
+      interior.max.x,
+      interior.min.y + height,
+      interior.min.z,
+    );
+  }
+  const at = door.anchor;
+  const toMinZ = Math.abs(at.z - interior.min.z);
+  const toMaxZ = Math.abs(at.z - interior.max.z);
+  const toMinX = Math.abs(at.x - interior.min.x);
+  const toMaxX = Math.abs(at.x - interior.max.x);
+  const nearest = Math.min(toMinZ, toMaxZ, toMinX, toMaxX);
+  if (nearest === toMinZ) {
+    return aabb(
+      interior.min.x,
+      interior.min.y,
+      interior.min.z - depth,
+      interior.max.x,
+      interior.min.y + height,
+      interior.min.z,
+    );
+  }
+  if (nearest === toMaxZ) {
+    return aabb(
+      interior.min.x,
+      interior.min.y,
+      interior.max.z,
+      interior.max.x,
+      interior.min.y + height,
+      interior.max.z + depth,
+    );
+  }
+  if (nearest === toMinX) {
+    return aabb(
+      interior.min.x - depth,
+      interior.min.y,
+      interior.min.z,
+      interior.min.x,
+      interior.min.y + height,
+      interior.max.z,
+    );
+  }
   return aabb(
     interior.max.x,
     interior.min.y,
     interior.min.z,
-    interior.max.x + 8,
-    interior.min.y + 3,
+    interior.max.x + depth,
+    interior.min.y + height,
     interior.max.z,
   );
+}
+
+function courtyardPlanObjects(
+  interior: SceneSpec["bounds"],
+  yard: SceneSpec["bounds"],
+  spec: Pick<SceneSpec, "objects">,
+): SceneSpecObject[] {
+  const door = planDoor(spec);
+  const seam = sharedSeam(interior, yard);
+  const gateX = door?.anchor?.x ?? (interior.min.x + interior.max.x) / 2;
+  const gateZ = door?.anchor?.z ?? (interior.min.z + interior.max.z) / 2;
+  const gate =
+    seam.axis === "z"
+      ? object(
+          "garden-gate",
+          "园门",
+          "door",
+          "scaffold",
+          dim(1.2, 2.2, 0.12),
+          anchor(gateX, 1.1, seam.value),
+        )
+      : object(
+          "garden-gate",
+          "园门",
+          "door",
+          "scaffold",
+          dim(0.12, 2.2, 1.2),
+          anchor(seam.value, 1.1, gateZ),
+        );
+  return [
+    gate,
+    object(
+      "courtyard-feature",
+      "庭院景物",
+      "feature",
+      "generate",
+      dim(1.2, 1.2, 1.2),
+      anchor(
+        (yard.min.x + yard.max.x) / 2,
+        0.6,
+        (yard.min.z + yard.max.z) / 2,
+      ),
+    ),
+  ];
+}
+
+function planDoor(spec: Pick<SceneSpec, "objects">): SceneSpecObject | undefined {
+  return spec.objects.find(
+    (item) => item.role === "door" && item.objectId !== "garden-gate",
+  );
+}
+
+function sharedSeam(
+  interior: SceneSpec["bounds"],
+  yard: SceneSpec["bounds"],
+): { axis: "x" | "z"; value: number } {
+  if (nearlyEqual(yard.max.z, interior.min.z)) {
+    return { axis: "z", value: interior.min.z };
+  }
+  if (nearlyEqual(yard.min.z, interior.max.z)) {
+    return { axis: "z", value: interior.max.z };
+  }
+  if (nearlyEqual(yard.max.x, interior.min.x)) {
+    return { axis: "x", value: interior.min.x };
+  }
+  return { axis: "x", value: interior.max.x };
+}
+
+function nearlyEqual(left: number, right: number): boolean {
+  return Math.abs(left - right) < 1e-6;
 }
 
 function unionAabb(
@@ -573,17 +783,12 @@ function tavernSpec(
   name: string,
   courtyard: boolean,
   wantSign: boolean,
+  wantFireplace: boolean,
 ): SceneSpec {
   const interiorBounds = aabb(0, 0, 0, 12, 4, 10);
   const regions: SceneSpecRegion[] = [
     region("interior", "室内", "interior", interiorBounds),
   ];
-  let bounds = interiorBounds;
-  if (courtyard) {
-    const yard = aabb(12, 0, 0, 20, 3, 10);
-    regions.push(region("courtyard", "庭院", "courtyard", yard));
-    bounds = aabb(0, 0, 0, 20, 4, 10);
-  }
   const objects: SceneSpecObject[] = [
     object("floor", "地板", "structure", "scaffold", dim(12, 0.2, 10), anchor(6, 0, 5)),
     object("walls", "墙", "structure", "scaffold", dim(12, 4, 10), anchor(6, 2, 5)),
@@ -600,23 +805,31 @@ function tavernSpec(
     object("table", "桌子", "furniture", "reuse", dim(1.2, 0.75, 1.2), anchor(8.5, 0.375, 4)),
     object("chair", "椅子", "furniture", "reuse", dim(0.5, 0.9, 0.5), anchor(8.5, 0.45, 3.2)),
     object("cup", "杯子", "prop", "reuse", dim(0.08, 0.12, 0.08), anchor(8.5, 0.81, 4)),
+    object("window", "窗", "feature", "reuse", dim(0.12, 1.4, 1.2), anchor(0.06, 1.7, 4)),
   ];
+  if (wantFireplace) {
+    objects.push(
+      object(
+        "fireplace",
+        "壁炉",
+        "feature",
+        "generate",
+        dim(1.4, 1.8, 0.7),
+        anchor(9.4, 0.9, 9.55),
+      ),
+    );
+  }
   if (wantSign) {
     objects.push(
       object("sign", "招牌", "feature", "generate", dim(1.6, 0.7, 0.08), anchor(6, 3.2, 0.2)),
     );
   }
+  let bounds = interiorBounds;
   if (courtyard) {
-    objects.push(
-      object(
-        "garden-gate",
-        "园门",
-        "door",
-        "scaffold",
-        dim(0.12, 2.2, 1.2),
-        anchor(12, 1.1, 5),
-      ),
-    );
+    const yard = courtyardBeyondDoor({ objects }, interiorBounds);
+    regions.push(region("courtyard", "庭院", "courtyard", yard));
+    objects.push(...courtyardPlanObjects(interiorBounds, yard, { objects }));
+    bounds = unionAabb(interiorBounds, yard);
   }
   return {
     schemaVersion: 1,

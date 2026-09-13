@@ -1,0 +1,25 @@
+{
+  "probe": "ps-pawn-drop-after-isolate",
+  "at": "2026-09-13T07:59:00+08:00",
+  "notWorldModel": true,
+  "note": "Default Third Person map collision was blocking/nav-warping the pawn. isolate_carina now also disables collision on non-Carina actors. After that the possessed pawn drops onto interior-garden-floor and stands.",
+  "dropFromCarina": [3, 3, -5],
+  "expectedUeCm": { "x": 300, "y": -500, "z": 300 },
+  "groundHit": true,
+  "groundZ": 9.5367431640625e-7,
+  "groundActor": "StaticMeshActor_2147482373",
+  "pawnAfterSettle": {
+    "x": 300,
+    "y": -500,
+    "z": 92.15000136562628,
+    "name": "BP_ThirdPersonCharacter_C_2147482384",
+    "possessed": true,
+    "collision": true,
+    "movementMode": 1,
+    "cheatFlying": false,
+    "gravityScale": 1
+  },
+  "capsuleOnFloor": true,
+  "scaffoldPrimitive": true,
+  "claimsWorldModelGeneration": false
+}

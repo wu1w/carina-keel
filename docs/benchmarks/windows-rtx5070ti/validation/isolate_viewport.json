@@ -1,0 +1,75 @@
+{
+  "probe": "isolate-viewport",
+  "at": "2026-09-13T04:04:09.040Z",
+  "honesty": {
+    "note": "isolate_carina + Lit cvars + play-enter pose over IPC. Hides the default Third Person map. Not generated lighting, not a P1 pass, not a world-model room.",
+    "p1Pass": false,
+    "claimsGeneratedLighting": false,
+    "claimsWorldModelGeneration": false,
+    "interiorLitVerified": false
+  },
+  "isolate": {
+    "ok": true,
+    "viewmodeLit": true,
+    "isolate": {
+      "ipcId": "3e46b6c5-3007-4d1c-8975-770786b2bf52",
+      "op": "isolate_carina",
+      "hidden": true,
+      "hiddenActors": 72,
+      "fillLight": true,
+      "ok": true,
+      "ms": 0.1264000020455569
+    },
+    "playEnter": {
+      "ok": true,
+      "hidePawn": false,
+      "dropFromCarina": [
+        6,
+        1.7,
+        5
+      ],
+      "expectedUeCm": {
+        "x": 600,
+        "y": 500,
+        "z": 170
+      },
+      "pose": {
+        "ok": true,
+        "pawnX": 600,
+        "pawnY": 500,
+        "pawnZ": 170,
+        "pawnName": "BP_ThirdPersonCharacter_C_2147482384",
+        "groundHit": true,
+        "groundActor": "BP_ThirdPersonCharacter_C_2147482384"
+      },
+      "pawn": {
+        "x": 600,
+        "y": 500,
+        "z": 168.26749237373787,
+        "yaw": -90.00000000000001,
+        "name": "BP_ThirdPersonCharacter_C_2147482384",
+        "possessed": true,
+        "collision": true,
+        "movementMode": 3,
+        "cheatFlying": false,
+        "gravityScale": 1
+      },
+      "scaffoldFloor": true,
+      "p1Pass": false,
+      "claimsGeneratedLighting": false,
+      "claimsWorldModelGeneration": false,
+      "note": "Standing eye-height on the SceneSpec floor box, not the space-shell mesh. Not a reconstructed room."
+    },
+    "p1Pass": false,
+    "claimsGeneratedLighting": false,
+    "claimsWorldModelGeneration": false,
+    "interiorLitVerified": false
+  },
+  "verdict": {
+    "isolated": true,
+    "viewmodeLit": true,
+    "playEnter": true,
+    "neverClaimsP1": true,
+    "p1Pass": false
+  }
+}

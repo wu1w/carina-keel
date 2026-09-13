@@ -108,6 +108,7 @@ export async function composeSceneGlb(input: {
     wrapper.setExtras({ sceneObjectId: object.sceneObjectId });
     applyInstanceTransform(wrapper, object.transform);
     attachSourceHierarchy(dest, scene, wrapper, source);
+    nameImportedMeshes(wrapper, name, usedNames);
     scene.addChild(wrapper);
     objectMapping.push({
       sceneObjectId: object.sceneObjectId,
@@ -175,6 +176,71 @@ function attachSourceHierarchy(
     }
   }
   dropExtraScenes(dest, destScene);
+}
+
+const GENERIC_MESH = /^(geometry(_\d+)?|\d+)$/i;
+const GENERIC_MATERIAL = /^(material(_\d+)?)$/i;
+const GENERIC_TEXTURE = /^(image(_\d+)?)$/i;
+
+/**
+ * zh: 把 TripoSR 的 geometry_0 / Material_0 改成物件名，方便 DCC 点选。已有 bar-body 等名字不动。
+ * en: Rename TripoSR geometry_0 / Material_0 to the object name for DCC picking. Keep names like bar-body.
+ */
+function nameImportedMeshes(
+  wrapper: GltfNode,
+  objectName: string,
+  used: Set<string>,
+): void {
+  const stack = [...wrapper.listChildren()];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (node === undefined) {
+      continue;
+    }
+    stack.push(...node.listChildren());
+    const mesh = node.getMesh();
+    if (mesh === null) {
+      continue;
+    }
+    if (isGenericName(node.getName(), GENERIC_MESH)) {
+      node.setName(uniqueImportedName(`${objectName}_mesh`, used));
+    }
+    if (isGenericName(mesh.getName(), GENERIC_MESH)) {
+      mesh.setName(node.getName());
+    }
+    for (const prim of mesh.listPrimitives()) {
+      const material = prim.getMaterial();
+      if (material === null) {
+        continue;
+      }
+      if (isGenericName(material.getName(), GENERIC_MATERIAL)) {
+        material.setName(`${objectName}-pbr`);
+      }
+      const texture = material.getBaseColorTexture();
+      if (texture !== null && isGenericName(texture.getName(), GENERIC_TEXTURE)) {
+        texture.setName(`${objectName}-albedo`);
+      }
+    }
+  }
+}
+
+function isGenericName(name: string, pattern: RegExp): boolean {
+  const trimmed = name.trim();
+  return trimmed.length === 0 || pattern.test(trimmed);
+}
+
+function uniqueImportedName(base: string, used: Set<string>): string {
+  if (!used.has(base)) {
+    used.add(base);
+    return base;
+  }
+  let n = 2;
+  while (used.has(`${base}_${n}`)) {
+    n += 1;
+  }
+  const name = `${base}_${n}`;
+  used.add(name);
+  return name;
 }
 
 async function attachPrimitiveMeshes(

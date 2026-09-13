@@ -5,6 +5,8 @@
 #include "Tickable.h"
 #include "CarinaWorldRuntimeSubsystem.generated.h"
 
+class ACameraActor;
+
 UCLASS()
 class CARINAPS_API UCarinaWorldRuntimeSubsystem : public UGameInstanceSubsystem, public FTickableGameObject
 {
@@ -38,4 +40,7 @@ private:
 	FString OutboxDir;
 	float HeartbeatAccum = 0.f;
 	TMap<FString, TWeakObjectPtr<AActor>> Spawned;
+	TWeakObjectPtr<AActor> StandProbe;
+	TWeakObjectPtr<ACameraActor> StillCamera;
+	TWeakObjectPtr<AActor> FillLight;
 };

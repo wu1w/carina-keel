@@ -4,7 +4,7 @@ import type { SceneObject, SceneSpec } from "../schema/index.js";
  * zh: 管家指代的家具种类。墙/地板不是可移家具。
  * en: Furniture kinds the steward can refer to. Walls/floor are not movable furniture.
  */
-export type FurnitureKind = "bar" | "table" | "chair" | "cup" | "door";
+export type FurnitureKind = "bar" | "table" | "chair" | "cup" | "door" | "window";
 
 /**
  * zh: 从物件 id / 中英文名称认家具。门口不算门。
@@ -37,6 +37,9 @@ export function furnitureKindFromLabel(label: string): FurnitureKind | undefined
   if (lower === "door" || raw === "门") {
     return "door";
   }
+  if (lower === "window" || raw === "窗" || raw === "窗边" || raw === "窗口") {
+    return "window";
+  }
   return undefined;
 }
 
@@ -57,6 +60,13 @@ export function findLiveObject(
   if (exact !== undefined) {
     return exact;
   }
+  const kind = furnitureKindFromLabel(needle);
+  if (kind === "bar") {
+    const featured = objects.find((item) => item.sceneObjectId === "bar-front");
+    if (featured !== undefined) {
+      return featured;
+    }
+  }
   if (planName !== undefined) {
     const named = objects.find((item) => item.name === planName);
     if (named !== undefined) {
@@ -67,7 +77,6 @@ export function findLiveObject(
   if (byName !== undefined) {
     return byName;
   }
-  const kind = furnitureKindFromLabel(needle);
   if (kind === undefined) {
     return undefined;
   }
@@ -126,6 +135,31 @@ export function structurePreserveIds(
   return ids;
 }
 
+/**
+ * zh: 水平面朝参照物件走指定米数。重合则无法编方向。
+ * en: Horizontal meters toward a referent. Coincident points have no direction.
+ */
+export function deltaToward(
+  from: { x: number; y: number; z: number },
+  to: { x: number; y: number; z: number },
+  meters: number,
+): { x: number; y: number; z: number } | undefined {
+  if (!Number.isFinite(meters) || meters <= 0) {
+    return undefined;
+  }
+  const dx = to.x - from.x;
+  const dz = to.z - from.z;
+  const len = Math.hypot(dx, dz);
+  if (len < 1e-6) {
+    return undefined;
+  }
+  return {
+    x: (dx / len) * meters,
+    y: 0,
+    z: (dz / len) * meters,
+  };
+}
+
 function liveMatchesKind(object: SceneObject, kind: FurnitureKind): boolean {
   const id = object.sceneObjectId.toLowerCase();
   const name = object.name.trim();
@@ -154,6 +188,14 @@ function liveMatchesKind(object: SceneObject, kind: FurnitureKind): boolean {
       id.endsWith("-door") ||
       name === "门" ||
       object.interactionProfile === "door"
+    );
+  }
+  if (kind === "window") {
+    return (
+      id === "window" ||
+      id.endsWith("-window") ||
+      name === "窗" ||
+      name === "窗边"
     );
   }
   return (

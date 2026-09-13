@@ -1,5 +1,7 @@
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { jobRecordSchema, type JobKind, type JobPurpose, type JobRecord, type JobStatus } from "../schema/index.js";
 import { createUlid, nowIsoUtc } from "../world/ids.js";
-import type { JobKind, JobPurpose, JobRecord } from "../schema/index.js";
 
 /**
  * zh: 判断任务结果是否仍可作用于当前世界。
@@ -35,6 +37,12 @@ export type JobQueue = {
   enqueue(input: EnqueueJobInput): JobRecord;
   cancel(jobId: string): JobRecord;
   observe(jobId: string): JobRecord | undefined;
+  mark(
+    jobId: string,
+    status: JobStatus,
+    extra?: Partial<JobRecord>,
+  ): JobRecord | undefined;
+  list(worldId?: string): JobRecord[];
   reconcile(state: {
     controlEpoch: number;
     headRevision?: string;
@@ -43,11 +51,24 @@ export type JobQueue = {
 };
 
 /**
+ * zh: 可选把任务记到 dataDir。重启不得把未完成任务当成可提交成功。
+ * en: Optional on-disk jobs. Restart must not treat in-flight jobs as committable successes.
+ */
+export type JobQueueOptions = {
+  persistPath?: string;
+};
+
+/**
  * zh: 创建任务队列。模拟任务在测试中立即完成。
  * en: Create a job queue. Mock jobs complete immediately in tests.
  */
-export function createJobQueue(): JobQueue {
+export function createJobQueue(options: JobQueueOptions = {}): JobQueue {
   const jobs = new Map<string, JobRecord>();
+  loadJobs(jobs, options.persistPath);
+
+  function persist(): void {
+    persistJobs(jobs, options.persistPath);
+  }
 
   return {
     enqueue(input: EnqueueJobInput): JobRecord {
@@ -77,6 +98,7 @@ export function createJobQueue(): JobQueue {
         record.providerJobId = input.providerJobId;
       }
       jobs.set(record.jobId, record);
+      persist();
       return cloneJob(record);
     },
 
@@ -115,6 +137,7 @@ export function createJobQueue(): JobQueue {
         record.cancelCapability = "stop_commit";
         record.updatedAt = nowIsoUtc();
       }
+      persist();
       return cloneJob(record);
     },
 
@@ -124,6 +147,35 @@ export function createJobQueue(): JobQueue {
         return undefined;
       }
       return cloneJob(record);
+    },
+
+    mark(jobId, status, extra) {
+      const record = jobs.get(jobId);
+      if (record === undefined) {
+        return undefined;
+      }
+      const next: JobRecord = {
+        ...record,
+        ...extra,
+        jobId: record.jobId,
+        worldId: extra?.worldId ?? record.worldId,
+        status,
+        updatedAt: nowIsoUtc(),
+      };
+      jobs.set(jobId, next);
+      persist();
+      return cloneJob(next);
+    },
+
+    list(worldId) {
+      const rows: JobRecord[] = [];
+      for (const record of jobs.values()) {
+        if (worldId !== undefined && record.worldId !== worldId) {
+          continue;
+        }
+        rows.push(cloneJob(record));
+      }
+      return rows;
     },
 
     reconcile(state: {
@@ -146,6 +198,7 @@ export function createJobQueue(): JobQueue {
           record.updatedAt = nowIsoUtc();
         }
       }
+      persist();
       return [...jobs.values()].map(cloneJob);
     },
 
@@ -212,4 +265,69 @@ function cloneJob(record: JobRecord): JobRecord {
  */
 function cloneReadSet(readSet: JobRecord["readSet"]): JobRecord["readSet"] {
   return structuredClone(readSet);
+}
+
+/**
+ * zh: 读盘。排队中/运行中的任务标失败，避免重启后当成已生成成功。
+ * en: Load from disk. In-flight jobs fail so restart cannot treat them as generated success.
+ */
+function loadJobs(jobs: Map<string, JobRecord>, persistPath: string | undefined): void {
+  if (persistPath === undefined) {
+    return;
+  }
+  let raw: string;
+  try {
+    raw = readFileSync(persistPath, "utf8");
+  } catch {
+    return;
+  }
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    return;
+  }
+  if (!Array.isArray(json)) {
+    return;
+  }
+  const now = nowIsoUtc();
+  let interrupted = false;
+  for (const row of json) {
+    const parsed = jobRecordSchema.safeParse(row);
+    if (!parsed.success) {
+      continue;
+    }
+    const record = parsed.data;
+    if (
+      record.status === "queued" ||
+      record.status === "running" ||
+      record.status === "cancelRequested"
+    ) {
+      record.status = "failed";
+      record.errorKey = "error.jobInterrupted";
+      record.updatedAt = now;
+      interrupted = true;
+    }
+    jobs.set(record.jobId, record);
+  }
+  if (interrupted) {
+    persistJobs(jobs, persistPath);
+  }
+}
+
+/**
+ * zh: 原子写入任务文件。
+ * en: Atomically write the job file.
+ */
+function persistJobs(
+  jobs: Map<string, JobRecord>,
+  persistPath: string | undefined,
+): void {
+  if (persistPath === undefined) {
+    return;
+  }
+  mkdirSync(path.dirname(persistPath), { recursive: true });
+  const tmp = `${persistPath}.${process.pid}.tmp`;
+  writeFileSync(tmp, JSON.stringify([...jobs.values()]));
+  renameSync(tmp, persistPath);
 }
